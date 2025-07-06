@@ -32,6 +32,11 @@ struct creature {
         float amp = age;
         ShowBitmap(x,y-amp,size,amp, hBitmap);
     }
+    void showRabbit()
+    {
+        float amp = age;
+        ShowBitmap(x, y , amp, amp, hBitmap);
+    }
 
 } ;
 
@@ -101,39 +106,41 @@ void processRabbit()
             continue;
         }
 
-        creature n;
-        n = rabbit[i];
+        creature* n = &rabbit[i];
         // Передвижение кролика
-        int move_range = 50; // Максимальное расстояние за ход
-        n.x += rand() % (move_range * 2) - move_range;
-        n.y += rand() % (move_range * 2) - move_range;
+        int move_range = 10; // Максимальное расстояние за ход
+        n->x += rand() % (move_range * 2) - move_range;
+        n->y += rand() % (move_range * 2) - move_range;
+
     }
     // Размножение кроликов
-    //for (int i = 0; i < rabbit.size(); i++)
-    //{
-        // Проверка, готов ли кролик к размножению
-       //float maturity_age = 234;
-        //if (rabbit[i].age >= rabbit[i].maturity_age)
-        //{
+    for (int i = 0; i < rabbit.size(); i++)
+    {
+    
+         //Проверка, готов ли кролик к размножению
+       float maturity_age = 234;
+       if (rabbit[i].age >= rabbit[i].maturity_age)
+        {
             // Поиск партнера поблизости
 
 
                 // Если партнер найден и тоже готов к размножению
-                //if 
-                //{
+                if 
+                {
                     // Создание потомка
-                    //Rabbit offspring;
-                    //offspring = rabbits[i]; // Копируем характеристики
+                    Rabbit offspring;
+                    offspring = rabbits[i]; // Копируем характеристики
 
                     // Добавляем потомка в популяцию
-                    //rabbit.push_back(offspring);
+                    rabbit.push_back(offspring);
 
                     // Прерываем поиск партнеров после успешного размножения
-                    //break;
-                //}
-            //}
-        //}
-    //}
+                    break;
+                }
+            }
+        }
+    }
+}
 
     // Питание кроликов (если есть растения)
     for (int i = 0; i < rabbit.size(); i++)
@@ -146,7 +153,7 @@ void processRabbit()
             // Если растение достаточно близко, кролик его съедает
             if (distance < rabbit[i].eating_range)
             {
-                rabbit[i].hunger = (0, rabbit[i].hunger - plant[j].nutritional_value);
+                rabbit[i].hunger = (rabbit[i].hunger - plant[j].nutritional_value);
                 plant.erase(plant.begin() + j);
                 j--; // Корректировка индекса после удаления
                 break; // Кролик может съесть только одно растение за ход
@@ -183,22 +190,23 @@ void InitGame()
             t.load("plant.bmp");
             t.x = x+rand() % size;
             t.y = y+rand() % size;
-            t.size = 20;
+            t.size = 60;
             t.age = rand() % 5;
             t.breeding_period = 89;
             t.age_limit = 117;
             plant.push_back(t);
         }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             creature n;
+            n.eating_range = 1;
             n.load("animal.bmp");
             n.x = x + rand() % size;
             n.y = y + rand() % size;
-            n.size = 20;
-            n.age = rand() % 40;
-            n.breeding_period = 10;
-            n.age_limit = 20;
+            n.size = 50;
+            n.age = rand() % 5;
+            n.breeding_period = 70;
+            n.age_limit = 200;
             rabbit.push_back(n);
         }
             
@@ -250,6 +258,12 @@ void ShowRacketAndBall()
     for (int i = 0;i < plant.size();i++)
     {
         plant[i].show();
+  
+    }
+
+    for (int i = 0; i < rabbit.size(); i++)
+    {
+          rabbit[i].showRabbit();
     }
     
 
@@ -285,6 +299,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
         processPlant();
+        processRabbit();
         ShowRacketAndBall();//рисуем фон, ракетку и шарик
 
         for (int i = 0;i < plant.size();i++)
