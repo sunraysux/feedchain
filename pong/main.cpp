@@ -1,4 +1,4 @@
-//linker::system::subsystem  - Windows(/ SUBSYSTEM:WINDOWS)
+Ôªø//linker::system::subsystem  - Windows(/ SUBSYSTEM:WINDOWS)
 //configuration::advanced::character set - not set
 //linker::input::additional dependensies Msimg32.lib; Winmm.lib
 
@@ -8,13 +8,19 @@
 
 void ShowBitmap(int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool alpha = false);
 
-// ÒÂÍˆËˇ ‰‡ÌÌ˚ı Ë„˚  
+enum class gender_ { male, female };
+
+
+// —Å–µ–∫—Ü–∏—è –¥–∞–Ω–Ω—ã—Ö –∏–≥—Ä—ã  
 struct creature {
     HBITMAP hBitmap;
-    float x, y, size, speed, reproduction_rate, growth_rate, nutritional_value, velocity, prevalence, age_limit;
+    float x, y, size, speed, reproduction_rate, growth_rate, nutritional_value, velocity, prevalence, age_limit, hunger, hunger_limit, maturity_age, eating_range;
     
     int age;
     int breeding_period;
+
+    gender_ gender;
+    int dna_checksum;
 
     void load(const char* name)
     {
@@ -42,6 +48,7 @@ void processPlant()
         if (plant[i].age > plant[i].age_limit)
         {
             plant.erase(plant.begin() + i);
+            i--;
         }
     }
 
@@ -76,16 +83,87 @@ void processPlant()
     }
 
 }
+std::vector<creature>rabbit;
+
+void processRabbit()
+{
+    // –°—Ç–∞—Ä–µ–Ω–∏–µ –∏ —É–¥–∞–ª–µ–Ω–∏–µ —É–º–µ—Ä—à–∏—Ö –∫—Ä–æ–ª–∏–∫–æ–≤
+    for (int i = 0; i < rabbit.size(); i++)
+    {
+        rabbit[i].age++;
+        rabbit[i].hunger++; // –£–≤–µ–ª–∏—á–µ–Ω–∏–µ –≥–æ–ª–æ–¥–∞ —Å —Ç–µ—á–µ–Ω–∏–µ–º –≤—Ä–µ–º–µ–Ω–∏
+
+        // –°–º–µ—Ä—Ç—å –æ—Ç —Å—Ç–∞—Ä–æ—Å—Ç–∏ –∏–ª–∏ –≥–æ–ª–æ–¥–∞
+        if (rabbit[i].age > rabbit[i].age_limit || rabbit[i].hunger > rabbit[i].hunger_limit)
+        {
+            rabbit.erase(rabbit.begin() + i);
+            i--; // –ö–æ—Ä—Ä–µ–∫—Ç–∏—Ä–æ–≤–∫–∞ –∏–Ω–¥–µ–∫—Å–∞ –ø–æ—Å–ª–µ —É–¥–∞–ª–µ–Ω–∏—è
+            continue;
+        }
+
+        creature n;
+        n = rabbit[i];
+        // –ü–µ—Ä–µ–¥–≤–∏–∂–µ–Ω–∏–µ –∫—Ä–æ–ª–∏–∫–∞
+        int move_range = 50; // –ú–∞–∫—Å–∏–º–∞–ª—å–Ω–æ–µ —Ä–∞—Å—Å—Ç–æ—è–Ω–∏–µ –∑–∞ —Ö–æ–¥
+        n.x += rand() % (move_range * 2) - move_range;
+        n.y += rand() % (move_range * 2) - move_range;
+    }
+    // –†–∞–∑–º–Ω–æ–∂–µ–Ω–∏–µ –∫—Ä–æ–ª–∏–∫–æ–≤
+    //for (int i = 0; i < rabbit.size(); i++)
+    //{
+        // –ü—Ä–æ–≤–µ—Ä–∫–∞, –≥–æ—Ç–æ–≤ –ª–∏ –∫—Ä–æ–ª–∏–∫ –∫ —Ä–∞–∑–º–Ω–æ–∂–µ–Ω–∏—é
+       //float maturity_age = 234;
+        //if (rabbit[i].age >= rabbit[i].maturity_age)
+        //{
+            // –ü–æ–∏—Å–∫ –ø–∞—Ä—Ç–Ω–µ—Ä–∞ –ø–æ–±–ª–∏–∑–æ—Å—Ç–∏
+
+
+                // –ï—Å–ª–∏ –ø–∞—Ä—Ç–Ω–µ—Ä –Ω–∞–π–¥–µ–Ω –∏ —Ç–æ–∂–µ –≥–æ—Ç–æ–≤ –∫ —Ä–∞–∑–º–Ω–æ–∂–µ–Ω–∏—é
+                //if 
+                //{
+                    // –°–æ–∑–¥–∞–Ω–∏–µ –ø–æ—Ç–æ–º–∫–∞
+                    //Rabbit offspring;
+                    //offspring = rabbits[i]; // –ö–æ–ø–∏—Ä—É–µ–º —Ö–∞—Ä–∞–∫—Ç–µ—Ä–∏—Å—Ç–∏–∫–∏
+
+                    // –î–æ–±–∞–≤–ª—è–µ–º –ø–æ—Ç–æ–º–∫–∞ –≤ –ø–æ–ø—É–ª—è—Ü–∏—é
+                    //rabbit.push_back(offspring);
+
+                    // –ü—Ä–µ—Ä—ã–≤–∞–µ–º –ø–æ–∏—Å–∫ –ø–∞—Ä—Ç–Ω–µ—Ä–æ–≤ –ø–æ—Å–ª–µ —É—Å–ø–µ—à–Ω–æ–≥–æ —Ä–∞–∑–º–Ω–æ–∂–µ–Ω–∏—è
+                    //break;
+                //}
+            //}
+        //}
+    //}
+
+    // –ü–∏—Ç–∞–Ω–∏–µ –∫—Ä–æ–ª–∏–∫–æ–≤ (–µ—Å–ª–∏ –µ—Å—Ç—å —Ä–∞—Å—Ç–µ–Ω–∏—è)
+    for (int i = 0; i < rabbit.size(); i++)
+    {
+        for (int j = 0; j < plant.size(); j++)
+        {
+            float distance = sqrt(pow(rabbit[i].x - plant[j].x, 2) +
+                pow(rabbit[i].y - plant[j].y, 2));
+
+            // –ï—Å–ª–∏ —Ä–∞—Å—Ç–µ–Ω–∏–µ –¥–æ—Å—Ç–∞—Ç–æ—á–Ω–æ –±–ª–∏–∑–∫–æ, –∫—Ä–æ–ª–∏–∫ –µ–≥–æ —Å—ä–µ–¥–∞–µ—Ç
+            if (distance < rabbit[i].eating_range)
+            {
+                rabbit[i].hunger = (0, rabbit[i].hunger - plant[j].nutritional_value);
+                plant.erase(plant.begin() + j);
+                j--; // –ö–æ—Ä—Ä–µ–∫—Ç–∏—Ä–æ–≤–∫–∞ –∏–Ω–¥–µ–∫—Å–∞ –ø–æ—Å–ª–µ —É–¥–∞–ª–µ–Ω–∏—è
+                break; // –ö—Ä–æ–ª–∏–∫ –º–æ–∂–µ—Ç —Å—ä–µ—Å—Ç—å —Ç–æ–ª—å–∫–æ –æ–¥–Ω–æ —Ä–∞—Å—Ç–µ–Ω–∏–µ –∑–∞ —Ö–æ–¥
+            }
+        }
+    }
+}
 
 struct {
-    HWND hWnd;//ı˝Ì‰Î ÓÍÌ‡
-    HDC device_context, context;// ‰‚‡ ÍÓÌÚÂÍÒÚ‡ ÛÒÚÓÈÒÚ‚‡ (‰Îˇ ·ÛÙÂËÁ‡ˆËË)
-    int width, height;//Ò˛‰‡ ÒÓı‡ÌËÏ ‡ÁÏÂ˚ ÓÍÌ‡ ÍÓÚÓÓÂ ÒÓÁ‰‡ÒÚ ÔÓ„‡ÏÏ‡
+    HWND hWnd;//—Ö—ç–Ω–¥–ª –æ–∫–Ω–∞
+    HDC device_context, context;// –¥–≤–∞ –∫–æ–Ω—Ç–µ–∫—Å—Ç–∞ —É—Å—Ç—Ä–æ–π—Å—Ç–≤–∞ (–¥–ª—è –±—É—Ñ–µ—Ä–∏–∑–∞—Ü–∏–∏)
+    int width, height;//—Å—é–¥–∞ —Å–æ—Ö—Ä–∞–Ω–∏–º —Ä–∞–∑–º–µ—Ä—ã –æ–∫–Ω–∞ –∫–æ—Ç–æ—Ä–æ–µ —Å–æ–∑–¥–∞—Å—Ç –ø—Ä–æ–≥—Ä–∞–º–º–∞
 } window;
 
-HBITMAP hBack;// ı˝Ì‰Î ‰Îˇ ÙÓÌÓ‚Ó„Ó ËÁÓ·‡ÊÂÌËˇ
+HBITMAP hBack;// —Ö—ç–Ω–¥–ª –¥–ª—è —Ñ–æ–Ω–æ–≤–æ–≥–æ –∏–∑–æ–±—Ä–∞–∂–µ–Ω–∏—è
 
-//cÂÍˆËˇ ÍÓ‰‡
+//c–µ–∫—Ü–∏—è –∫–æ–¥–∞
 
 void InitGame()
 {
@@ -106,11 +184,26 @@ void InitGame()
             t.x = x+rand() % size;
             t.y = y+rand() % size;
             t.size = 20;
-            t.age = rand() % 40;
-            t.breeding_period = 110;
+            t.age = rand() % 5;
+            t.breeding_period = 89;
             t.age_limit = 117;
             plant.push_back(t);
         }
+        for (int i = 0; i < 3; i++)
+        {
+            creature n;
+            n.load("animal.bmp");
+            n.x = x + rand() % size;
+            n.y = y + rand() % size;
+            n.size = 20;
+            n.age = rand() % 40;
+            n.breeding_period = 10;
+            n.age_limit = 20;
+            rabbit.push_back(n);
+        }
+            
+
+
     }
 
 
@@ -128,31 +221,31 @@ void ShowBitmap(int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool alpha )
     HDC hMemDC;
     BITMAP bm;
 
-    hMemDC = CreateCompatibleDC(window.context); // —ÓÁ‰‡ÂÏ ÍÓÌÚÂÍÒÚ Ô‡ÏˇÚË, ÒÓ‚ÏÂÒÚËÏ˚È Ò ÍÓÌÚÂÍÒÚÓÏ ÓÚÓ·‡ÊÂÌËˇ
-    hOldbm = (HBITMAP)SelectObject(hMemDC, hBitmapBall);// ¬˚·Ë‡ÂÏ ËÁÓ·‡ÊÂÌËÂ bitmap ‚ ÍÓÌÚÂÍÒÚ Ô‡ÏˇÚË
+    hMemDC = CreateCompatibleDC(window.context); // –°–æ–∑–¥–∞–µ–º –∫–æ–Ω—Ç–µ–∫—Å—Ç –ø–∞–º—è—Ç–∏, —Å–æ–≤–º–µ—Å—Ç–∏–º—ã–π —Å –∫–æ–Ω—Ç–µ–∫—Å—Ç–æ–º –æ—Ç–æ–±—Ä–∞–∂–µ–Ω–∏—è
+    hOldbm = (HBITMAP)SelectObject(hMemDC, hBitmapBall);// –í—ã–±–∏—Ä–∞–µ–º –∏–∑–æ–±—Ä–∞–∂–µ–Ω–∏–µ bitmap –≤ –∫–æ–Ω—Ç–µ–∫—Å—Ç –ø–∞–º—è—Ç–∏
 
-    if (hOldbm) // ≈ÒÎË ÌÂ ·˚ÎÓ Ó¯Ë·ÓÍ, ÔÓ‰ÓÎÊ‡ÂÏ ‡·ÓÚÛ
+    if (hOldbm) // –ï—Å–ª–∏ –Ω–µ –±—ã–ª–æ –æ—à–∏–±–æ–∫, –ø—Ä–æ–¥–æ–ª–∂–∞–µ–º —Ä–∞–±–æ—Ç—É
     {
-        GetObject(hBitmapBall, sizeof(BITMAP), (LPSTR)&bm); // ŒÔÂ‰ÂÎˇÂÏ ‡ÁÏÂ˚ ËÁÓ·‡ÊÂÌËˇ
+        GetObject(hBitmapBall, sizeof(BITMAP), (LPSTR)&bm); // –û–ø—Ä–µ–¥–µ–ª—è–µ–º —Ä–∞–∑–º–µ—Ä—ã –∏–∑–æ–±—Ä–∞–∂–µ–Ω–∏—è
 
         if (alpha)
         {
-            TransparentBlt(window.context, x, y, x1, y1, hMemDC, 0, 0, x1, y1, RGB(0, 0, 0));//‚ÒÂ ÔËÍÒÂÎË ˜ÂÌÓ„Ó ˆ‚ÂÚ‡ ·Û‰ÛÚ ËÌÚÂÔÂÚËÓ‚‡Ì˚ Í‡Í ÔÓÁ‡˜Ì˚Â
+            TransparentBlt(window.context, x, y, x1, y1, hMemDC, 0, 0, x1, y1, RGB(0, 0, 0));//–≤—Å–µ –ø–∏–∫—Å–µ–ª–∏ —á–µ—Ä–Ω–æ–≥–æ —Ü–≤–µ—Ç–∞ –±—É–¥—É—Ç –∏–Ω—Ç–µ–ø—Ä–µ—Ç–∏—Ä–æ–≤–∞–Ω—ã –∫–∞–∫ –ø—Ä–æ–∑—Ä–∞—á–Ω—ã–µ
         }
         else
         {
-            StretchBlt(window.context, x, y, x1, y1, hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY); // –ËÒÛÂÏ ËÁÓ·‡ÊÂÌËÂ bitmap
+            StretchBlt(window.context, x, y, x1, y1, hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY); // –†–∏—Å—É–µ–º –∏–∑–æ–±—Ä–∞–∂–µ–Ω–∏–µ bitmap
         }
 
-        SelectObject(hMemDC, hOldbm);// ¬ÓÒÒÚ‡Ì‡‚ÎË‚‡ÂÏ ÍÓÌÚÂÍÒÚ Ô‡ÏˇÚË
+        SelectObject(hMemDC, hOldbm);// –í–æ—Å—Å—Ç–∞–Ω–∞–≤–ª–∏–≤–∞–µ–º –∫–æ–Ω—Ç–µ–∫—Å—Ç –ø–∞–º—è—Ç–∏
     }
 
-    DeleteDC(hMemDC); // ”‰‡ÎˇÂÏ ÍÓÌÚÂÍÒÚ Ô‡ÏˇÚË
+    DeleteDC(hMemDC); // –£–¥–∞–ª—è–µ–º –∫–æ–Ω—Ç–µ–∫—Å—Ç –ø–∞–º—è—Ç–∏
 }
 
 void ShowRacketAndBall()
 {
-    ShowBitmap(0, 0, window.width, window.height, hBack);//Á‡‰ÌËÈ ÙÓÌ
+    ShowBitmap(0, 0, window.width, window.height, hBack);//–∑–∞–¥–Ω–∏–π —Ñ–æ–Ω
 
     for (int i = 0;i < plant.size();i++)
     {
@@ -170,11 +263,11 @@ void InitWindow()
 
     RECT r;
     GetClientRect(window.hWnd, &r);
-    window.device_context = GetDC(window.hWnd);//ËÁ ı˝Ì‰Î‡ ÓÍÌ‡ ‰ÓÒÚ‡ÂÏ ı˝Ì‰Î ÍÓÌÚÂÍÒÚ‡ ÛÒÚÓÈÒÚ‚‡ ‰Îˇ ËÒÓ‚‡ÌËˇ
-    window.width = r.right - r.left;//ÓÔÂ‰ÂÎˇÂÏ ‡ÁÏÂ˚ Ë ÒÓı‡ÌˇÂÏ
+    window.device_context = GetDC(window.hWnd);//–∏–∑ —Ö—ç–Ω–¥–ª–∞ –æ–∫–Ω–∞ –¥–æ—Å—Ç–∞–µ–º —Ö—ç–Ω–¥–ª –∫–æ–Ω—Ç–µ–∫—Å—Ç–∞ —É—Å—Ç—Ä–æ–π—Å—Ç–≤–∞ –¥–ª—è —Ä–∏—Å–æ–≤–∞–Ω–∏—è
+    window.width = r.right - r.left;//–æ–ø—Ä–µ–¥–µ–ª—è–µ–º —Ä–∞–∑–º–µ—Ä—ã –∏ —Å–æ—Ö—Ä–∞–Ω—è–µ–º
     window.height = r.bottom - r.top;
-    window.context = CreateCompatibleDC(window.device_context);//‚ÚÓÓÈ ·ÛÙÂ
-    SelectObject(window.context, CreateCompatibleBitmap(window.device_context, window.width, window.height));//ÔË‚ˇÁ˚‚‡ÂÏ ÓÍÌÓ Í ÍÓÌÚÂÍÒÚÛ
+    window.context = CreateCompatibleDC(window.device_context);//–≤—Ç–æ—Ä–æ–π –±—É—Ñ–µ—Ä
+    SelectObject(window.context, CreateCompatibleBitmap(window.device_context, window.width, window.height));//–ø—Ä–∏–≤—è–∑—ã–≤–∞–µ–º –æ–∫–Ω–æ –∫ –∫–æ–Ω—Ç–µ–∫—Å—Ç—É
     GetClientRect(window.hWnd, &r);
 
 }
@@ -185,22 +278,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ int       nCmdShow)
 {
     
-    InitWindow();//Á‰ÂÒ¸ ËÌËˆË‡ÎËÁËÛÂÏ ‚ÒÂ ˜ÚÓ ÌÛÊÌÓ ‰Îˇ ËÒÓ‚‡ÌËˇ ‚ ÓÍÌÂ
-    InitGame();//Á‰ÂÒ¸ ËÌËˆË‡ÎËÁËÛÂÏ ÔÂÂÏÂÌÌ˚Â Ë„˚
+    InitWindow();//–∑–¥–µ—Å—å –∏–Ω–∏—Ü–∏–∞–ª–∏–∑–∏—Ä—É–µ–º –≤—Å–µ —á—Ç–æ –Ω—É–∂–Ω–æ –¥–ª—è —Ä–∏—Å–æ–≤–∞–Ω–∏—è –≤ –æ–∫–Ω–µ
+    InitGame();//–∑–¥–µ—Å—å –∏–Ω–∏—Ü–∏–∞–ª–∏–∑–∏—Ä—É–µ–º –ø–µ—Ä–µ–º–µ–Ω–Ω—ã–µ –∏–≥—Ä—ã
 
    
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
         processPlant();
-        ShowRacketAndBall();//ËÒÛÂÏ ÙÓÌ, ‡ÍÂÚÍÛ Ë ¯‡ËÍ
+        ShowRacketAndBall();//—Ä–∏—Å—É–µ–º —Ñ–æ–Ω, —Ä–∞–∫–µ—Ç–∫—É –∏ —à–∞—Ä–∏–∫
 
         for (int i = 0;i < plant.size();i++)
         {
             SetPixel(window.context, i, 0, RGB(255, 255, 255));
         }
 
-        BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//ÍÓÔËÛÂÏ ·ÛÙÂ ‚ ÓÍÌÓ
-        Sleep(16);//Ê‰ÂÏ 16 ÏËÎËÒÂÍÛÌ‰ (1/ÍÓÎË˜ÂÒÚ‚Ó Í‡‰Ó‚ ‚ ÒÂÍÛÌ‰Û)
+        BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//–∫–æ–ø–∏—Ä—É–µ–º –±—É—Ñ–µ—Ä –≤ –æ–∫–Ω–æ
+        Sleep(16);//–∂–¥–µ–º 16 –º–∏–ª–∏—Å–µ–∫—É–Ω–¥ (1/–∫–æ–ª–∏—á–µ—Å—Ç–≤–æ –∫–∞–¥—Ä–æ–≤ –≤ —Å–µ–∫—É–Ω–¥—É)
     }
 
 }
