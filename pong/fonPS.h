@@ -42,7 +42,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
 //return float4(frac(input.uv.x+time.x*.01), 0, 0, 1);
 
-    float c = 1;
 
 
     return float4(0.8, 1, 0.3, 1.);
