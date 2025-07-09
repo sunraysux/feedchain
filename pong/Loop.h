@@ -1,0 +1,30 @@
+
+void mainLoop()
+{
+	frameConst();
+
+	InputAssembler::IA(InputAssembler::topology::triList);
+	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+
+	Textures::RenderTarget(0, 0);
+	Draw::Clear({ 0,0,0,0 });
+	Draw::ClearDepth();
+	Depth::Depth(Depth::depthmode::on);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
+	//Shaders::vShader(1);
+	//Shaders::pShader(1);
+
+	ConstBuf::ConstToVertex(4);
+	ConstBuf::ConstToPixel(4);
+
+	Camera::Camera();
+	//Draw::NullDrawer(1, 1);
+	Shaders::vShader(0);
+	Shaders::pShader(0);
+	processPlant();
+	ShowRacketAndBall();
+	Shaders::vShader(1);
+	Shaders::pShader(1);
+	Draw::NullDrawer(1, 1);
+	Draw::Present();
+}

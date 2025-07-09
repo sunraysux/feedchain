@@ -42,4 +42,36 @@
     </Media>
     <Media Include="..\Debug\music.mp3" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dx11.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Loop.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecosystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fonVS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fonPS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
