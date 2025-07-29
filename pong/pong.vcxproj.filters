@@ -32,6 +32,9 @@
     <Image Include="..\Debug\racket_enemy.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="animal1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
