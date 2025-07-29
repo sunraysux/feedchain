@@ -5,6 +5,7 @@
 #include "windows.h"
 #include <vector>
 #include "math.h"
+#include <cmath>
 
 void ShowBitmap(int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool alpha = false);
 
@@ -90,6 +91,17 @@ void processPlant()
 }
 std::vector<creature>rabbit;
 
+float calculateDistance(float x1, float y1, float x2, float y2) {
+    // Calculate the difference in x-coordinates
+    float deltaX = x2 - x1;
+    // Calculate the difference in y-coordinates
+    float deltaY = y2 - y1;
+
+    // Apply the distance formula
+    float distance = std::sqrt(std::pow(deltaX, 2) + std::pow(deltaY, 2));
+    return distance;
+}
+
 void processRabbit()
 {
     // Старение и удаление умерших кроликов
@@ -116,31 +128,56 @@ void processRabbit()
     // Размножение кроликов
     for (int i = 0; i < rabbit.size(); i++)
     {
-    
-         //Проверка, готов ли кролик к размножению
-       float maturity_age = 234;
-       if (rabbit[i].age >= rabbit[i].maturity_age)
+        for (int k = 0; k < rabbit.size(); k++)
         {
-            // Поиск партнера поблизости
+            if (k == i)
+            {
+                continue;
+            }
+            //Проверка, готов ли кролик к размножению
+            float maturity_age = 234;
+            if (rabbit[i].age >= rabbit[i].maturity_age)
+            {
+                // Поиск партнера поблизости
 
-
-                // Если партнер найден и тоже готов к размножению
-                if 
+                    // Если партнер найден и тоже готов к размножению
+                            // Проверяем условия для размножения:
+            // 1. Партнер готов к размножению
+            // 2. Партнер противоположного пола
+            // 3. Партнер находится достаточно близко (например, расстояние < 10)
+                if (rabbit[k].age >= rabbit[k].maturity_age &&
+                    rabbit[k].gender != rabbit[i].gender &&
+                    calculateDistance(rabbit[i].x, rabbit[i].y, rabbit[k].x, rabbit[k].y) < 1000.0f)
                 {
                     // Создание потомка
-                    Rabbit offspring;
-                    offspring = rabbits[i]; // Копируем характеристики
+                    creature n;
+                    n = rabbit[i];
+                    int amp = 200;
+                    n.x += rand() % amp - amp / 2;
+                    n.y += rand() % amp - amp / 2;
+                    n.age = 0;
+                    n.gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+                    if (n.gender == gender_::male)
+                    {
+                        n.load("animal.bmp");
+                    }
+                    else
+                    {
+                        n.load("animal1.bmp");
+                    }
+                    //rabbit.push_back(n);
 
-                    // Добавляем потомка в популяцию
-                    rabbit.push_back(offspring);
 
                     // Прерываем поиск партнеров после успешного размножения
                     break;
-                }
-            }
+                                  }
+
+        }
+    
+
         }
     }
-}
+
 
     // Питание кроликов (если есть растения)
     for (int i = 0; i < rabbit.size(); i++)
@@ -199,8 +236,16 @@ void InitGame()
         for (int i = 0; i < 5; i++)
         {
             creature n;
+            n.gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+            if (n.gender == gender_::male)
+            {
+                n.load("animal.bmp");
+            }
+            else
+            {
+                n.load("animal1.bmp");
+            }
             n.eating_range = 1;
-            n.load("animal.bmp");
             n.x = x + rand() % size;
             n.y = y + rand() % size;
             n.size = 50;
