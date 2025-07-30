@@ -70,6 +70,9 @@ void processRabbit()
         // Передвижение кролика
         int move_range = 10; // Максимальное расстояние за ход
 
+        n->x += (rand() % (move_range * 2 + 1)) - move_range;
+        n->y += (rand() % (move_range * 2 + 1)) - move_range;
+
         if (rabbit[i].x > 100)
         {
             n->x -= move_range;
@@ -90,9 +93,6 @@ void processRabbit()
             n->y += move_range;
 
         }
-
-        n->x += rand() % (move_range * 2) - move_range;
-        n->y += rand() % (move_range * 2) - move_range;
     }
     // Размножение кроликов
     for (int i = 0; i < rabbit.size(); i++)
@@ -120,7 +120,7 @@ void processRabbit()
                     // Создание потомка
                     creature n;
                     n = rabbit[i];
-                    int amp = 200;
+                    int amp = 10;
                     n.x += rand() % amp - amp / 2;
                     n.y += rand() % amp - amp / 2;
                     n.age = 0;
@@ -190,7 +190,7 @@ void processPlant()
             creature z;
             t = plant[i];
             z = plant[i + 1];
-            int amp = 200;
+            int amp = 100;
             t.x += rand() % amp - amp / 2;
             t.y += rand() % amp - amp / 2;
             t.age = 0;
@@ -293,8 +293,8 @@ void InitGame() {
             n.type = type_::rabbit;
         }
         n.eating_range = 1;
-        n.x = x(gen);
-        n.y = y(gen);
+        n.x = 0;
+        n.y = 0;
         n.age = rand() % 5;
         n.breeding_period = 50;
         n.age_limit = 200;
