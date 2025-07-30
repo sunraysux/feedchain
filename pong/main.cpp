@@ -17,9 +17,10 @@ HWND hWnd;
 #include "resource.h"
 
 #include "WICTextureLoader.h"
-#include "dx11.h"
 
+#include "dx11.h"
 #include "ecosystem.h"
+
 
 
 

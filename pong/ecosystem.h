@@ -7,7 +7,6 @@ struct creature {
     float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value;
 
     int age;
-    int breeding_period;
     gender_ gender;
     type_ type;
 
@@ -104,7 +103,7 @@ void processRabbit()
                 continue;
             }
             //Проверка, готов ли кролик к размножению
-            if (rabbit[i].age >= rabbit[i].breeding_period && rabbit.size() < rabbit[i].limit)
+            if (rabbit[i].age >= rabbit[i].maturity_age && rabbit.size() < rabbit[i].limit)
             {
                 // Поиск партнера поблизости
 
@@ -184,7 +183,7 @@ void processPlant()
 
     for (int i = 0;i < plant.size() - 1;i++)
     {
-        if ((plant[i].age > plant[i].breeding_period))
+        if ((plant[i].age > plant[i].maturity_age))
         {
             creature t;
             creature z;
@@ -276,7 +275,7 @@ void InitGame() {
         t.nutritional_value = 100;
         t.widht = 1;  
         t.age = rand() % 150;
-        t.breeding_period = 115;
+        t.maturity_age = 115;
         t.age_limit = 117;
         plant.push_back(t);
     }
@@ -296,7 +295,7 @@ void InitGame() {
         n.x = 0;
         n.y = 0;
         n.age = rand() % 5;
-        n.breeding_period = 50;
+        n.maturity_age = 50;
         n.age_limit = 200;
         n.limit = 100;
         n.hunger_limit = 100;
