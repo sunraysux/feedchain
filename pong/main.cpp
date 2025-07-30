@@ -1,20 +1,41 @@
-﻿// dx11minimal.cpp : Defines the entry point for the application.
-//
+﻿#define _CRT_SECURE_NO_WARNINGS
 
+const float PI = 3.1415926535897;
 #include "framework.h"
-//#include "dx11minimal.h"
+#include "windows.h"
+#include "timer.h"
+#include "vector"
 
-#include "resource.h"
+HINSTANCE hInst;
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+DWORD currentTime;
 
 HWND hWnd;
 
+#include "MainWindow.h"
+
+#include "resource.h"
+
+#include "WICTextureLoader.h"
 #include "dx11.h"
+
 #include "ecosystem.h"
+
+
+
+float lerp(float x1, float x2, float a)
+{
+    return x1 * (1 - a) + x2 * a;
+}
+
+float length(float x1, float y1, float x2, float y2)
+{
+    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
+}
+
 #include "Loop.h"
 #define MAX_LOADSTRING 100
-
-// Global Variables:
-HINSTANCE hInst;                                // current instance
+// current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
@@ -44,9 +65,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     {
         return FALSE;
     }
-
+    //InitWindow();  
     Dx11Init();
-    InitGame();
+    InitGame();//здесь инициализируем переменные игры
+    ShowCursor(FALSE);
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DX11MINIMAL));
 
     MSG msg = { 0 };
@@ -67,11 +89,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         if (time >= timer::nextFrameTime)
         {
+            currentTime = timer::GetCounter();
             timer::frameBeginTime = timer::GetCounter();
+
+
             mainLoop();
-            // processPlant();
-             //ShowRacketAndBall();
-             //processRabbit();
             timer::frameEndTime = timer::GetCounter();
             timer::frameRenderingDuration = timer::frameEndTime - timer::frameBeginTime;
             timer::nextFrameTime = timer::frameBeginTime + FRAME_LEN;
@@ -83,13 +105,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int)msg.wParam;
 }
 
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
@@ -111,58 +126,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-    hInst = hInstance;
-
-    SetProcessDPIAware();
-
-    auto width = GetSystemMetrics(SM_CXSCREEN);
-    auto height = GetSystemMetrics(SM_CYSCREEN);
-
-    HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
-    WNDCLASSEX wcex = { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS, WndProc, 0,0, hInst, NULL, LoadCursor(NULL, IDC_ARROW), brush, NULL, "fx", NULL };
-    RegisterClassEx(&wcex);
-
-    window.hWnd = CreateWindow("fx", "fx", WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, width, height, NULL, NULL, hInst, NULL);
-    if (!window.hWnd) return FALSE;
-
-    ShowWindow(window.hWnd, SW_SHOW);
-    UpdateWindow(window.hWnd);
-
-    RECT r;
-    GetClientRect(window.hWnd, &r);
-    window.device_context = GetDC(window.hWnd);
-    window.width = r.right - r.left;
-    window.height = r.bottom - r.top;
-    window.context = CreateCompatibleDC(window.device_context);
-    SelectObject(window.context, CreateCompatibleBitmap(window.device_context, window.width, window.height));
-
-    hWnd = window.hWnd; // <- чтобы DirectX тоже использовал это окно
-
-    return TRUE;
-}
-
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)

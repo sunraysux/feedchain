@@ -21,7 +21,9 @@ void mainLoop()
 	//Draw::NullDrawer(1, 1);
 	Shaders::vShader(0);
 	Shaders::pShader(0);
+
 	processPlant();
+	processRabbit();
 	ShowRacketAndBall();
 	Shaders::vShader(1);
 	Shaders::pShader(1);

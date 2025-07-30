@@ -1,15 +1,4 @@
-#pragma comment(lib, "d3d10.lib")
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-#pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "winmm.lib")
-#pragma comment(lib, "xaudio2.lib")
 
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include "DirectXMath.h"
-#include <DirectXPackedVector.h>
-#include <debugapi.h>
 
 using namespace DirectX;
 
@@ -18,12 +7,6 @@ using namespace DirectX;
 
 typedef unsigned long uint32;
 typedef long int32;
-
-struct {
-	HWND hWnd;//хэндл окна
-	HDC device_context, context;// два контекста устройства (для буферизации)
-	int width, height;//сюда сохраним размеры окна которое создаст программа
-} window;
 
 static inline int32 _log2(float x)
 {
@@ -34,41 +17,36 @@ static inline int32 _log2(float x)
 	return log2;
 }
 
-float clamp(float x, float a, float b)
-{
-	return fmax(fmin(x, b), a);
-}
-
-namespace timer
-{
-	double PCFreq = 0.0;
-	__int64 counterStart = 0;
-
-	double startTime = 0;
-	double frameBeginTime = 0;
-	double frameEndTime = 0;
-	double nextFrameTime = 0;
-	double frameRenderingDuration = 0.0;
-	int timeCursor = 0;
-
-	void StartCounter()
-	{
-		LARGE_INTEGER li;
-		QueryPerformanceFrequency(&li);
-		PCFreq = double(li.QuadPart) / 1000.0;
-
-		QueryPerformanceCounter(&li);
-		counterStart = li.QuadPart;
-	}
-
-	double GetCounter()
-	{
-		LARGE_INTEGER li;
-		QueryPerformanceCounter(&li);
-		return double(li.QuadPart - counterStart) / PCFreq;
-	}
-
-}
+//namespace timer
+//{
+//	double PCFreq = 0.0;
+//	__int64 counterStart = 0;
+//
+//	double startTime = 0;
+//	double frameBeginTime = 0;
+//	double frameEndTime = 0;
+//	double nextFrameTime = 0;
+//	double frameRenderingDuration = 0.0;
+//	int timeCursor = 0;
+//
+//	void StartCounter()
+//	{
+//		LARGE_INTEGER li;
+//		QueryPerformanceFrequency(&li);
+//		PCFreq = double(li.QuadPart) / 1000.0;
+//
+//		QueryPerformanceCounter(&li);
+//		counterStart = li.QuadPart;
+//	}
+//
+//	double GetCounter()
+//	{
+//		LARGE_INTEGER li;
+//		QueryPerformanceCounter(&li);
+//		return double(li.QuadPart - counterStart) / PCFreq;
+//	}
+//
+//}
 
 ID3D11Device* device = NULL;
 ID3D11DeviceContext* context = NULL;
@@ -174,30 +152,51 @@ namespace Textures
 
 	byte currentRT = 0;
 
-	void CreateTex(int i)
+	void CreateTex(int i, const uint8_t* data = nullptr)
 	{
-		auto cTex = Texture[i];
+		auto& cTex = Texture[i];
 
 		tdesc.Width = (UINT)cTex.size.x;
 		tdesc.Height = (UINT)cTex.size.y;
-		tdesc.MipLevels = cTex.mipMaps ? (UINT)(_log2(max(cTex.size.x, cTex.size.y))) : 0;
+		int maxSize = max((int)cTex.size.x, (int)cTex.size.y);
+		tdesc.MipLevels = cTex.mipMaps ? (UINT)(floor(log2(maxSize)) + 1) : 1;
 		tdesc.ArraySize = 1;
-		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | (cTex.mipMaps ? D3D11_BIND_RENDER_TARGET : 0);
+		tdesc.MiscFlags = cTex.mipMaps ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 		tdesc.CPUAccessFlags = 0;
 		tdesc.SampleDesc.Count = 1;
 		tdesc.SampleDesc.Quality = 0;
 		tdesc.Usage = D3D11_USAGE_DEFAULT;
 		tdesc.Format = dxTFormat[cTex.format];
+		if (cTex.mipMaps)
+			tdesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
 
-		if (cTex.type == cube)
+		if (cTex.mipMaps)
+			tdesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+
+		HRESULT hr;
+
+		if (cTex.mipMaps)
 		{
-			tdesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | tdesc.MiscFlags;
-			tdesc.ArraySize = 6;
+			hr = device->CreateTexture2D(&tdesc, nullptr, &cTex.pTexture);
+			if (FAILED(hr)) throw std::runtime_error("Failed to create texture with mipmaps");
+
+			if (data)
+			{
+				context->UpdateSubresource(cTex.pTexture, 0, nullptr, data, (UINT)cTex.size.x * 4, 0);
+			}
 		}
+		else
+		{
+			D3D11_SUBRESOURCE_DATA initData = {};
+			initData.pSysMem = data;
+			initData.SysMemPitch = (UINT)cTex.size.x * 4;
+			initData.SysMemSlicePitch = 0;
 
-		HRESULT hr = device->CreateTexture2D(&tdesc, NULL, &Texture[i].pTexture);
-
+			hr = device->CreateTexture2D(&tdesc, data ? &initData : nullptr, &cTex.pTexture);
+			if (FAILED(hr)) throw std::runtime_error("Failed to create texture without mipmaps");
+		}
 	}
 
 	void ShaderRes(int i)
@@ -210,7 +209,6 @@ namespace Textures
 			svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 			svDesc.TextureCube.MostDetailedMip = 0;
 			svDesc.TextureCube.MipLevels = -1;
-
 		}
 		else
 		{
@@ -219,6 +217,7 @@ namespace Textures
 		}
 
 		HRESULT hr = device->CreateShaderResourceView(Texture[i].pTexture, &svDesc, &Texture[i].TextureResView);
+		if (FAILED(hr)) throw std::runtime_error("Failed to create ShaderResourceView");
 	}
 
 	void rtView(int i)
@@ -237,15 +236,13 @@ namespace Textures
 			{
 				renderTargetViewDesc.Texture2DArray.FirstArraySlice = j;
 				HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[0][j]);
+				if (FAILED(hr)) throw std::runtime_error("Failed to create cube RTV");
 			}
 		}
 		else
 		{
-			for (unsigned int m = 0; m < tdesc.MipLevels; m++)
-			{
-				renderTargetViewDesc.Texture2D.MipSlice = m;
-				HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[m][0]);
-			}
+			HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[0][0]);
+			if (FAILED(hr)) throw std::runtime_error("Failed to create RTV");
 		}
 	}
 
@@ -286,6 +283,68 @@ namespace Textures
 		svDesc.Texture2D.MipLevels = 1;
 
 		HRESULT hr = device->CreateShaderResourceView(Texture[i].pDepth, &svDesc, &Texture[i].DepthResView);
+	}
+
+	void LoadTextureFromFile(int index, const wchar_t* filename)
+	{
+		if (index < 0 || index >= max_tex) return;
+		auto& tex = Texture[index];
+		HRESULT hr = DirectX::CreateWICTextureFromFile(
+			device,
+			filename,
+			(ID3D11Resource**)&tex.pTexture,
+			&tex.TextureResView
+		);
+		if (FAILED(hr))
+		{
+			// Получаем описание ошибки через Windows API
+			LPWSTR errorText = nullptr;
+			DWORD result = FormatMessageW(
+				FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+				nullptr,
+				hr,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPWSTR)&errorText,
+				0,
+				nullptr
+			);
+
+			std::wstring errorMsg = L"Failed to load texture: ";
+			errorMsg += filename;
+			errorMsg += L"\nError: ";
+
+			if (result > 0 && errorText) {
+				errorMsg += errorText;
+			}
+			else {
+				errorMsg += L"Unknown error (HRESULT: 0x";
+				wchar_t codeStr[9];
+				swprintf_s(codeStr, L"%08X", hr);
+				errorMsg += codeStr;
+				errorMsg += L")";
+			}
+
+			// Освобождаем память
+			if (errorText) LocalFree(errorText);
+
+			// Показываем сообщение
+			MessageBoxW(nullptr, errorMsg.c_str(), L"Texture Error", MB_OK);
+
+			// Преобразуем в narrow string
+			char narrowMsg[512];
+			size_t converted = 0;
+			wcstombs_s(&converted, narrowMsg, errorMsg.c_str(), _TRUNCATE);
+
+			throw std::runtime_error(narrowMsg);
+		}
+		ID3D11Texture2D* pTexture2D = reinterpret_cast<ID3D11Texture2D*>(tex.pTexture);
+		D3D11_TEXTURE2D_DESC desc;
+		pTexture2D->GetDesc(&desc);
+		tex.type = tType::flat;
+		tex.size = { (float)desc.Width, (float)desc.Height };
+		tex.mipMaps = (desc.MipLevels > 1);
+		tex.depth = false;
+		tex.format = tFormat::s8;
 	}
 
 	void Create(int i, tType type, tFormat format, XMFLOAT2 size, bool mipMaps, bool depth)
@@ -778,10 +837,6 @@ namespace Depth
 
 }
 
-
-
-
-
 namespace Device
 {
 
@@ -922,7 +977,10 @@ float DegreesToRadians(float degrees)
 {
 	return degrees * PI / 180.f;
 }
-
+float clamp(float x, float a, float b)
+{
+	return fmax(fmin(x, b), a);
+}
 namespace Camera
 {
 	struct State
@@ -961,4 +1019,3 @@ namespace Camera
 		Camera();
 	}
 }
-

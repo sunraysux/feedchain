@@ -1,3 +1,6 @@
+Texture2D tex : register(t0);
+SamplerState samplerState : register(s0);
+
 cbuffer global : register(b5)
 {
     float4 gConst[32];
@@ -45,6 +48,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float c = 1;
 
 
-    return float4(0, c, 0, 1.);
+    return tex.Sample(samplerState, input.uv);
 
 }
