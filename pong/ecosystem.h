@@ -257,8 +257,8 @@ void processPlant()
 void InitGame() {
     std::random_device rd; 
     std::mt19937 gen(rd());
-    Textures::LoadTextureFromFile(1, L"Debug/plant.bmp");
-    Textures::LoadTextureFromFile(2, L"Debug/animal.bmp");
+    Textures::LoadTextureFromFile(1, L"Debug/plant.png");
+    Textures::LoadTextureFromFile(2, L"Debug/animal.png");
     int base_range_x = 50;
     int base_range_y = 50;
     std::uniform_int_distribution<> x(-base_range_x / 2, base_range_x / 2);

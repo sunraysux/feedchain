@@ -344,7 +344,7 @@ namespace Textures
 		tex.size = { (float)desc.Width, (float)desc.Height };
 		tex.mipMaps = (desc.MipLevels > 1);
 		tex.depth = false;
-		tex.format = tFormat::s8;
+		tex.format = tFormat::u8;
 	}
 
 	void Create(int i, tType type, tFormat format, XMFLOAT2 size, bool mipMaps, bool depth)

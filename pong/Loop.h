@@ -9,11 +9,13 @@ void mainLoop()
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
-	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Depth::Depth(Depth::depthmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::back);
 	//Shaders::vShader(1);
 	//Shaders::pShader(1);
-
+	Shaders::vShader(1);
+	Shaders::pShader(1);
+	Draw::NullDrawer(1, 1);
 	ConstBuf::ConstToVertex(4);
 	ConstBuf::ConstToPixel(4);
 
@@ -25,8 +27,6 @@ void mainLoop()
 	processPlant();
 	processRabbit();
 	ShowRacketAndBall();
-	Shaders::vShader(1);
-	Shaders::pShader(1);
-	Draw::NullDrawer(1, 1);
+
 	Draw::Present();
 }
