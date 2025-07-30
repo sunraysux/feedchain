@@ -145,6 +145,10 @@ void processRabbit()
         }
     }
 
+    if (plant.size() == 0)
+    {
+        return;
+    }
 
     // Питание кроликов (если есть растения)
     for (int i = 0; i < rabbit.size(); i++)
@@ -169,7 +173,10 @@ void processRabbit()
 
 void processPlant()
 {
-
+    if (plant.size() == 0)
+    {
+        return;
+    }
     for (int i = 0;i < plant.size();i++)
     {
         plant[i].age++;
@@ -291,7 +298,7 @@ void InitGame() {
         {
             n.type = type_::rabbit;
         }
-        n.eating_range = 1;
+        n.eating_range = 10;
         n.x = 0;
         n.y = 0;
         n.age = rand() % 5;
