@@ -57,13 +57,13 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
 
     // Вершины квада (два треугольника)
     float2 quad[6] = {
-        float2(-100, -100),
-        float2(100, -100), 
-        float2(-100, 100), 
+        float2(-50, -50),
+        float2(50, -50),
+        float2(-50, 50),
 
-        float2(100, -100), 
-        float2(100,100), 
-        float2(-100, 100)  
+        float2(50, -50),
+        float2(50,50),
+        float2(-50, 50)
 
     };
 

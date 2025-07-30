@@ -10,34 +10,27 @@ struct creature {
     gender_ gender;
     type_ type;
 
-    void show()
-    {
-        float t = age;
-        t = t / 10;
-        ConstBuf::global[0] = XMFLOAT4(x - t , y, x + t , y+t); // x=100, y=50, size=2);
-
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, 1);
-
-
-    }
-    void showRabbit()
-    {
-        float t = age;
-        t = t/10;
-        ConstBuf::global[0] = XMFLOAT4(x , y, x+t, y+t); // x=100, y=50, size=2);
-       
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, 1);
-    }
 
 };
 
 std::vector<creature>plant;
 std::vector<creature>rabbit;
+void show()
+{
 
+    ConstBuf::Update(5, ConstBuf::global);
+    ConstBuf::ConstToVertex(5);
+    Draw::NullDrawer(1, plant.size());
+
+
+}
+void showRabbit()
+{
+
+    ConstBuf::Update(5, ConstBuf::global);
+    ConstBuf::ConstToVertex(5);
+    Draw::NullDrawer(1, rabbit.size());
+}
 float calculateDistance(float x1, float y1, float x2, float y2) {
     // Calculate the difference in x-coordinates
     float deltaX = x2 - x1;
@@ -67,27 +60,27 @@ void processRabbit()
 
         creature* n = &rabbit[i];
         // Передвижение кролика
-        int move_range = 10; // Максимальное расстояние за ход
+        int move_range = 1; // Максимальное расстояние за ход
 
         n->x += (rand() % (move_range * 2 + 1)) - move_range;
         n->y += (rand() % (move_range * 2 + 1)) - move_range;
 
-        if (rabbit[i].x > 100)
+        if (rabbit[i].x > 50)
         {
             n->x -= move_range;
         }
 
-        if (rabbit[i].y > 100)
+        if (rabbit[i].y > 50)
         {
             n->y -= move_range;
         }
 
-        if (rabbit[i].x < -100)
+        if (rabbit[i].x < -50)
         {
             n->x += move_range;
         }
 
-        if (rabbit[i].y < -100)
+        if (rabbit[i].y < -50)
         {
             n->y += move_range;
 
@@ -122,6 +115,7 @@ void processRabbit()
                     int amp = 10;
                     n.x += rand() % amp - amp / 2;
                     n.y += rand() % amp - amp / 2;
+                    n.hunger = 0;
                     n.age = 0;
                     n.gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
                     if (n.gender == gender_::male)
@@ -149,10 +143,11 @@ void processRabbit()
     {
         return;
     }
-
+    
     // Питание кроликов (если есть растения)
     for (int i = 0; i < rabbit.size(); i++)
     {
+        if (rabbit[i].hunger>10)
         for (int j = 0; j < plant.size(); j++)
         {
             float distance = sqrt(pow(rabbit[i].x - plant[j].x, 2) +
@@ -214,11 +209,11 @@ void processPlant()
 
             }
 
-            if (isGrowingSpace && plant.size() < t.limit && t.x < 100 && t.y < 100 && t.x > -100 && t.y > -100)
+            if (isGrowingSpace && plant.size() < t.limit && t.x < 50 && t.y < 50 && t.x > -50 && t.y > -50)
             {
                 plant.push_back(t);
             }
-            if (isGrowingSpace && plant.size() < t.limit && z.x < 100 && z.y < 100 && z.x > -100 && z.y > -100)
+            if (isGrowingSpace && plant.size() < t.limit && z.x < 50 && z.y < 50 && z.x > -50 && z.y > -50)
             {
                 plant.push_back(z);
             }
@@ -243,11 +238,11 @@ void processPlant()
 
             }
 
-            if (isGrowingSpace && plant.size() < t.limit && o.x < 100 && o.y < 100 && o.x > -100 && o.y > -100)
+            if (isGrowingSpace && plant.size() < t.limit && o.x < 50 && o.y < 50 && o.x > -50 && o.y > -50)
             {
                 plant.push_back(o);
             }
-            if (isGrowingSpace && plant.size() < t.limit && v.x < 100 && v.y < 100 && v.x > -100 && v.y > -100)
+            if (isGrowingSpace && plant.size() < t.limit && v.x < 50 && v.y < 50 && v.x > -50 && v.y > -50)
             {
                 plant.push_back(v);
             }
@@ -278,12 +273,12 @@ void InitGame() {
         creature t;
         t.x = x(gen);
         t.y = y(gen);
-        t.limit = 600;
+        t.limit = 1000;
         t.nutritional_value = 100;
         t.widht = 1;  
-        t.age = rand() % 150;
-        t.maturity_age = 115;
-        t.age_limit = 117;
+        t.age = rand() % 10050;
+        t.maturity_age = 1115;
+        t.age_limit = 11700;
         plant.push_back(t);
     }
     for (int i = 0; i < 5; i++)
@@ -298,14 +293,14 @@ void InitGame() {
         {
             n.type = type_::rabbit;
         }
-        n.eating_range = 1;
+        n.eating_range = 2;
         n.x = 0;
         n.y = 0;
-        n.age = rand() % 5;
-        n.maturity_age = 50;
+        n.age = rand() % 50;
+        n.maturity_age = 100;
         n.age_limit = 200;
-        n.limit = 100;
-        n.hunger_limit = 100;
+        n.limit = 500;
+        n.hunger_limit = 50;
         n.hunger = 0;
         rabbit.push_back(n);
     }
@@ -315,21 +310,33 @@ void InitGame() {
 
 void ShowRacketAndBall()
 {
+    context->PSSetShaderResources(0, 1, &Textures::Texture[2].TextureResView);
+    for (int i = 0;i < rabbit.size();i++)
+    {
+        float t = rabbit[i].age;
+        t = t / 100;
+        ConstBuf::global[i] = XMFLOAT4(rabbit[i].x, rabbit[i].y, rabbit[i].x + t, rabbit[i].y + t);
+        
+
+    }
+    ConstBuf::Update(5, ConstBuf::global);
+    ConstBuf::ConstToVertex(5);
+    Draw::NullDrawer(1, rabbit.size());
+
     context->PSSetShaderResources(0, 1, &Textures::Texture[1].TextureResView);
 
     for (int i = 0;i < plant.size();i++)
     {
-
-        plant[i].show();
-
-    }
-    context->PSSetShaderResources(0, 1, &Textures::Texture[2].TextureResView);
-    for (int i = 0;i < rabbit.size();i++)
-    {
-
-        rabbit[i].showRabbit();
+        float t = plant[i].age;
+        t = t / 100;
+        ConstBuf::global[i] = XMFLOAT4(plant[i].x, plant[i].y, plant[i].x + t, plant[i].y + t);
+        
 
     }
+    ConstBuf::Update(5, ConstBuf::global);
+    ConstBuf::ConstToVertex(5);
+    Draw::NullDrawer(1, plant.size());
+
 }
 
 

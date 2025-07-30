@@ -43,13 +43,13 @@ float3 rotY(float3 pos, float a)
     return pos;
 }
 
-VS_OUTPUT VS(uint vID : SV_VertexID)
+VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x = gConst[0].x;      // Фиксированная X-координата нижнего левого угла
-    float y = gConst[0].y;      // Фиксированная Y-координата нижнего левого угла
-    float x1 = gConst[0].z;     // Ширина (размер по X)
-    float y1 = gConst[0].w;   // Высота (размер по Y)
+    float x = gConst[iID].x;      // Фиксированная X-координата нижнего левого угла
+    float y = gConst[iID].y;      // Фиксированная Y-координата нижнего левого угла
+    float x1 = gConst[iID].z;     // Ширина (размер по X)
+    float y1 = gConst[iID].w;   // Высота (размер по Y)
 
 
     // Вершины квада (два треугольника)
