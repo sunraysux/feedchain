@@ -298,7 +298,7 @@ void InitGame() {
         {
             n.type = type_::rabbit;
         }
-        n.eating_range = 10;
+        n.eating_range = 1;
         n.x = 0;
         n.y = 0;
         n.age = rand() % 5;
