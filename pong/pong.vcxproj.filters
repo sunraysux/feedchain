@@ -88,6 +88,12 @@
     <ClInclude Include="WICTextureLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="popVS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="popPS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

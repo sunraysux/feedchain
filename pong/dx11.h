@@ -535,6 +535,8 @@ namespace Shaders {
 		CreatePS(0, nameToPatchLPCWSTR("PS.h"));
 		CreateVS(1, nameToPatchLPCWSTR("fonVS.h"));
 		CreatePS(1, nameToPatchLPCWSTR("fonPS.h"));
+		CreateVS(2, nameToPatchLPCWSTR("popVS.h"));
+		CreatePS(2, nameToPatchLPCWSTR("popPS.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -957,6 +959,16 @@ namespace Draw
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
 	}
 
+	void NullDrawer12(int quadCount, unsigned int instances = 1)
+	{
+		ConstBuf::Update(0, ConstBuf::drawerV);
+		ConstBuf::ConstToVertex(0);
+		ConstBuf::Update(1, ConstBuf::drawerP);
+		ConstBuf::ConstToPixel(1);
+
+		context->DrawInstanced(quadCount * 12, instances, 0, 0);
+	}
+
 	void Present()
 	{
 		Textures::UnbindAll();
@@ -968,7 +980,7 @@ namespace Draw
 void frameConst()
 {
 	ConstBuf::frame.time = XMFLOAT4{ (float)(timer::frameBeginTime * .01) ,0,0,0 };
-	ConstBuf::frame.aspect = XMFLOAT4{ aspect,iaspect, 0, 0 };
+	ConstBuf::frame.aspect = XMFLOAT4{ aspect,iaspect, float(window.width), float(window.height) };
 	ConstBuf::UpdateFrame();
 }
 

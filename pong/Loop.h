@@ -27,6 +27,6 @@ void mainLoop()
 	processPlant();
 
 	ShowRacketAndBall();
-
+	Showpopulations();
 	Draw::Present();
 }

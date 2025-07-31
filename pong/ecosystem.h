@@ -147,7 +147,7 @@ void processRabbit()
     // ѕитание кроликов (если есть растени€)
     for (int i = 0; i < rabbit.size(); i++)
     {
-        if (rabbit[i].hunger>10)
+        if (rabbit[i].hunger>40)
         for (int j = 0; j < plant.size(); j++)
         {
             float distance = sqrt(pow(rabbit[i].x - plant[j].x, 2) +
@@ -174,7 +174,7 @@ void processPlant() {
         plant[i].age++;
 
         // —лучайна€ смерть даже до age_limit (как в природе)
-        if (plant[i].age > plant[i].age_limit || (rand() % 1000 < 2)) { // 0.2% шанс смерти
+        if (plant[i].age > plant[i].age_limit || (rand() % 1000 < 0.20)) { // 0.2% шанс смерти
             plant.erase(plant.begin() + i);
         }
         else {
@@ -189,7 +189,7 @@ void processPlant() {
         if (p.age < p.maturity_age) continue;
 
         // „ем старше растение, тем больше потомства (но не линейно)
-        float reproductionChance = min(0.1f * (p.age - p.maturity_age), 0.5f); (0.1f * (p.age - p.maturity_age), 0.5f);
+        float reproductionChance = min(0.01f * (p.age - p.maturity_age), 0.05f); 
 
         if ((rand() % 100) < (reproductionChance * 100) && plant.size() + newPlants.size() < p.limit) {
             //  оличество сем€н (1-5)
@@ -207,9 +207,9 @@ void processPlant() {
                 seedling.y += distance * sin(angle);
 
                 // √енетические вариации
-                seedling.age_limit += rand() % 100 - 50;
-                seedling.maturity_age += rand() % 50 - 25;
-                seedling.nutritional_value += rand() % 10 - 5;
+                //seedling.age_limit += rand() % 100 - 50;
+                //seedling.maturity_age += rand() % 50 - 25;
+                //seedling.nutritional_value += rand() % 10 - 5;
 
                 // ѕроверка границ и пересечений
                 if (seedling.x < -50 || seedling.x > 50 ||
@@ -285,14 +285,23 @@ void InitGame() {
         n.age = rand() % 50;
         n.maturity_age = 100;
         n.age_limit = 200;
-        n.limit = 500;
+        n.limit = 550;
         n.hunger_limit = 50;
         n.hunger = 0;
         rabbit.push_back(n);
     }
 }
 
+void Showpopulations()
+{
+    Shaders::vShader(2);
+    Shaders::pShader(2);
+    ConstBuf::global[0] = XMFLOAT4(rabbit.size(), plant.size(), 0,0);
 
+    ConstBuf::Update(5, ConstBuf::global);
+    ConstBuf::ConstToVertex(5);
+    Draw::NullDrawer12(1,2);
+}
 
 void ShowRacketAndBall()
 {
