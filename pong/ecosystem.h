@@ -1,4 +1,4 @@
-
+#include <algorithm>
 enum class gender_ { male, female };
 enum class type_ { plant, rabbit };
 
@@ -166,90 +166,76 @@ void processRabbit()
 }
 
 
-void processPlant()
-{
-    if (plant.size() == 0)
-    {
-        return;
-    }
-    for (int i = 0;i < plant.size();i++)
-    {
+void processPlant() {
+    if (plant.empty()) return;
+
+    // 1. Старение и смерть растений
+    for (int i = 0; i < plant.size(); ) {
         plant[i].age++;
 
-        if (plant[i].age > plant[i].age_limit)
-        {
+        // Случайная смерть даже до age_limit (как в природе)
+        if (plant[i].age > plant[i].age_limit || (rand() % 1000 < 2)) { // 0.2% шанс смерти
             plant.erase(plant.begin() + i);
-            i--;
+        }
+        else {
+            i++;
         }
     }
 
-    for (int i = 0;i < plant.size() - 1;i++)
-    {
-        if ((plant[i].age > plant[i].maturity_age))
-        {
-            creature t;
-            creature z;
-            t = plant[i];
-            z = plant[i + 1];
-            int amp = 100;
-            t.x += rand() % amp - amp / 2;
-            t.y += rand() % amp - amp / 2;
-            t.age = 0;
-            z.x += t.x + 1;
-            z.y += t.y + 1;
-            z.age = 0;
-            bool isGrowingSpace = true;
-            for (int j = 0;j < plant.size();j++)
-            {
-                float distance = sqrt(pow(t.x - plant[j].x, 2) + pow(t.y - plant[j].y, 2));
-                if (distance < 1)
-                {
-                    isGrowingSpace = false;
+    // 2. Размножение выживших растений
+    std::vector<creature> newPlants;
+
+    for (auto& p : plant) {
+        if (p.age < p.maturity_age) continue;
+
+        // Чем старше растение, тем больше потомства (но не линейно)
+        float reproductionChance = min(0.1f * (p.age - p.maturity_age), 0.5f); (0.1f * (p.age - p.maturity_age), 0.5f);
+
+        if ((rand() % 100) < (reproductionChance * 100) && plant.size() + newPlants.size() < p.limit) {
+            // Количество семян (1-5)
+            int seeds = 1 + rand() % 5;
+
+            for (int s = 0; s < seeds; s++) {
+                creature seedling = p;
+                seedling.age = 0;
+
+                // Распределение семян вокруг материнского растения
+                float distance = 3.0f + (rand() % 10); // 3-12 единиц
+                float angle = (rand() % 360) * 3.14159f / 180.0f;
+
+                seedling.x += distance * cos(angle);
+                seedling.y += distance * sin(angle);
+
+                // Генетические вариации
+                seedling.age_limit += rand() % 100 - 50;
+                seedling.maturity_age += rand() % 50 - 25;
+                seedling.nutritional_value += rand() % 10 - 5;
+
+                // Проверка границ и пересечений
+                if (seedling.x < -50 || seedling.x > 50 ||
+                    seedling.y < -50 || seedling.y > 50) {
+                    continue;
                 }
 
-            }
-
-            if (isGrowingSpace && plant.size() < t.limit && t.x < 50 && t.y < 50 && t.x > -50 && t.y > -50)
-            {
-                plant.push_back(t);
-            }
-            if (isGrowingSpace && plant.size() < t.limit && z.x < 50 && z.y < 50 && z.x > -50 && z.y > -50)
-            {
-                plant.push_back(z);
-            }
-            creature o;
-            creature v;
-            o = plant[i];
-            v = plant[i + 1];
-            o.x += rand() % amp - amp / 2;
-            o.y += rand() % amp - amp / 2;
-            o.age = 0;
-            v.x += t.x + 1;
-            v.y += t.y + 1;
-            v.age = 0;
-            isGrowingSpace = true;
-            for (int j = 0;j < plant.size();j++)
-            {
-                float distance = sqrt(pow(t.x - plant[j].x, 2) + pow(t.y - plant[j].y, 2));
-                if (distance < 1)
-                {
-                    isGrowingSpace = false;
+                bool canGrow = true;
+                for (const auto& other : plant) {
+                    float dist = sqrt(pow(seedling.x - other.x, 2) +
+                        pow(seedling.y - other.y, 2));
+                    if (dist < 2.0f) { // Минимальное расстояние между растениями
+                        canGrow = false;
+                        break;
+                    }
                 }
 
+                if (canGrow) {
+                    newPlants.push_back(seedling);
+                }
             }
-
-            if (isGrowingSpace && plant.size() < t.limit && o.x < 50 && o.y < 50 && o.x > -50 && o.y > -50)
-            {
-                plant.push_back(o);
-            }
-            if (isGrowingSpace && plant.size() < t.limit && v.x < 50 && v.y < 50 && v.x > -50 && v.y > -50)
-            {
-                plant.push_back(v);
-            }
-
         }
     }
 
+    // Добавление новых растений
+    plant.insert(plant.end(), newPlants.begin(), newPlants.end());
 }
 
 
@@ -277,7 +263,7 @@ void InitGame() {
         t.nutritional_value = 100;
         t.widht = 1;  
         t.age = rand() % 10050;
-        t.maturity_age = 1115;
+        t.maturity_age = 115;
         t.age_limit = 11700;
         plant.push_back(t);
     }
@@ -315,7 +301,7 @@ void ShowRacketAndBall()
     {
         float t = rabbit[i].age;
         t = t / 100;
-        ConstBuf::global[i] = XMFLOAT4(rabbit[i].x, rabbit[i].y, rabbit[i].x + t, rabbit[i].y + t);
+        ConstBuf::global[i] = XMFLOAT4(rabbit[i].x-t, rabbit[i].y, rabbit[i].x + t, rabbit[i].y + t);
         
 
     }
@@ -329,7 +315,7 @@ void ShowRacketAndBall()
     {
         float t = plant[i].age;
         t = t / 100;
-        ConstBuf::global[i] = XMFLOAT4(plant[i].x, plant[i].y, plant[i].x + t, plant[i].y + t);
+        ConstBuf::global[i] = XMFLOAT4(plant[i].x-t, plant[i].y, plant[i].x + t, plant[i].y + t);
         
 
     }

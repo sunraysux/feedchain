@@ -32,6 +32,12 @@
     <Image Include="..\Debug\racket_enemy.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\animal.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\plant.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
@@ -73,5 +79,17 @@
     <ClInclude Include="fonPS.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="MainWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WICTextureLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
