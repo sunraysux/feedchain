@@ -25,9 +25,9 @@ void mainLoop()
 	Shaders::pShader(0);
 	processRabbit();
 	processPlant();
-
+	updatechunks();
 	ShowRacketAndBall();
 	Showpopulations();
-	updatechunks();
+	
 	Draw::Present();
 }

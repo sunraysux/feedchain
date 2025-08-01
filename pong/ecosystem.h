@@ -173,15 +173,12 @@ void processRabbit()
         }
     }
 
-    if (plant.size() == 0)
-    {
-        return;
-    }
+    if (plant.empty()) return;
     
     // Питание кроликов (если есть растения)
     for (int i = 0; i < rabbit.size(); i++)
     {
-        if (rabbit[i].hunger>40)
+        if (rabbit[i].hunger>10)
         for (int j = 0; j < plant.size(); j++)
         {
             float distance = sqrt(pow(rabbit[i].x - plant[j].x, 2) +
@@ -201,14 +198,14 @@ void processRabbit()
 
 
 void processPlant() {
-    if (plant.empty()) return;
+    //if (plant.empty()) return;
 
     // 1. Старение и смерть растений
     for (int i = 0; i < plant.size(); ) {
         plant[i].age++;
 
         // Случайная смерть даже до age_limit (как в природе)
-        if (plant[i].age > plant[i].age_limit || (rand() % 1000 < 0.20)) { // 0.2% шанс смерти
+        if (plant[i].age > plant[i].age_limit || (rand() % 1000 < 5)) { // 0.2% шанс смерти
             plant.erase(plant.begin() + i);
         }
         else {
@@ -338,33 +335,43 @@ void Showpopulations()
 
 void ShowRacketAndBall()
 {
+    // Отрисовка кроликов по чанкам
     context->PSSetShaderResources(0, 1, &Textures::Texture[2].TextureResView);
-    for (int i = 0;i < rabbit.size();i++)
-    {
-        float t = rabbit[i].age;
-        t = t / 10;
-        ConstBuf::global[i] = XMFLOAT4(rabbit[i].x-t, rabbit[i].y, rabbit[i].x + t, rabbit[i].y + t);
-        
-
+    int rabbitCount = 0;
+    for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
+        for (int cy = 0; cy < CHUNKS_PER_SIDE; ++cy) {
+            const auto& chunk = chunk_grid[cx][cy];
+            for (const auto& r : chunk.rabbits) {
+                float t = r->age / 10.0f;
+                ConstBuf::global[rabbitCount] = XMFLOAT4(r->x - t / 1.2f, r->y, r->x + t, r->y + t);
+                rabbitCount++;
+            }
+        }
     }
-    ConstBuf::Update(5, ConstBuf::global);
-    ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer(1, rabbit.size());
+    if (rabbitCount > 0) {
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, rabbitCount);
+    }
 
+    // Отрисовка растений по чанкам
     context->PSSetShaderResources(0, 1, &Textures::Texture[1].TextureResView);
-
-    for (int i = 0;i < plant.size();i++)
-    {
-        float t = plant[i].age;
-        t = t / 10;
-        ConstBuf::global[i] = XMFLOAT4(plant[i].x-t/1.2, plant[i].y, plant[i].x + t, plant[i].y + t);
-        
-
+    int plantCount = 0;
+    for (int cy = CHUNKS_PER_SIDE - 1; cy >= 0; --cy) {  // Перебор по Y в обратном порядке
+        for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
+            const auto& chunk = chunk_grid[cx][cy];
+            for (const auto& p : chunk.plants) {
+                float t = p->age / 10.0f;
+                ConstBuf::global[plantCount] = XMFLOAT4(p->x - t / 1.2f, p->y, p->x + t, p->y + t);
+                plantCount++;
+            }
+        }
     }
-    ConstBuf::Update(5, ConstBuf::global);
-    ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer(1, plant.size());
-
+    if (plantCount > 0) {
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, plantCount);
+    }
 }
 
 
