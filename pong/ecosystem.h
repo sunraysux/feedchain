@@ -338,8 +338,8 @@ void ShowRacketAndBall()
     // Отрисовка кроликов по чанкам
     context->PSSetShaderResources(0, 1, &Textures::Texture[2].TextureResView);
     int rabbitCount = 0;
-    for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
-        for (int cy = 0; cy < CHUNKS_PER_SIDE; ++cy) {
+    for (int cy = CHUNKS_PER_SIDE - 1; cy >= 0; --cy) {  // Перебор по Y в обратном порядке
+        for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
             const auto& chunk = chunk_grid[cx][cy];
             for (const auto& r : chunk.rabbits) {
                 float t = r->age / 10.0f;
