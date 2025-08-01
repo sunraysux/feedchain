@@ -55,23 +55,25 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Вершины квада (два треугольника)
     float2 quad[6] = {
         float2(x, y),   // Нижний левый
-        float2(x1, y),  // Нижний правый
         float2(x, y1),  // Верхний левый
+        float2(x1, y),  // Нижний правый
+        
 
         float2(x1, y),  // Нижний правый (повтор)
-        float2(x1, y1), // Верхний правый
-        float2(x, y1)   // Верхний левый (повтор)
+        float2(x, y1),   // Верхний левый (повтор)
+        float2(x1, y1) // Верхний правый
+        
 
     };
 
     float2 uvCoords[6] = {
-    float2(0, 1), // Верхний левый
+    float2(0, 1), // Нижний левый
+    float2(0, 0), // Нижний правый
     float2(1, 1), // Верхний правый
-    float2(0, 0), // Нижний левый
-
-    float2(1, 1), // Верхний правый
-    float2(1, 0), // Нижний правый
-    float2(0, 0)  // Нижний левый
+    
+    float2(1, 1), // Нижний правый
+    float2(0, 0), // Верхний левый
+    float2(1, 0) // Верхний правый
     };
     float4 viewPos = mul(float4(quad[vID], 1, 1.0f), view[0]);
     float4 projPos = mul(viewPos, proj[0]);

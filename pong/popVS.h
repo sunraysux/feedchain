@@ -58,25 +58,29 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Вершины квада (два треугольника)
     float2 quad[12] = {
         float2(x, y),   // Нижний левый
-        float2(x1, y),  // Нижний правый
         float2(x, y1),  // Верхний левый
+        float2(x1, y),  // Нижний правый
+        
 
         float2(x1, y),  // Нижний правый (повтор)
-        float2(x1, y1), // Верхний правый
         float2(x, y1),   // Верхний левый (повтор)
+        float2(x1, y1), // Верхний правый
+        
 
         float2(x3, y3),   // Нижний левый
-        float2(x2, y3),  // Нижний правый
         float2(x3, y2),  // Верхний левый
+        float2(x2, y3),  // Нижний правый
+        
 
         float2(x2, y3),  // Нижний правый (повтор)
-        float2(x2, y2), // Верхний правый
-        float2(x3, y2)   // Верхний левый (повтор)
+        float2(x3, y2),   // Верхний левый (повтор)
+        float2(x2, y2) // Верхний правый
+        
 
     };
-    float4 viewPos = mul(float4(quad[vID], 1, 1.0f), view[0]);
+    float4 viewPos = mul(float4(quad[vID], 0, 1.0f), view[0]);
     float4 projPos = mul(viewPos, proj[0]);
-    output.wpos = float4(quad[vID], 1, 1.0f);
+    output.wpos = float4(quad[vID], 0, 1.0f);
     output.pos = projPos;  // Позиция в clip-пространстве
 
     return output;

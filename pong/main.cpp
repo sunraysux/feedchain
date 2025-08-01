@@ -67,6 +67,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
     //InitWindow();  
+    
     Dx11Init();
     InitGame();//здесь инициализируем переменные игры
     ShowCursor(FALSE);
@@ -75,7 +76,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg = { 0 };
 
     timer::StartCounter();
-
+    Camera::Camera();
     // Main message loop:
     while (msg.message != WM_QUIT)
     {

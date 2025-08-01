@@ -1,8 +1,14 @@
 #include <algorithm>
+#include <random> 
 enum class gender_ { male, female };
 enum class type_ { plant, rabbit };
+int base_range = 50;
 
+const int CHUNK_SIZE = base_range*2/10; // Размер чанка
+const int GRID_SIZE = base_range*2; // Размер игрового поля
+const int CHUNKS_PER_SIDE = GRID_SIZE / CHUNK_SIZE;
 // секция данных игры  
+
 struct creature {
     float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value;
 
@@ -13,24 +19,52 @@ struct creature {
 
 };
 
-std::vector<creature>plant;
-std::vector<creature>rabbit;
-void show()
-{
+std::vector<creature> plant;
+std::vector<creature> rabbit;
 
-    ConstBuf::Update(5, ConstBuf::global);
-    ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer(1, plant.size());
+struct Chunk {
+    std::vector<creature*> plants;   // Указатели на растения в чанке
+    std::vector<creature*> rabbits;  // Указатели на кроликов в чанке
+};
+
+std::vector<std::vector<Chunk>> chunk_grid(
+    CHUNKS_PER_SIDE,
+    std::vector<Chunk>(CHUNKS_PER_SIDE)
+);
 
 
+inline int coord_to_chunk(float coord) {
+    // Смещаем координату из [-50,50] в [0,100]
+    float normalized = coord + 50.0f;
+    // Вычисляем индекс и ограничиваем его
+    int index = static_cast<int>(normalized / CHUNK_SIZE);
+    return clamp(index, 0, CHUNKS_PER_SIDE - 1);
 }
-void showRabbit()
-{
 
-    ConstBuf::Update(5, ConstBuf::global);
-    ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer(1, rabbit.size());
+void updatechunks() {
+    // Очищаем предыдущие данные
+    for (auto& row : chunk_grid) {
+        for (auto& chunk : row) {
+            chunk.plants.clear();
+            chunk.rabbits.clear();
+        }
+    }
+
+    // Распределяем растения
+    for (auto& p : plant) {
+        int cx = coord_to_chunk(p.x);
+        int cy = coord_to_chunk(p.y);
+        chunk_grid[cx][cy].plants.push_back(&p);
+    }
+
+    // Распределяем кроликов
+    for (auto& r : rabbit) {
+        int cx = coord_to_chunk(r.x);
+        int cy = coord_to_chunk(r.y);
+        chunk_grid[cx][cy].rabbits.push_back(&r);
+    }
 }
+
 float calculateDistance(float x1, float y1, float x2, float y2) {
     // Calculate the difference in x-coordinates
     float deltaX = x2 - x1;
@@ -65,22 +99,22 @@ void processRabbit()
         n->x += (rand() % (move_range * 2 + 1)) - move_range;
         n->y += (rand() % (move_range * 2 + 1)) - move_range;
 
-        if (rabbit[i].x > 50)
+        if (rabbit[i].x > base_range)
         {
             n->x -= move_range;
         }
 
-        if (rabbit[i].y > 50)
+        if (rabbit[i].y > base_range)
         {
             n->y -= move_range;
         }
 
-        if (rabbit[i].x < -50)
+        if (rabbit[i].x < -base_range)
         {
             n->x += move_range;
         }
 
-        if (rabbit[i].y < -50)
+        if (rabbit[i].y < -base_range)
         {
             n->y += move_range;
 
@@ -181,14 +215,14 @@ void processPlant() {
             i++;
         }
     }
-
-    // 2. Размножение выживших растений
+    
+    // 2. Размножение 
     std::vector<creature> newPlants;
 
     for (auto& p : plant) {
         if (p.age < p.maturity_age) continue;
 
-        // Чем старше растение, тем больше потомства (но не линейно)
+        // Чем старше растение, тем больше потомства 
         float reproductionChance = min(0.01f * (p.age - p.maturity_age), 0.05f); 
 
         if ((rand() % 100) < (reproductionChance * 100) && plant.size() + newPlants.size() < p.limit) {
@@ -212,8 +246,8 @@ void processPlant() {
                 //seedling.nutritional_value += rand() % 10 - 5;
 
                 // Проверка границ и пересечений
-                if (seedling.x < -50 || seedling.x > 50 ||
-                    seedling.y < -50 || seedling.y > 50) {
+                if (seedling.x < -base_range || seedling.x > base_range ||
+                    seedling.y < -base_range || seedling.y > base_range) {
                     continue;
                 }
 
@@ -239,30 +273,29 @@ void processPlant() {
 }
 
 
-#include <random> 
+
 
 void InitGame() {
     std::random_device rd; 
     std::mt19937 gen(rd());
     Textures::LoadTextureFromFile(1, L"Debug/plant.png");
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
-    int base_range_x = 50;
-    int base_range_y = 50;
-    std::uniform_int_distribution<> x(-base_range_x / 2, base_range_x / 2);
-    std::uniform_int_distribution<> y(-base_range_y / 2, base_range_y / 2);
+    
+    std::uniform_int_distribution<> x(-base_range / 2, base_range / 2);
+    std::uniform_int_distribution<> y(-base_range / 2, base_range / 2);
 
     int group_spread = window.width / 2;
     std::uniform_int_distribution<> dist_spread(-group_spread, group_spread);
 
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 1000; i++) {
         creature t;
         t.x = x(gen);
         t.y = y(gen);
         t.limit = 1000;
         t.nutritional_value = 100;
         t.widht = 1;  
-        t.age = rand() % 10050;
+        t.age = rand() % 1050;
         t.maturity_age = 115;
         t.age_limit = 11700;
         plant.push_back(t);
@@ -309,7 +342,7 @@ void ShowRacketAndBall()
     for (int i = 0;i < rabbit.size();i++)
     {
         float t = rabbit[i].age;
-        t = t / 100;
+        t = t / 10;
         ConstBuf::global[i] = XMFLOAT4(rabbit[i].x-t, rabbit[i].y, rabbit[i].x + t, rabbit[i].y + t);
         
 
@@ -323,8 +356,8 @@ void ShowRacketAndBall()
     for (int i = 0;i < plant.size();i++)
     {
         float t = plant[i].age;
-        t = t / 100;
-        ConstBuf::global[i] = XMFLOAT4(plant[i].x-t, plant[i].y, plant[i].x + t, plant[i].y + t);
+        t = t / 10;
+        ConstBuf::global[i] = XMFLOAT4(plant[i].x-t/1.2, plant[i].y, plant[i].x + t, plant[i].y + t);
         
 
     }

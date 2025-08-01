@@ -10,7 +10,7 @@ void mainLoop()
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::off);
-	Rasterizer::Cull(Rasterizer::cullmode::back);
+	Rasterizer::Cull(Rasterizer::cullmode::front);
 	//Shaders::vShader(1);
 	//Shaders::pShader(1);
 	Shaders::vShader(1);
@@ -19,7 +19,7 @@ void mainLoop()
 	ConstBuf::ConstToVertex(4);
 	ConstBuf::ConstToPixel(4);
 
-	Camera::Camera();
+	Camera::update();
 	//Draw::NullDrawer(1, 1);
 	Shaders::vShader(0);
 	Shaders::pShader(0);
@@ -28,5 +28,6 @@ void mainLoop()
 
 	ShowRacketAndBall();
 	Showpopulations();
+	updatechunks();
 	Draw::Present();
 }

@@ -58,30 +58,18 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     // Вершины квада (два треугольника)
     float2 quad[6] = {
         float2(-50, -50),
+        float2(-50, 50),
+        float2(50, -50),
+
         float2(50, -50),
         float2(-50, 50),
-
-        float2(50, -50),
-        float2(50,50),
-        float2(-50, 50)
+        float2(50,50)
 
     };
-
-    // UV-координаты (если нужны для текстуры)
-    float2 uv_coords[6] = {
-        float2(x, y1),   // Соответствует (x,y)
-        float2(x1, y1),   // Соответствует (x1,y)
-        float2(x, y),   // Соответствует (x,y1)
-
-        float2(x1, y1),   // Повтор
-        float2(x1, y),   // Соответствует (x1,y1)
-        float2(y, y)    // Повтор
-    };
-    float4 viewPos = mul(float4(quad[vID], 1, 1.0f), view[0]);
+    float4 viewPos = mul(float4(quad[vID], 0, 1.0f), view[0]);
     float4 projPos = mul(viewPos, proj[0]);
 
     output.pos = projPos;  // Позиция в clip-пространстве
-    output.uv = uv_coords[vID];            // UV-координаты
 
     return output;
 }
