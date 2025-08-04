@@ -43,15 +43,15 @@ float3 rotY(float3 pos, float a)
     return pos;
 }
 
-VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
+VS_OUTPUT VS(uint vID : SV_VertexID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x1 = -50+gConst[iID].x/10;      // ‘иксированна€ X-координата нижнего левого угла
+    float x1 = -50.0 + 100.0 * gConst[0].x;      // ‘иксированна€ X-координата нижнего левого угла
     int x = -50;
     int y = -51;
     int y1 = -50;
 
-    float x2 = -50 + gConst[iID].y /10;
+    float x2 = -50.0 + 100.0 * gConst[0].y ;
     int x3 = -50;
     int y3 = -53;
     int y2 = -52;

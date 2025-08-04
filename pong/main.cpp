@@ -92,6 +92,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (time >= timer::nextFrameTime)
         {
             currentTime = timer::GetCounter();
+            if(currentTime>5000)
+            {
+                int o = 0;
+            }
+
+            if (currentTime > 25000)
+            {
+                int o = 0;
+            }
+            if (currentTime > 50000)
+            {
+                int o = 0;
+            }
             timer::frameBeginTime = timer::GetCounter();
 
 
@@ -99,6 +112,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             timer::frameEndTime = timer::GetCounter();
             timer::frameRenderingDuration = timer::frameEndTime - timer::frameBeginTime;
             timer::nextFrameTime = timer::frameBeginTime + FRAME_LEN;
+            double frameInterval = timer::frameBeginTime - currentTime;
         }
 
         Sleep((DWORD)min(FRAME_LEN, max(FRAME_LEN - timer::frameRenderingDuration, 0)));

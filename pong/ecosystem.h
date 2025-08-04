@@ -1,36 +1,274 @@
 #include <algorithm>
 #include <random> 
+#include <memory>
 enum class gender_ { male, female };
 enum class type_ { plant, rabbit };
 int base_range = 50;
-
 const int CHUNK_SIZE = base_range*2/10; // Размер чанка
 const int GRID_SIZE = base_range*2; // Размер игрового поля
 const int CHUNKS_PER_SIDE = GRID_SIZE / CHUNK_SIZE;
 // секция данных игры  
+class Creature;
 
-struct creature {
+class Random {
+public:
+    static std::mt19937& GetGenerator() {
+        static std::mt19937 gen{ std::random_device{}() }; // Инициализируется один раз
+        return gen;
+    }
+
+    // Дополнительно — хелперы:
+    static float Float(float min, float max) {
+        std::uniform_real_distribution<float> dist(min, max);
+        return dist(GetGenerator());
+    }
+
+    static int Int(int min, int max) {
+        std::uniform_int_distribution<int> dist(min, max);
+        return dist(GetGenerator());
+    }
+
+    static bool Chance(float probability) { // от 0.0 до 1.0
+        std::bernoulli_distribution dist(probability);
+        return dist(GetGenerator());
+    }
+};
+
+class PopulationManager {
+public:
+    int rabbit_count = 0;
+    int plant_count = 0;
+    const int rabbit_limit = 1000;
+    const int plant_limit = 2000;
+
+    bool canAddRabbit(int pending = 0) const {
+        return rabbit_count + pending < rabbit_limit;
+    }
+
+    bool canAddPlant(int pending = 0) const {
+        return plant_count + pending < plant_limit;
+    }
+
+    void update(int delta_rabbits, int delta_plants) {
+        rabbit_count += delta_rabbits;
+        plant_count += delta_plants;
+    }
+};
+
+PopulationManager population;
+
+struct Chunk {
+    std::vector<std::weak_ptr<Creature>> plants;
+    std::vector<std::weak_ptr<Creature>> rabbits;
+};
+
+
+extern std::vector<std::vector<Chunk>> chunk_grid;
+extern std::vector<std::shared_ptr<Creature>> creatures;
+
+inline float distanceSquared(float x1, float y1, float x2, float y2) {
+    float dx = x1 - x2;
+    float dy = y1 - y2;
+    return dx * dx + dy * dy;
+}
+
+class Creature : public std::enable_shared_from_this<Creature> {
+public:
     float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value;
-
     int age;
     gender_ gender;
     type_ type;
+    bool dead = false;
+    Creature(type_ t) : type(t) {}
+    virtual ~Creature() = default;
 
+    virtual void move() = 0;
+    virtual bool shouldDie() const = 0;
 
+    virtual void addToChunk(Chunk& chunk) = 0;
 };
 
-std::vector<creature> plant;
-std::vector<creature> rabbit;
 
-struct Chunk {
-    std::vector<creature*> plants;   // Указатели на растения в чанке
-    std::vector<creature*> rabbits;  // Указатели на кроликов в чанке
+class Plant : public Creature {
+public:
+    Plant() : Creature(type_::plant) {
+        // Инициализация параметров растения
+        nutritional_value = 100;
+        age = 0;
+        maturity_age = 115;
+        age_limit = 1170;
+    }
+
+    void reproduce(std::vector<std::shared_ptr<Plant>>& all_plants,
+        std::vector<std::shared_ptr<Plant>>& new_creatures) {
+
+        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
+        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
+            return;
+
+        int seeds = Random::Int(1, 5);
+
+        for (int s = 0; s < seeds; s++) {
+            auto seedling = std::make_shared<Plant>(*this);
+            seedling->age = 0;
+            seedling->dead = false;
+
+            float distance = Random::Int(1,5); // 3–50
+            float angle = Random::Float(0, 3.14 * 2);
+            seedling->x += distance * cos(angle);
+            seedling->y += distance * sin(angle);
+
+            // Обрезка по границам
+            seedling->x = clamp(seedling->x, -base_range, base_range);
+            seedling->y = clamp(seedling->y, -base_range, base_range);
+
+            // Проверка минимального расстояния (например, 2.0f)
+            bool tooClose = false;
+            const float minDist2 = 2.0f * 2.0f;
+
+            for (const auto& other : all_plants) {
+                if (!other) continue;
+                if (distanceSquared(seedling->x, seedling->y, other->x, other->y) < minDist2) {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (tooClose) continue;
+
+            // Проверка плотности (например, не более 10 растений в радиусе 5)
+            int nearbyCount = 0;
+            const float radius2 = 5.0f * 5.0f;
+
+            for (const auto& other : all_plants) {
+                if (!other) continue;
+                if (distanceSquared(seedling->x, seedling->y, other->x, other->y) < radius2) {
+                    nearbyCount++;
+                    if (nearbyCount >= 10) break;
+                }
+            }
+
+            if (nearbyCount >= 10) continue;
+
+            new_creatures.push_back(seedling);
+        }
+    }
+
+
+    void move() override {} // Растения не двигаются
+
+    void eat(std::vector<std::shared_ptr<Creature>>& creatures)  {} // Растения не едят
+
+    bool shouldDie() const override {
+        return dead || age > age_limit || Random::Chance(0.000005f);
+    }
+
+    void addToChunk(Chunk& chunk) override {
+        chunk.plants.push_back(std::weak_ptr<Creature>(shared_from_this()));
+    }
+
+    void process(std::vector<std::shared_ptr<Plant>>& creatures,
+        std::vector<std::shared_ptr<Plant>>& new_plants,
+        PopulationManager& pop)  {
+        if (shouldDie()) return;
+        age++;
+        if (age >= maturity_age && pop.canAddPlant(static_cast<int>(new_plants.size()))){
+            reproduce(creatures, new_plants);
+        }
+    }
 };
 
+class Rabbit : public Creature {
+public:
+    Rabbit() : Creature(type_::rabbit) {
+        gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+        eating_range = 2;
+        age = 0;
+        maturity_age = 100;
+        age_limit = 200;
+        hunger_limit = 50;
+        hunger = 0;
+    }
+
+    void move() override {
+        int move_range = 1;
+        x += Random::Int(-move_range, move_range);
+        y += Random::Int(-move_range, move_range);
+
+        // Проверка границ
+        x = clamp(x, -base_range, base_range);
+        y = clamp(y, -base_range, base_range);
+    }
+
+    void reproduce(std::vector<std::shared_ptr<Rabbit>>& creatures,
+        std::vector<std::shared_ptr<Rabbit>>& new_creatures)  {
+
+        if (age < maturity_age || dead) return;
+
+        for (auto& other : creatures) {
+            if (other->dead || other->type != type_::rabbit || other.get() == this) continue;
+
+            Rabbit* partner = dynamic_cast<Rabbit*>(other.get());
+            if (partner && partner->age >= maturity_age &&
+                partner->gender != gender &&
+                distanceSquared(x, y, partner->x, partner->y) < 20.0f) {
+
+                auto offspring = std::make_shared<Rabbit>(*this);
+                offspring->age = 0;
+                offspring->hunger = 0;
+                offspring->dead = false;
+                offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+                offspring->x += Random::Int(-5, 5);
+                offspring->y += Random::Int(-5, 5);
+                new_creatures.push_back(offspring);
+                break;
+            }
+        }
+    }
+
+
+    void eat(std::vector<std::shared_ptr<Plant>>& plants) {
+        if (hunger <= 10 || dead) return;
+
+        auto it = std::find_if(plants.begin(), plants.end(), [this](const auto& p) {
+            return distanceSquared(x, y, p->x, p->y) < eating_range;
+            });
+
+        if (it != plants.end()) {
+            hunger -= (*it)->nutritional_value;
+            (*it)->dead = true;
+        }
+    }
+
+    bool shouldDie() const override {
+        return dead || age > age_limit || hunger > hunger_limit;
+    }
+
+    void process(std::vector<std::shared_ptr<Rabbit>>& rabbits,
+        std::vector<std::shared_ptr<Rabbit>>& new_rabbits,
+        std::vector<std::shared_ptr<Plant>>& plants,
+        PopulationManager& pop) {
+        if (shouldDie()) return;
+        age++; hunger++;
+        move();
+        eat(plants);
+        if (!pop.canAddRabbit(static_cast<int>(new_rabbits.size())))
+            return;
+        reproduce(rabbits, new_rabbits);
+    }
+    void addToChunk(Chunk& chunk) override {
+        chunk.rabbits.push_back(std::weak_ptr<Creature>(shared_from_this()));
+    }
+};
+
+// Глобальный контейнер существ
 std::vector<std::vector<Chunk>> chunk_grid(
     CHUNKS_PER_SIDE,
     std::vector<Chunk>(CHUNKS_PER_SIDE)
 );
+
+std::vector<std::shared_ptr<Rabbit>> rabbits;
+std::vector<std::shared_ptr<Plant>> plants;
 
 
 inline int coord_to_chunk(float coord) {
@@ -41,340 +279,157 @@ inline int coord_to_chunk(float coord) {
     return clamp(index, 0, CHUNKS_PER_SIDE - 1);
 }
 
-void updatechunks() {
-    // Очищаем предыдущие данные
-    for (auto& row : chunk_grid) {
-        for (auto& chunk : row) {
-            chunk.plants.clear();
-            chunk.rabbits.clear();
-        }
-    }
-
-    // Распределяем растения
-    for (auto& p : plant) {
-        int cx = coord_to_chunk(p.x);
-        int cy = coord_to_chunk(p.y);
-        chunk_grid[cx][cy].plants.push_back(&p);
-    }
-
-    // Распределяем кроликов
-    for (auto& r : rabbit) {
-        int cx = coord_to_chunk(r.x);
-        int cy = coord_to_chunk(r.y);
-        chunk_grid[cx][cy].rabbits.push_back(&r);
-    }
+void UpdateChunks() {
+    for (auto& row : chunk_grid)                                                //
+        for (auto& chunk : row)                                                 //
+            chunk.plants.clear(), chunk.rabbits.clear();                        //
+                                                                                //
+    for (auto& rabbit : rabbits) {                                              //
+        if (rabbit->dead) continue;                                             //
+        int cx = coord_to_chunk(rabbit->x);                                     //
+        int cy = coord_to_chunk(rabbit->y);                                     //
+        chunk_grid[cx][cy].rabbits.push_back(rabbit);                           // надо будет исправить, чтобы обновлялось при перемещении и размножении/смерти
+    }                                                                           //
+                                                                                //
+    for (auto& plant : plants) {                                                //
+        if (plant->dead) continue;                                              //
+        int cx = coord_to_chunk(plant->x);                                      //
+        int cy = coord_to_chunk(plant->y);                                      //
+        chunk_grid[cx][cy].plants.push_back(plant);                             //
+    }                                                                           //
 }
 
-float calculateDistance(float x1, float y1, float x2, float y2) {
-    // Calculate the difference in x-coordinates
-    float deltaX = x2 - x1;
-    // Calculate the difference in y-coordinates
-    float deltaY = y2 - y1;
+//основной процесс
+void ProcessCreatures(PopulationManager& pop) {
+    int dead_rabbits = 0;
+    int dead_plants = 0;
 
-    // Apply the distance formula
-    float distance = std::sqrt(std::pow(deltaX, 2) + std::pow(deltaY, 2));
-    return distance;
-}
+    std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
+    std::vector<std::shared_ptr<Plant>> new_plants;          //список для новых существ
 
-void processRabbit()
-{
-    // Старение и удаление умерших кроликов
-    for (int i = 0; i < rabbit.size(); i++)
-    {
-        rabbit[i].age++;
-        rabbit[i].hunger++; // Увеличение голода с течением времени
+    for (auto& rabbit : rabbits)
+        rabbit->process(rabbits, new_rabbits, plants, pop); //цикл кроликов
 
-        // Смерть от старости или голода
-        if (rabbit[i].age > rabbit[i].age_limit || rabbit[i].hunger > rabbit[i].hunger_limit)
-        {
-            rabbit.erase(rabbit.begin() + i);
-            i--; // Корректировка индекса после удаления
-            continue;
-        }
+    for (auto& plant : plants)
+        plant->process(plants, new_plants, pop); //цикл растений
 
-        creature* n = &rabbit[i];
-        // Передвижение кролика
-        int move_range = 1; // Максимальное расстояние за ход
-
-        n->x += (rand() % (move_range * 2 + 1)) - move_range;
-        n->y += (rand() % (move_range * 2 + 1)) - move_range;
-
-        if (rabbit[i].x > base_range)
-        {
-            n->x -= move_range;
-        }
-
-        if (rabbit[i].y > base_range)
-        {
-            n->y -= move_range;
-        }
-
-        if (rabbit[i].x < -base_range)
-        {
-            n->x += move_range;
-        }
-
-        if (rabbit[i].y < -base_range)
-        {
-            n->y += move_range;
-
-        }
-    }
-    // Размножение кроликов
-    for (int i = 0; i < rabbit.size(); i++)
-    {
-        for (int k = 0; k < rabbit.size(); k++)
-        {
-            if (k == i)
-            {
-                continue;
-            }
-            //Проверка, готов ли кролик к размножению
-            if (rabbit[i].age >= rabbit[i].maturity_age && rabbit.size() < rabbit[i].limit)
-            {
-                // Поиск партнера поблизости
-
-                    // Если партнер найден и тоже готов к размножению
-                            // Проверяем условия для размножения:
-            // 1. Партнер готов к размножению
-            // 2. Партнер противоположного пола
-            // 3. Партнер находится достаточно близко (например, расстояние < 10)
-                if (rabbit[k].age >= rabbit[k].maturity_age &&
-                    rabbit[k].gender != rabbit[i].gender &&
-                    calculateDistance(rabbit[i].x, rabbit[i].y, rabbit[k].x, rabbit[k].y) < 20.0f)
-                {
-                    // Создание потомка
-                    creature n;
-                    n = rabbit[i];
-                    int amp = 10;
-                    n.x += rand() % amp - amp / 2;
-                    n.y += rand() % amp - amp / 2;
-                    n.hunger = 0;
-                    n.age = 0;
-                    n.gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
-                    if (n.gender == gender_::male)
-                    {
-                        n.type = type_::rabbit;
-                    }
-                    else
-                    {
-                        n.type = type_::rabbit;
-                    }
-                    rabbit.push_back(n);
-
-
-                    // Прерываем поиск партнеров после успешного размножения
-                    break;
-                }
-
-            }
-
-
-        }
-    }
-
-    if (plant.empty()) return;
+    pop.update(-dead_rabbits, -dead_plants);                                               //
+    pop.update(static_cast<int>(new_rabbits.size()), static_cast<int>(new_plants.size())); //обновление информации по популяциям
     
-    // Питание кроликов (если есть растения)
-    for (int i = 0; i < rabbit.size(); i++)
-    {
-        if (rabbit[i].hunger>10)
-        for (int j = 0; j < plant.size(); j++)
-        {
-            float distance = sqrt(pow(rabbit[i].x - plant[j].x, 2) +
-                pow(rabbit[i].y - plant[j].y, 2));
 
-            // Если растение достаточно близко, кролик его съедает
-            if (distance < rabbit[i].eating_range)
-            {
-                rabbit[i].hunger = (rabbit[i].hunger - plant[j].nutritional_value);
-                plant.erase(plant.begin() + j);
-                j--; // Корректировка индекса после удаления
-                break; // Кролик может съесть только одно растение за ход
-            }
-        }
-    }
-}
+    rabbits.erase(std::remove_if(rabbits.begin(), rabbits.end(), [&](const auto& r) {            // удаление лишних
+        if (r->shouldDie()) { dead_rabbits++; return true; }                                     //
+        return false;                                                                            //
+        }), rabbits.end());                                                                      //
+                                                                                                 //
+    plants.erase(std::remove_if(plants.begin(), plants.end(), [&](const auto& p) {               //
+        if (p->shouldDie()) { dead_plants++; return true; }                                      //
+        return false;                                                                            //
+        }), plants.end());    
 
-
-void processPlant() {
-    //if (plant.empty()) return;
-
-    // 1. Старение и смерть растений
-    for (int i = 0; i < plant.size(); ) {
-        plant[i].age++;
-
-        // Случайная смерть даже до age_limit (как в природе)
-        if (plant[i].age > plant[i].age_limit || (rand() % 1000 < 5)) { // 0.2% шанс смерти
-            plant.erase(plant.begin() + i);
-        }
-        else {
-            i++;
-        }
-    }
     
-    // 2. Размножение 
-    std::vector<creature> newPlants;
+    
+    rabbits.insert(rabbits.end(), new_rabbits.begin(), new_rabbits.end());           //добавление новых существ
+    plants.insert(plants.end(), new_plants.begin(), new_plants.end());               //добавление новых существ
 
-    for (auto& p : plant) {
-        if (p.age < p.maturity_age) continue;
 
-        // Чем старше растение, тем больше потомства 
-        float reproductionChance = min(0.01f * (p.age - p.maturity_age), 0.05f); 
-
-        if ((rand() % 100) < (reproductionChance * 100) && plant.size() + newPlants.size() < p.limit) {
-            // Количество семян (1-5)
-            int seeds = 1 + rand() % 5;
-
-            for (int s = 0; s < seeds; s++) {
-                creature seedling = p;
-                seedling.age = 0;
-
-                // Распределение семян вокруг материнского растения
-                float distance = 3.0f + (rand() % 10); // 3-12 единиц
-                float angle = (rand() % 360) * 3.14159f / 180.0f;
-
-                seedling.x += distance * cos(angle);
-                seedling.y += distance * sin(angle);
-
-                // Генетические вариации
-                //seedling.age_limit += rand() % 100 - 50;
-                //seedling.maturity_age += rand() % 50 - 25;
-                //seedling.nutritional_value += rand() % 10 - 5;
-
-                // Проверка границ и пересечений
-                if (seedling.x < -base_range || seedling.x > base_range ||
-                    seedling.y < -base_range || seedling.y > base_range) {
-                    continue;
-                }
-
-                bool canGrow = true;
-                for (const auto& other : plant) {
-                    float dist = sqrt(pow(seedling.x - other.x, 2) +
-                        pow(seedling.y - other.y, 2));
-                    if (dist < 2.0f) { // Минимальное расстояние между растениями
-                        canGrow = false;
-                        break;
-                    }
-                }
-
-                if (canGrow) {
-                    newPlants.push_back(seedling);
-                }
-            }
-        }
-    }
-
-    // Добавление новых растений
-    plant.insert(plant.end(), newPlants.begin(), newPlants.end());
 }
-
-
-
-
+//инициализация игры
 void InitGame() {
-    std::random_device rd; 
-    std::mt19937 gen(rd());
+    std::random_device rd;
+    std::mt19937 gen(rd()); // генератор
+    std::uniform_real_distribution<float> plant_dist(-base_range , base_range );
+
     Textures::LoadTextureFromFile(1, L"Debug/plant.png");
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
-    
-    std::uniform_int_distribution<> x(-base_range / 2, base_range / 2);
-    std::uniform_int_distribution<> y(-base_range / 2, base_range / 2);
 
-    int group_spread = window.width / 2;
-    std::uniform_int_distribution<> dist_spread(-group_spread, group_spread);
-
-
-    for (int i = 0; i < 1000; i++) {
-        creature t;
-        t.x = x(gen);
-        t.y = y(gen);
-        t.limit = 1000;
-        t.nutritional_value = 100;
-        t.widht = 1;  
-        t.age = rand() % 1050;
-        t.maturity_age = 115;
-        t.age_limit = 11700;
-        plant.push_back(t);
+    // Начальные растения
+    for (int i = 0; i < 2000; i++) {
+        auto plant = std::make_shared<Plant>();
+        plant->x =Random::Int(-50,50);
+        plant->y = Random::Int(-50, 50);
+        plants.push_back(plant);
+        population.plant_count++;
     }
-    for (int i = 0; i < 5; i++)
-    {
-        creature n;
-        n.gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
-        if (n.gender == gender_::male)
-        {
-            n.type = type_::rabbit;
-        }
-        else
-        {
-            n.type = type_::rabbit;
-        }
-        n.eating_range = 2;
-        n.x = 0;
-        n.y = 0;
-        n.age = rand() % 50;
-        n.maturity_age = 100;
-        n.age_limit = 200;
-        n.limit = 550;
-        n.hunger_limit = 50;
-        n.hunger = 0;
-        rabbit.push_back(n);
+
+    // Начальные кролики
+    for (int i = 0; i < 500; i++) {
+        auto rabbit = std::make_shared<Rabbit>();
+        rabbit->x = Random::Int(-50, 50);
+        rabbit->y = Random::Int(-50, 50);
+        rabbits.push_back(rabbit);
+        population.rabbit_count++;
     }
 }
 
-void Showpopulations()
-{
-    Shaders::vShader(2);
-    Shaders::pShader(2);
-    ConstBuf::global[0] = XMFLOAT4(rabbit.size(), plant.size(), 0,0);
+void Showpopulations() {
+
+    // Визуализация популяций (две полоски)                                                                  // тут нормализуется количество существ до 1
+                                                                                                             // в зависимости от лимита
+    Shaders::vShader(2);                                                                                     // и если полоса снизу доходит до края карты
+    Shaders::pShader(2);                                                                                     // то количество существ в списке достигло лимита
+    float rabbitRatio = min(                                                                                 //
+        static_cast<float>(population.rabbit_count) / population.rabbit_limit,                               //
+        1.0f                                                                                                 //
+    );                                                                                                       //
+                                                                                                             //
+    float plantRatio = min(                                                                                  //
+        static_cast<float>(population.plant_count) / population.plant_limit,                                 //
+        1.0f                                                                                                 //
+    );                                                                                                       //
+    ConstBuf::global[0] = XMFLOAT4(                                                                          //
+        rabbitRatio,                                                                                         //
+        plantRatio,
+        0,
+        0
+    );
 
     ConstBuf::Update(5, ConstBuf::global);
     ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer12(1,2);
+    Draw::NullDrawer12(1); 
+    
 }
 
-void ShowRacketAndBall()
-{
-    // Отрисовка кроликов по чанкам
-    context->PSSetShaderResources(0, 1, &Textures::Texture[2].TextureResView);
-    int rabbitCount = 0;
-    for (int cy = CHUNKS_PER_SIDE - 1; cy >= 0; --cy) {  // Перебор по Y в обратном порядке
-        for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
-            const auto& chunk = chunk_grid[cx][cy];
-            for (const auto& r : chunk.rabbits) {
-                float t = r->age / 10.0f;
-                ConstBuf::global[rabbitCount] = XMFLOAT4(r->x - t / 1.2f, r->y, r->x + t, r->y + t);
-                rabbitCount++;
-            }
-        }
-    }
-    if (rabbitCount > 0) {
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, rabbitCount);
-    }
+void ShowRacketAndBall() {
+    auto drawInstances = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
+        context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+        int count = 0;
 
-    // Отрисовка растений по чанкам
-    context->PSSetShaderResources(0, 1, &Textures::Texture[1].TextureResView);
-    int plantCount = 0;
-    for (int cy = CHUNKS_PER_SIDE - 1; cy >= 0; --cy) {  // Перебор по Y в обратном порядке
-        for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
-            const auto& chunk = chunk_grid[cx][cy];
-            for (const auto& p : chunk.plants) {
-                float t = p->age / 10.0f;
-                ConstBuf::global[plantCount] = XMFLOAT4(p->x - t / 1.2f, p->y, p->x + t, p->y + t);
-                plantCount++;
+        for (int cy = CHUNKS_PER_SIDE - 1; cy >= 0; --cy) {
+            for (int cx = 0; cx < CHUNKS_PER_SIDE; ++cx) {
+                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
+                for (const auto& weakPtr : creatureList) {
+                    if (auto c = weakPtr.lock()) {
+                        float t = c->age / ageScale;
+                        ConstBuf::global[count++] = XMFLOAT4(
+                            c->x - t / 1.2f, c->y,
+                            c->x + t, c->y + t
+                        );
+                    }
+                }
             }
         }
-    }
-    if (plantCount > 0) {
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, plantCount);
-    }
+
+        if (count > 0) {
+            ConstBuf::Update(5, ConstBuf::global);
+            ConstBuf::ConstToVertex(5);
+            Draw::NullDrawer(1, count);
+        }
+        };
+
+    drawInstances(
+        2,
+        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
+            return chunk.rabbits;
+        },
+        100.0f
+    );
+
+    drawInstances(
+        1,
+        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
+            return chunk.plants;
+        },
+        100.0f
+    );
 }
-
-
-
-
-

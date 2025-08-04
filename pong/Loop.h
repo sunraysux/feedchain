@@ -11,21 +11,21 @@ void mainLoop()
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::off);
 	Rasterizer::Cull(Rasterizer::cullmode::front);
-	//Shaders::vShader(1);
-	//Shaders::pShader(1);
-	Shaders::vShader(1);
-	Shaders::pShader(1);
-	Draw::NullDrawer(1, 1);
+	Camera::update();
+
 	ConstBuf::ConstToVertex(4);
 	ConstBuf::ConstToPixel(4);
 
-	Camera::update();
-	//Draw::NullDrawer(1, 1);
+	Shaders::vShader(1);     // фон
+	Shaders::pShader(1);
+	Draw::NullDrawer(1, 1);
+
+	
+	
 	Shaders::vShader(0);
 	Shaders::pShader(0);
-	processRabbit();
-	processPlant();
-	updatechunks();
+	UpdateChunks();
+	ProcessCreatures(population);
 	ShowRacketAndBall();
 	Showpopulations();
 	
