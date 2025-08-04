@@ -313,8 +313,6 @@ void ProcessCreatures(PopulationManager& pop) {
     for (auto& plant : plants)
         plant->process(plants, new_plants, pop); //цикл растений
 
-    pop.update(-dead_rabbits, -dead_plants);                                               //
-    pop.update(static_cast<int>(new_rabbits.size()), static_cast<int>(new_plants.size())); //обновление информации по популяциям
     
 
     rabbits.erase(std::remove_if(rabbits.begin(), rabbits.end(), [&](const auto& r) {            // удаление лишних
@@ -328,9 +326,14 @@ void ProcessCreatures(PopulationManager& pop) {
         }), plants.end());    
 
     
-    
     rabbits.insert(rabbits.end(), new_rabbits.begin(), new_rabbits.end());           //добавление новых существ
     plants.insert(plants.end(), new_plants.begin(), new_plants.end());               //добавление новых существ
+
+                                             
+    pop.update(
+        static_cast<int>(new_rabbits.size()) - dead_rabbits,//обновление статистики
+        static_cast<int>(new_plants.size()) - dead_plants
+    );
 
 
 }
