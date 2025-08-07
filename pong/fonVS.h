@@ -102,11 +102,9 @@ float3 calcGeom(float2 uv, int faceID)
     else if (faceID == 4) cubePos = float3(-p.x, p.y, -1);
     else if (faceID == 5) cubePos = float3(p.x, p.y, 1);
     else                  cubePos = float3(0, 0, 0); // fallback
-
     return cubeToSphere(cubePos);
-    return cubePos;
     cubePos = rotX(cubeToSphere(cubePos), time.x * 0.05);
-    return rotY(cubeToSphere(cubePos), time.x * 0.05);
+    return rotY(cubePos, time.x * 0.05);
 }
 
 
@@ -125,7 +123,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     int vg = (int)(gx * gy);
     int localID = qID % vg;
     int faceID = qID / vg;
-
+   // int faceID = 4;
     int px = localID % (int)gx;
     int py = localID / (int)gx;
 

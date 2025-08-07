@@ -1027,10 +1027,10 @@ namespace Camera
 		const float rotationSpeed = 0.02f;  // Скорость вращения
 
 		if (GetAsyncKeyState('W') & 0x8000) {
-			state.rotationX -= rotationSpeed;
+			state.rotationX += rotationSpeed;
 		}
 		if (GetAsyncKeyState('S') & 0x8000) {
-			state.rotationX += rotationSpeed;
+			state.rotationX -= rotationSpeed;
 		}
 		if (GetAsyncKeyState('A') & 0x8000) {
 			state.rotationY += rotationSpeed;

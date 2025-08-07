@@ -25,79 +25,107 @@ cbuffer drawMat : register(b2)
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float4 vpos : POSITION0;
-    float4 wpos : POSITION1;
-    float4 vnorm : NORMAL1;
     float2 uv : TEXCOORD0;
 };
 
 float3 rotY(float3 pos, float a)
 {
-    float3x3 m =
-    {
+    float3x3 m = float3x3(
         cos(a), 0, sin(a),
         0, 1, 0,
         -sin(a), 0, cos(a)
-    };
-    pos = mul(pos, m);
-    return pos;
+    );
+    return mul(pos, m);
 }
+
+float3 rotX(float3 pos, float a)
+{
+    float3x3 m = float3x3(
+        1, 0, 0,
+        0, cos(a), -sin(a),
+        0, sin(a), cos(a)
+    );
+    return mul(pos, m);
+}
+
+float3 rotZ(float3 pos, float a)
+{
+    float3x3 m = float3x3(
+        cos(a), sin(a), 0,
+        -sin(a), cos(a), 0,
+        0, 0, 1
+    );
+    return mul(pos, m);
+}
+
+float3 cubeToSphere(float3 p)
+{
+    float x2 = p.x * p.x;
+    float y2 = p.y * p.y;
+    float z2 = p.z * p.z;
+
+    float3 result;
+    result.x = p.x * sqrt(1.0 - (y2 + z2) * 0.5 + (y2 * z2) / 3.0);
+    result.y = p.y * sqrt(1.0 - (z2 + x2) * 0.5 + (z2 * x2) / 3.0);
+    result.z = p.z * sqrt(1.0 - (x2 + y2) * 0.5 + (x2 * y2) / 3.0);
+
+    return result;
+}
+
+float3 calcGeom(float2 uv, int faceID)
+{
+    float2 p = uv * 2.0 - 1.0;
+    float3 cubePos;
+    if (faceID == 0)      cubePos = float3(-1, p.y, p.x);
+    else if (faceID == 1) cubePos = float3(1, p.y, -p.x);
+    else if (faceID == 2) cubePos = float3(-p.x, -1, -p.y);
+    else if (faceID == 3) cubePos = float3(-p.x, 1, p.y);
+    else if (faceID == 4) cubePos = float3(-p.x, p.y, -1);
+    else if (faceID == 5) cubePos = float3(p.x, p.y, 1);
+    else                  cubePos = float3(0, 0, 0); // fallback
+    return cubeToSphere(cubePos);
+    cubePos = rotX(cubeToSphere(cubePos), time.x * 0.05);
+    return rotY(cubePos, time.x * 0.05);
+}
+
 
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
 
-    // Получаем параметры экземпляра
-    float x = gConst[iID].x;      // X-координата
-    float y = gConst[iID].y;      // Y-координата
-    float x1 = gConst[iID].z;     // Ширина
-    float y1 = gConst[iID].w;     // Высота
+    // Получаем позицию существа на грани
+    float2 bottomLeft = gConst[iID].xy; // (x0, y0)
+    float2 topRight = gConst[iID].zw; // (x1, y1)
 
-    // Вершины квада (два треугольника)
-    float2 quad[6] = {
-        float2(x, y),   // Нижний левый
-        float2(x, y1),  // Верхний левый
-        float2(x1, y),  // Нижний правый
-        float2(x1, y),  // Нижний правый (повтор)
-        float2(x, y1),  // Верхний левый (повтор)
-        float2(x1, y1)  // Верхний правый
+    // Локальные вершины квада (в пределах существа)
+    float2 quadVerts[6] = {
+    float2(0, 0), float2(1, 0), float2(0, 1),
+    float2(0, 1), float2(1, 0), float2(1, 1)
     };
 
-    // UV-координаты
+    float2 localUV = quadVerts[vID];
+
+    // Преобразуем в глобальные координаты на грани
+    float2 gridPos = lerp( topRight, bottomLeft, localUV); // внутри существа
+    float2 uv = gridPos / float2(100, 100); // нормализуем в UV
+
+    // Теперь получаем позицию на сфере
+    int faceID =4; // Пока фиксированная грань. Потом можешь передавать как gConst[iID].a
+    float3 worldPos = calcGeom(uv, faceID) * 60.0; // радиус
+
+    // Преобразуем в clip space
+    output.pos = mul(float4(worldPos, 1.0), mul(view[0], proj[0]));
+
+    // UV для текстуры существа
     float2 uvCoords[6] = {
-        float2(0, 1), float2(0, 0), float2(1, 1),
-        float2(1, 1), float2(0, 0), float2(1, 0)
+    float2(0, 0), // Нижний левый
+    float2(1, 0), // Нижний правый
+    float2(0, 1), // Верхний левый
+
+    float2(0, 1), // Верхний левый
+    float2(1, 0), // Нижний правый
+    float2(1, 1)  // Верхний правый
     };
-
-    // Текущая позиция вершины в 2D
-    float2 pos2D = quad[vID];
-
-    // Центр текущего объекта
-    float2 objCenter = float2((x + x1) * 0.5, (y + y1) * 0.5);
-
-    // Вектор от центра сцены к центру объекта
-    float2 toObjCenter = objCenter - float2(0, 0);
-    float distFromSceneCenter = length(toObjCenter);
-
-    // Нормализованное расстояние от центра сцены (0-1)
-    float normalizedDist = saturate(distFromSceneCenter / 100.0); // 100 - максимальный радиус
-
-    // Z-координата изменяется от 50 в центре до 25 на краю
-    float zPos = lerp(50.0, 25.0, normalizedDist * normalizedDist);
-
-    // Если нужно сферическое распределение внутри каждого объекта:
-    float2 vertexOffset = pos2D - objCenter;
-    float vertexDist = length(vertexOffset) / length(float2(x1 - x, y1 - y));
-    zPos -= 10.0 * vertexDist; // Добавляем небольшую кривизну к каждому объекту
-
-    // Итоговая позиция в мировых координатах
-    float4 worldPos = float4(pos2D.x, pos2D.y, -zPos, 1.0);
-
-    // Преобразование в пространство камеры
-    float4 viewPos = mul(worldPos, view[0]);
-    float4 projPos = mul(viewPos, proj[0]);
-
-    output.pos = projPos;
     output.uv = uvCoords[vID];
 
     return output;

@@ -349,7 +349,7 @@ void InitGame() {
 
 
     // Начальные растения
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 1000; i++) {
         auto plant = std::make_shared<Plant>();
         plant->x =Random::Int(-50,50);
         plant->y = Random::Int(-50, 50);
@@ -359,7 +359,7 @@ void InitGame() {
     }
 
     // Начальные кролики
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 100; i++) {
         auto rabbit = std::make_shared<Rabbit>();
         rabbit->x = Random::Int(-50, 50);
         rabbit->y = Random::Int(-50, 50);
@@ -408,12 +408,15 @@ void ShowRacketAndBall() {
                 const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
                 for (const auto& weakPtr : creatureList) {
                     if (auto c = weakPtr.lock()) {
+                        float chunkCoordX = (c->x + 50.0f) / 100.0f * 100.0f; // из [-50,50] в [0,100]
+                        float chunkCoordY = (c->y + 50.0f) / 100.0f * 100.0f;
                         float t = c->age / ageScale;
+
                         ConstBuf::global[count++] = XMFLOAT4(
-                            c->x - t / 1.2f,
-                            c->y,
-                            c->x + t,
-                            c->y + t
+                            chunkCoordX - t / 1.1,
+                            chunkCoordY,
+                            chunkCoordX + t,
+                            chunkCoordY + t
                         );
                     }
                 }
