@@ -10,16 +10,24 @@ void mainLoop()
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::off);
-	Rasterizer::Cull(Rasterizer::cullmode::front);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
 	Camera::update();
 
 	ConstBuf::ConstToVertex(4);
 	ConstBuf::ConstToPixel(4);
+	int grid = 10;
+	int count = grid * grid;
+	ConstBuf::ConstToVertex(4);
+	ConstBuf::ConstToPixel(4);
+
+	ConstBuf::drawerV[0] = grid;
+	ConstBuf::drawerV[1] = grid;
 
 	Shaders::vShader(1);     // фон
 	Shaders::pShader(1);
-	Draw::NullDrawer(1, 1);
-
+	context->PSSetShaderResources(0, 1, &Textures::Texture[3].TextureResView);
+	Draw::NullDrawer(count*6, 1);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
 	
 	
 	Shaders::vShader(0);

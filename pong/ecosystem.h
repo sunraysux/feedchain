@@ -93,7 +93,7 @@ class Plant : public Creature {
 public:
     Plant() : Creature(type_::plant) {
         // Инициализация параметров растения
-        nutritional_value = 100;
+        nutritional_value = 15;
         age = 0;
         maturity_age = 115;
         age_limit = 1170;
@@ -185,7 +185,7 @@ public:
         eating_range = 2;
         age = 0;
         maturity_age = 100;
-        age_limit = 200;
+        age_limit = 150;
         hunger_limit = 50;
         hunger = 0;
     }
@@ -228,7 +228,7 @@ public:
 
 
     void eat(std::vector<std::shared_ptr<Plant>>& plants) {
-        if (hunger <= 10 || dead) return;
+        if (hunger <= 40 || dead) return;
 
         auto it = std::find_if(plants.begin(), plants.end(), [this](const auto& p) {
             return distanceSquared(x, y, p->x, p->y) < eating_range;
@@ -315,7 +315,7 @@ void ProcessCreatures(PopulationManager& pop) {
 
     
 
-    rabbits.erase(std::remove_if(rabbits.begin(), rabbits.end(), [&](const auto& r) {            // удаление лишних
+    rabbits.erase(std::remove_if(rabbits.begin(), rabbits.end(), [&](const auto& r) {            // удаление мёртвых
         if (r->shouldDie()) { dead_rabbits++; return true; }                                     //
         return false;                                                                            //
         }), rabbits.end());                                                                      //
@@ -345,21 +345,26 @@ void InitGame() {
 
     Textures::LoadTextureFromFile(1, L"Debug/plant.png");
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
+    Textures::LoadTextureFromFile(3, L"Debug/grass.jpg");
+
 
     // Начальные растения
     for (int i = 0; i < 2000; i++) {
         auto plant = std::make_shared<Plant>();
         plant->x =Random::Int(-50,50);
         plant->y = Random::Int(-50, 50);
+        plant->age = Random::Int(0, 500);
         plants.push_back(plant);
         population.plant_count++;
     }
 
     // Начальные кролики
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 50; i++) {
         auto rabbit = std::make_shared<Rabbit>();
         rabbit->x = Random::Int(-50, 50);
         rabbit->y = Random::Int(-50, 50);
+        rabbit->hunger = Random::Int(0, 100);
+        rabbit->age = Random::Int(0, 100);
         rabbits.push_back(rabbit);
         population.rabbit_count++;
     }
@@ -405,8 +410,10 @@ void ShowRacketAndBall() {
                     if (auto c = weakPtr.lock()) {
                         float t = c->age / ageScale;
                         ConstBuf::global[count++] = XMFLOAT4(
-                            c->x - t / 1.2f, c->y,
-                            c->x + t, c->y + t
+                            c->x - t / 1.2f,
+                            c->y,
+                            c->x + t,
+                            c->y + t
                         );
                     }
                 }

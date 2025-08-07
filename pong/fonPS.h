@@ -1,3 +1,6 @@
+Texture2D tex : register(t0);
+SamplerState samplerState : register(s0);
+
 cbuffer global : register(b5)
 {
     float4 gConst[32];
@@ -30,20 +33,11 @@ cbuffer params : register(b1)
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float4 vpos : POSITION0;
-    float4 wpos : POSITION1;
-    float4 vnorm : NORMAL1;
     float2 uv : TEXCOORD0;
 };
+/// ////////////////////////////////////////////////////
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    float pi = 3.141519;
-
-//return float4(frac(input.uv.x+time.x*.01), 0, 0, 1);
-
-
-
-    return float4(0.8, 1, 0.3, 1.);
-
+    return tex.Sample(samplerState, input.uv);
 }

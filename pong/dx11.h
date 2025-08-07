@@ -1015,10 +1015,10 @@ namespace Camera
 	} static state;
 	void Camera()
 	{
+
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-		state.widthzoom = width;
-		state.heightzoom = height;
-		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
+
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(state.fovAngle), iaspect, 0.01f, 10000.0f));
 
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
@@ -1044,8 +1044,8 @@ namespace Camera
 			state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
 		}
 
-		float x = Camera::state.constellationOffset.r[3].m128_f32[0]* state.camDist/2;
-		float y = Camera::state.constellationOffset.r[3].m128_f32[1]* state.camDist/2;
+		float x = Camera::state.constellationOffset.r[3].m128_f32[0]* state.camDist/20;
+		float y = Camera::state.constellationOffset.r[3].m128_f32[1]* state.camDist/20;
 
 		// Устанавливаем at в плоскости XY (z=0)
 		Camera::state.at = XMVectorSet(x, y, 0, 0);
@@ -1059,8 +1059,10 @@ namespace Camera
 		// Вектор вверх остается неизменным (0,1,0)
 		Camera::state.Up = state.defaultUp;
 
+
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
+
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(state.fovAngle), iaspect, 0.01f, 10000.0f));
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
@@ -1069,7 +1071,7 @@ namespace Camera
 	
 	void HandleMouseWheel(int delta)
 	{
-		state.camDist -= delta*0.0125;
+		state.camDist -= delta*0.125;
 		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
 		state.widthzoom = width * (state.camDist / 100.0f);
 		state.heightzoom = height * (state.camDist / 100.0f);
