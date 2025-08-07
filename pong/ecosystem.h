@@ -228,7 +228,7 @@ public:
 
 
     void eat(std::vector<std::shared_ptr<Plant>>& plants) {
-        if (hunger <= 40 || dead) return;
+        if (hunger <= 30 || dead) return;
 
         auto it = std::find_if(plants.begin(), plants.end(), [this](const auto& p) {
             return distanceSquared(x, y, p->x, p->y) < eating_range;
