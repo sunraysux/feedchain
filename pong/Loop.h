@@ -10,7 +10,7 @@ void mainLoop()
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::off);
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::front);
 	Camera::update();
 
 	ConstBuf::ConstToVertex(4);
@@ -27,7 +27,6 @@ void mainLoop()
 	Shaders::pShader(1);
 	context->PSSetShaderResources(0, 1, &Textures::Texture[3].TextureResView);
 	Draw::NullDrawer(count*6, 1);
-	Rasterizer::Cull(Rasterizer::cullmode::off);
 	
 	
 	Shaders::vShader(0);

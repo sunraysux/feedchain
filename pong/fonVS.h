@@ -137,9 +137,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
 
     float3 pos = calcGeom(uv, faceID);
 
-    pos.x = pos.x*80;
-    pos.y = pos.y*80;
-
+    pos.x = pos.x*60;
+    pos.y = pos.y*60;
+    pos.z = pos.z * 60;
     output.pos = mul(float4(pos, 1.0), mul(view[0], proj[0]));
     float2 uvCoords[6] = {
         float2(0, 1), float2(1, 1), float2(0, 0),

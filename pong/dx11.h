@@ -998,84 +998,76 @@ namespace Camera
 	struct State
 	{
 		bool mouse = false;
-		float camDist = 10.0f;
+		float camDist = 100.0f;
 		float minDist = 1.0f;
 		float maxDist = 30000.0f;
 		int widthzoom = width;
 		int heightzoom = height;
 		float fovAngle = 60.0f;
-		XMVECTOR relativeMovement = XMVectorSet(1, 0, 0, 0);
-		XMVECTOR currentRotation = XMQuaternionIdentity();
-		XMVECTOR Forward = XMVectorSet(0, 0, 1, 0);
+		float rotationX = 0.0f;  // Угол вращения вокруг оси X
+		float rotationY = 0.0f;  // Угол вращения вокруг оси Y
 		XMVECTOR defaultUp = XMVectorSet(0, 1, 0, 0);
 		XMVECTOR at = XMVectorSet(0, 0, 0, 0);
-		XMVECTOR Up = XMVector3Rotate(defaultUp, currentRotation);
-		XMVECTOR Eye = at - (Forward * camDist);
-		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
+		XMVECTOR Eye = XMVectorSet(0, 0, -camDist, 0);
+		XMVECTOR Forward = XMVectorSet(0, 0, 1, 0);
+		XMVECTOR Up = defaultUp;
 	} static state;
+
 	void Camera()
 	{
-
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(state.fovAngle), iaspect, 0.01f, 10000.0f));
-
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
 	}
+
 	void update()
 	{
+		const float rotationSpeed = 0.02f;  // Скорость вращения
+
 		if (GetAsyncKeyState('W') & 0x8000) {
-			// Добавляем вектор направления камеры (уже нормализован)
-			state.constellationOffset *= XMMatrixTranslation(0,1,0);
+			state.rotationX -= rotationSpeed;
 		}
 		if (GetAsyncKeyState('S') & 0x8000) {
-			// Движение назад - обратное направление
-			state.constellationOffset *= XMMatrixTranslation(0, -1, 0);
+			state.rotationX += rotationSpeed;
 		}
-
 		if (GetAsyncKeyState('A') & 0x8000) {
-			// Добавляем вектор направления камеры (уже нормализован)
-			state.constellationOffset *= XMMatrixTranslation(-1, 0, 0);
+			state.rotationY += rotationSpeed;
 		}
 		if (GetAsyncKeyState('D') & 0x8000) {
-			// Движение назад - обратное направление
-			state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
+			state.rotationY -= rotationSpeed;
 		}
 
-		float x = Camera::state.constellationOffset.r[3].m128_f32[0]* state.camDist/20;
-		float y = Camera::state.constellationOffset.r[3].m128_f32[1]* state.camDist/20;
+		// Создаем матрицу вращения
+		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(state.rotationX, state.rotationY, 0.0f);
 
-		// Устанавливаем at в плоскости XY (z=0)
-		Camera::state.at = XMVectorSet(x, y, 0, 0);
+		// Применяем вращение к позиции камеры
+		XMVECTOR offset = XMVectorSet(0, 0, -state.camDist, 0);
+		state.Eye = XMVector3Transform(offset, rotationMatrix);
+		state.Forward = XMVector3Normalize(state.at - state.Eye);
 
-		// Позиция камеры находится на расстоянии camDist по оси Z от at
-		Camera::state.Eye = XMVectorSet(x, y, -state.camDist, 0);
-
-		// Вектор направления камеры (от камеры к точке at)
-		Camera::state.Forward = XMVector3Normalize(state.at - state.Eye);
-
-		// Вектор вверх остается неизменным (0,1,0)
-		Camera::state.Up = state.defaultUp;
-
+		// Обновляем вектор Up с учетом вращения
+		state.Up = XMVector3Transform(state.defaultUp, rotationMatrix);
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(state.fovAngle), iaspect, 0.01f, 10000.0f));
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
 	}
 
-	
 	void HandleMouseWheel(int delta)
 	{
-		state.camDist -= delta*0.125;
+		state.camDist -= delta * 0.125;
 		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
 		state.widthzoom = width * (state.camDist / 100.0f);
 		state.heightzoom = height * (state.camDist / 100.0f);
-		// Пересчитываем позицию камеры
-		state.Eye = state.at +(state.Forward * state.camDist);
+
+		// Обновляем позицию камеры с учетом текущего расстояния
+		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(state.rotationX, state.rotationY, 0.0f);
+		XMVECTOR offset = XMVectorSet(0, 0, state.camDist, 0);
+		state.Eye = XMVector3Transform(offset, rotationMatrix);
+		state.Forward = XMVector3Normalize(state.at - state.Eye);
 	}
 }

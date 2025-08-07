@@ -46,40 +46,59 @@ float3 rotY(float3 pos, float a)
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x = gConst[iID].x;      // Фиксированная X-координата нижнего левого угла
-    float y = gConst[iID].y;      // Фиксированная Y-координата нижнего левого угла
-    float x1 = gConst[iID].z;     // Ширина (размер по X)
-    float y1 = gConst[iID].w;   // Высота (размер по Y)
 
+    // Получаем параметры экземпляра
+    float x = gConst[iID].x;      // X-координата
+    float y = gConst[iID].y;      // Y-координата
+    float x1 = gConst[iID].z;     // Ширина
+    float y1 = gConst[iID].w;     // Высота
 
     // Вершины квада (два треугольника)
     float2 quad[6] = {
         float2(x, y),   // Нижний левый
         float2(x, y1),  // Верхний левый
         float2(x1, y),  // Нижний правый
-        
-
         float2(x1, y),  // Нижний правый (повтор)
-        float2(x, y1),   // Верхний левый (повтор)
-        float2(x1, y1) // Верхний правый
-        
-
+        float2(x, y1),  // Верхний левый (повтор)
+        float2(x1, y1)  // Верхний правый
     };
 
+    // UV-координаты
     float2 uvCoords[6] = {
-    float2(0, 1), // Нижний левый
-    float2(0, 0), // Нижний правый
-    float2(1, 1), // Верхний правый
-    
-    float2(1, 1), // Нижний правый
-    float2(0, 0), // Верхний левый
-    float2(1, 0) // Верхний правый
+        float2(0, 1), float2(0, 0), float2(1, 1),
+        float2(1, 1), float2(0, 0), float2(1, 0)
     };
-    float4 viewPos = mul(float4(quad[vID], 1, 1.0f), view[0]);
+
+    // Текущая позиция вершины в 2D
+    float2 pos2D = quad[vID];
+
+    // Центр текущего объекта
+    float2 objCenter = float2((x + x1) * 0.5, (y + y1) * 0.5);
+
+    // Вектор от центра сцены к центру объекта
+    float2 toObjCenter = objCenter - float2(0, 0);
+    float distFromSceneCenter = length(toObjCenter);
+
+    // Нормализованное расстояние от центра сцены (0-1)
+    float normalizedDist = saturate(distFromSceneCenter / 100.0); // 100 - максимальный радиус
+
+    // Z-координата изменяется от 50 в центре до 25 на краю
+    float zPos = lerp(50.0, 25.0, normalizedDist * normalizedDist);
+
+    // Если нужно сферическое распределение внутри каждого объекта:
+    float2 vertexOffset = pos2D - objCenter;
+    float vertexDist = length(vertexOffset) / length(float2(x1 - x, y1 - y));
+    zPos -= 10.0 * vertexDist; // Добавляем небольшую кривизну к каждому объекту
+
+    // Итоговая позиция в мировых координатах
+    float4 worldPos = float4(pos2D.x, pos2D.y, -zPos, 1.0);
+
+    // Преобразование в пространство камеры
+    float4 viewPos = mul(worldPos, view[0]);
     float4 projPos = mul(viewPos, proj[0]);
 
-    output.pos = projPos;  // Позиция в clip-пространстве
-    output.uv = uvCoords[vID];            // UV-координаты
+    output.pos = projPos;
+    output.uv = uvCoords[vID];
 
     return output;
 }
