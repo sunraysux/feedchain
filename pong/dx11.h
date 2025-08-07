@@ -998,8 +998,8 @@ namespace Camera
 	struct State
 	{
 		bool mouse = false;
-		float camDist = 100.0f;
-		float minDist = 1.0f;
+		float camDist = 200.0f;
+		float minDist = 50.0f;
 		float maxDist = 30000.0f;
 		int widthzoom = width;
 		int heightzoom = height;
@@ -1011,6 +1011,7 @@ namespace Camera
 		XMVECTOR Eye = XMVectorSet(0, 0, -camDist, 0);
 		XMVECTOR Forward = XMVectorSet(0, 0, 1, 0);
 		XMVECTOR Up = defaultUp;
+		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
 	} static state;
 
 	void Camera()
@@ -1021,11 +1022,13 @@ namespace Camera
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
 	}
-
 	void update()
 	{
-		const float rotationSpeed = 0.02f;  // Скорость вращения
+		const float rotationSpeed = 0.02f;
 
+		// Режим 3D
+	if (state.camDist >= 100.0f)
+	{
 		if (GetAsyncKeyState('W') & 0x8000) {
 			state.rotationX += rotationSpeed;
 		}
@@ -1039,35 +1042,72 @@ namespace Camera
 			state.rotationY -= rotationSpeed;
 		}
 
-		// Создаем матрицу вращения
+		// Вращение камеры вокруг центра
 		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(state.rotationX, state.rotationY, 0.0f);
-
-		// Применяем вращение к позиции камеры
 		XMVECTOR offset = XMVectorSet(0, 0, -state.camDist, 0);
 		state.Eye = XMVector3Transform(offset, rotationMatrix);
 		state.Forward = XMVector3Normalize(state.at - state.Eye);
-
-		// Обновляем вектор Up с учетом вращения
 		state.Up = XMVector3Transform(state.defaultUp, rotationMatrix);
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(state.fovAngle), iaspect, 0.01f, 10000.0f));
+	}
+	else
+	{
+		if (GetAsyncKeyState('W') & 0x8000) {
+			state.rotationX += rotationSpeed;
+		}
+		if (GetAsyncKeyState('S') & 0x8000) {
+			state.rotationX -= rotationSpeed;
+		}
+		if (GetAsyncKeyState('A') & 0x8000) {
+			state.rotationY += rotationSpeed;
+		}
+		if (GetAsyncKeyState('D') & 0x8000) {
+			state.rotationY -= rotationSpeed;
+		}
+
+		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(state.rotationX, state.rotationY, 0.0f);
+		XMVECTOR offset = XMVectorSet(0, 0, -state.camDist, 0);
+		state.Eye = XMVector3Transform(offset, rotationMatrix);
+		state.Forward = XMVector3Normalize(state.at - state.Eye);
+		state.Up = XMVector3Transform(state.defaultUp, rotationMatrix);
+
+		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
 	}
 
+	ConstBuf::UpdateCamera();
+	ConstBuf::ConstToVertex(3);
+	ConstBuf::ConstToPixel(3);
+}
+
 	void HandleMouseWheel(int delta)
 	{
-		state.camDist -= delta * 0.125;
-		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
-		state.widthzoom = width * (state.camDist / 100.0f);
-		state.heightzoom = height * (state.camDist / 100.0f);
+		if (state.camDist >= 100.0f)
+		{
+			state.camDist -= delta * 0.125;
+			state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
+			state.widthzoom = width * (state.camDist / 100.0f);
+			state.heightzoom = height * (state.camDist / 100.0f);
 
-		// Обновляем позицию камеры с учетом текущего расстояния
-		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(state.rotationX, state.rotationY, 0.0f);
-		XMVECTOR offset = XMVectorSet(0, 0, state.camDist, 0);
-		state.Eye = XMVector3Transform(offset, rotationMatrix);
-		state.Forward = XMVector3Normalize(state.at - state.Eye);
+			// Обновляем позицию камеры с учетом текущего расстояния
+			XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(state.rotationX, state.rotationY, 0.0f);
+			XMVECTOR offset = XMVectorSet(0, 0, state.camDist, 0);
+			state.Eye = XMVector3Transform(offset, rotationMatrix);
+			state.Forward = XMVector3Normalize(state.at - state.Eye);
+		}
+		else
+		{
+			state.camDist -= delta * 0.125;
+			state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
+			state.widthzoom = width * (state.camDist / 1000.0f);
+			state.heightzoom = height * (state.camDist / 1000.0f);
+			// Пересчитываем позицию камеры
+			state.Eye = state.at + (state.Forward * state.camDist);
+		}
 	}
 }
