@@ -38,6 +38,9 @@
     <Image Include="Debug\plant.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\grass.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
