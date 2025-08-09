@@ -70,7 +70,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     
     Dx11Init();
     InitGame();//здесь инициализируем переменные игры
-    ShowCursor(FALSE);
+    ShowCursor(TRUE);
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DX11MINIMAL));
 
     MSG msg = { 0 };

@@ -1,4 +1,4 @@
-
+п»ї
 
 using namespace DirectX;
 
@@ -297,7 +297,7 @@ namespace Textures
 		);
 		if (FAILED(hr))
 		{
-			// Получаем описание ошибки через Windows API
+			// РџРѕР»СѓС‡Р°РµРј РѕРїРёСЃР°РЅРёРµ РѕС€РёР±РєРё С‡РµСЂРµР· Windows API
 			LPWSTR errorText = nullptr;
 			DWORD result = FormatMessageW(
 				FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -324,13 +324,13 @@ namespace Textures
 				errorMsg += L")";
 			}
 
-			// Освобождаем память
+			// РћСЃРІРѕР±РѕР¶РґР°РµРј РїР°РјСЏС‚СЊ
 			if (errorText) LocalFree(errorText);
 
-			// Показываем сообщение
+			// РџРѕРєР°Р·С‹РІР°РµРј СЃРѕРѕР±С‰РµРЅРёРµ
 			MessageBoxW(nullptr, errorMsg.c_str(), L"Texture Error", MB_OK);
 
-			// Преобразуем в narrow string
+			// РџСЂРµРѕР±СЂР°Р·СѓРµРј РІ narrow string
 			char narrowMsg[512];
 			size_t converted = 0;
 			wcstombs_s(&converted, narrowMsg, errorMsg.c_str(), _TRUNCATE);
@@ -622,7 +622,7 @@ namespace ConstBuf
 {
 	ID3D11Buffer* buffer[6];
 
-#define constCount 2000
+#define constCount 7000
 
 	//b0 - use "params" label in shader
 	float drawerV[constCount];//update per draw call
@@ -998,7 +998,7 @@ namespace Camera
 	struct State
 	{
 		bool mouse = false;
-		float camDist = 10.0f;
+		float camDist = 5.0f;
 		float minDist = 1.0f;
 		float maxDist = 30000.0f;
 		int widthzoom = width;
@@ -1013,11 +1013,24 @@ namespace Camera
 		XMVECTOR Eye = at - (Forward * camDist);
 		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
 	} static state;
+
+
+
+	void HandleMouseWheel(int delta)
+	{
+		state.camDist -= delta * 0.0125;
+		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
+		state.widthzoom = width * (state.camDist / 100.0f);
+		state.heightzoom = height * (state.camDist / 100.0f);
+		// РџРµСЂРµСЃС‡РёС‚С‹РІР°РµРј РїРѕР·РёС†РёСЋ РєР°РјРµСЂС‹
+		state.Eye = state.at + (state.Forward * state.camDist);
+	}
+
 	void Camera()
 	{
+		HandleMouseWheel(0);
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-		state.widthzoom = width;
-		state.heightzoom = height;
+
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
 
 		ConstBuf::UpdateCamera();
@@ -1027,36 +1040,36 @@ namespace Camera
 	void update()
 	{
 		if (GetAsyncKeyState('W') & 0x8000) {
-			// Добавляем вектор направления камеры (уже нормализован)
-			state.constellationOffset *= XMMatrixTranslation(0,1,0);
+			// Р”РѕР±Р°РІР»СЏРµРј РІРµРєС‚РѕСЂ РЅР°РїСЂР°РІР»РµРЅРёСЏ РєР°РјРµСЂС‹ (СѓР¶Рµ РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅ)
+			state.constellationOffset *= XMMatrixTranslation(0, 1, 0);
 		}
 		if (GetAsyncKeyState('S') & 0x8000) {
-			// Движение назад - обратное направление
+			// Р”РІРёР¶РµРЅРёРµ РЅР°Р·Р°Рґ - РѕР±СЂР°С‚РЅРѕРµ РЅР°РїСЂР°РІР»РµРЅРёРµ
 			state.constellationOffset *= XMMatrixTranslation(0, -1, 0);
 		}
 
 		if (GetAsyncKeyState('A') & 0x8000) {
-			// Добавляем вектор направления камеры (уже нормализован)
+			// Р”РѕР±Р°РІР»СЏРµРј РІРµРєС‚РѕСЂ РЅР°РїСЂР°РІР»РµРЅРёСЏ РєР°РјРµСЂС‹ (СѓР¶Рµ РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅ)
 			state.constellationOffset *= XMMatrixTranslation(-1, 0, 0);
 		}
 		if (GetAsyncKeyState('D') & 0x8000) {
-			// Движение назад - обратное направление
+			// Р”РІРёР¶РµРЅРёРµ РЅР°Р·Р°Рґ - РѕР±СЂР°С‚РЅРѕРµ РЅР°РїСЂР°РІР»РµРЅРёРµ
 			state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
 		}
 
-		float x = Camera::state.constellationOffset.r[3].m128_f32[0]* state.camDist/2;
-		float y = Camera::state.constellationOffset.r[3].m128_f32[1]* state.camDist/2;
+		float x = Camera::state.constellationOffset.r[3].m128_f32[0] * state.camDist / 2;
+		float y = Camera::state.constellationOffset.r[3].m128_f32[1] * state.camDist / 2;
 
-		// Устанавливаем at в плоскости XY (z=0)
+		// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј at РІ РїР»РѕСЃРєРѕСЃС‚Рё XY (z=0)
 		Camera::state.at = XMVectorSet(x, y, 0, 0);
 
-		// Позиция камеры находится на расстоянии camDist по оси Z от at
+		// РџРѕР·РёС†РёСЏ РєР°РјРµСЂС‹ РЅР°С…РѕРґРёС‚СЃСЏ РЅР° СЂР°СЃСЃС‚РѕСЏРЅРёРё camDist РїРѕ РѕСЃРё Z РѕС‚ at
 		Camera::state.Eye = XMVectorSet(x, y, -state.camDist, 0);
 
-		// Вектор направления камеры (от камеры к точке at)
+		// Р’РµРєС‚РѕСЂ РЅР°РїСЂР°РІР»РµРЅРёСЏ РєР°РјРµСЂС‹ (РѕС‚ РєР°РјРµСЂС‹ Рє С‚РѕС‡РєРµ at)
 		Camera::state.Forward = XMVector3Normalize(state.at - state.Eye);
 
-		// Вектор вверх остается неизменным (0,1,0)
+		// Р’РµРєС‚РѕСЂ РІРІРµСЂС… РѕСЃС‚Р°РµС‚СЃСЏ РЅРµРёР·РјРµРЅРЅС‹Рј (0,1,0)
 		Camera::state.Up = state.defaultUp;
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
@@ -1064,16 +1077,5 @@ namespace Camera
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
-	}
-
-	
-	void HandleMouseWheel(int delta)
-	{
-		state.camDist -= delta*0.0125;
-		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
-		state.widthzoom = width * (state.camDist / 100.0f);
-		state.heightzoom = height * (state.camDist / 100.0f);
-		// Пересчитываем позицию камеры
-		state.Eye = state.at +(state.Forward * state.camDist);
 	}
 }

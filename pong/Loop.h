@@ -1,4 +1,4 @@
-
+п»ї
 void mainLoop()
 {
 	frameConst();
@@ -16,16 +16,22 @@ void mainLoop()
 	ConstBuf::ConstToVertex(4);
 	ConstBuf::ConstToPixel(4);
 
-	Shaders::vShader(1);     // фон
+	Shaders::vShader(1);     // С„РѕРЅ
 	Shaders::pShader(1);
 	Draw::NullDrawer(1, 1);
-
+	mouse();
 	
 	
 	Shaders::vShader(0);
 	Shaders::pShader(0);
-	UpdateChunks();
+	
+	if (currentTime - TimeTic>100)
+	{
+		
+		TimeTic = currentTime;
+	}
 	ProcessCreatures(population);
+	UpdateChunks();
 	ShowRacketAndBall();
 	Showpopulations();
 	
