@@ -140,6 +140,7 @@
     <Image Include="..\Debug\racket_enemy.bmp" />
     <Image Include="Debug\animal.png" />
     <Image Include="Debug\plant.png" />
+    <Image Include="Debug\tree.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav" />

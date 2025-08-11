@@ -57,13 +57,13 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
 
     // Вершины квада (два треугольника)
     float2 quad[6] = {
-        float2(-50, -50),
-        float2(-50, 50),
-        float2(50, -50),
+        float2(-100, -50),
+        float2(-100, 50),
+        float2(100, -50),
 
-        float2(50, -50),
-        float2(-50, 50),
-        float2(50,50)
+        float2(100, -50),
+        float2(-100, 50),
+        float2(100,50)
 
     };
     float4 viewPos = mul(float4(quad[vID], 0, 1.0f), view[0]);
