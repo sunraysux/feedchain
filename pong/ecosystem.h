@@ -2,12 +2,12 @@
 #include <random> 
 #include <memory>
 enum class gender_ { male, female };
-enum class type_ { tree, rabbit, wolf };
+enum class type_ { tree, rabbit, wolf, grass };
 POINT p;
 float TimeTic;
 int base_rangey = 50;
 int base_rangex = 100;
-const int CHUNK_SIZE = 10; // Размер чанка
+const int CHUNK_SIZE = 4; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex*2/ CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  
@@ -39,7 +39,7 @@ public:
 
 inline int coord_to_chunkx(float coord) {
     // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + 100.0f;
+    float normalized = coord + base_rangex;
     // Вычисляем индекс и ограничиваем его
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
@@ -47,7 +47,7 @@ inline int coord_to_chunkx(float coord) {
 
 inline int coord_to_chunky(float coord) {
     // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + 50.0f;
+    float normalized = coord + base_rangey;
     // Вычисляем индекс и ограничиваем его
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
@@ -59,9 +59,9 @@ public:
     int rabbit_count = 0;
     int tree_count = 0;
     int wolf_count = 0;
-    const int wolf_limit = 1000;
-    const int rabbit_limit = 500;
-    const int tree_limit = 3000;
+    const int wolf_limit = 100;
+    const int rabbit_limit = 4000;
+    const int tree_limit = 4000;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -84,12 +84,41 @@ public:
 
 PopulationManager population;
 
+struct Grass {
+    float growthLevel = 1.0f; 
+    float growth = 100;
+    int maxGrowth = 100;
+};
+
 struct Chunk {
     std::vector<std::weak_ptr<Creature>> trees;
     std::vector<std::weak_ptr<Creature>> rabbits;
     std::vector<std::weak_ptr<Creature>> wolfs;
-    std::vector<std::weak_ptr<Creature>> plants;
+    Grass grass;
+    int countRabbits() const {
+        int count = 0;
+        for (const auto& weak_rabbit : rabbits) {
+            if (!weak_rabbit.expired()) ++count;
+        }
+        return count;
+    }
+    void UpdateGrassGrowth() {
+        int rabbitCount = countRabbits();
+
+        float maxRabbits = 10.0f;
+        float ratio = min(static_cast<float>(rabbitCount) / maxRabbits, 1.0f);
+
+        // growthLevel — коэффициент роста 
+        grass.growthLevel = 1.0f - ratio*10;
+
+       
+        float growthSpeed = 1.0f;    // скорость прироста травы 
+
+        // Трава растет, прибавляем рост пропорционально growthLevel
+        grass.growth += growthSpeed * grass.growthLevel;
+    }
 };
+
 std::vector<std::vector<Chunk>> chunk_grid(
     CHUNKS_PER_SIDEX,
     std::vector<Chunk>(CHUNKS_PER_SIDEY)
@@ -161,8 +190,6 @@ protected:
     virtual void addToChunk(Chunk& chunk) = 0;
 };
 
-
-
 class Tree : public Creature {
 public:
     Tree() : Creature(type_::tree) {
@@ -207,11 +234,11 @@ public:
                 if (!other) continue;
                 if (distanceSquared(seedling->x, seedling->y, other->x, other->y) < radius2) {
                     nearbyCount++;
-                    if (nearbyCount >= 2) break;
+                    if (nearbyCount >= 5) break;
                 }
             }
 
-            if (nearbyCount >= 2) continue;
+            if (nearbyCount >= 5) continue;
             updateChunk();
             new_creatures.push_back(seedling);
         }
@@ -296,17 +323,29 @@ public:
     }
 
 
-    void eat(std::vector<std::shared_ptr<Tree>>& trees) {
+    void eat() {
         if (hunger <= 10 || dead) return;
 
-        auto it = std::find_if(trees.begin(), trees.end(), [this](const auto& p) {
-            return distanceSquared(x, y, p->x, p->y) < eating_range;
-            });
+        // Определяем, в каком чанке находится существо
+        int cx = coord_to_chunkx(x);
+        int cy = coord_to_chunky(y);
 
-        if (it != trees.end()) {
-            hunger -= (*it)->nutritional_value;
-            (*it)->dead = true;
-        }
+        if (cx < 0 || cx >= CHUNKS_PER_SIDEX || cy < 0 || cy >= CHUNKS_PER_SIDEY) return;
+
+        Chunk& chunk = chunk_grid[cx][cy];
+
+        // Чем больше трава, тем больше уменьшается голод
+        // Например, hunger уменьшается пропорционально growthLevel (0..1)
+        float hungerReduction = chunk.grass.growth * 1.0f; // 10 — можно настроить
+
+        hunger -= hungerReduction;
+
+        if (hunger < -100) hunger = 0;
+
+        // Можно дополнительно уменьшить рост травы в чанке из-за поедания
+        chunk.grass.growth -= 5;  // немного съели травы
+
+        if (chunk.grass.growth < 0) chunk.grass.growth = 0;
     }
 
     bool shouldDie() const override {
@@ -320,7 +359,7 @@ public:
         if (shouldDie()) return;
         age++; hunger++;
         move();
-        eat(trees);
+        eat();
         if (!pop.canAddRabbit(static_cast<int>(new_rabbits.size())))
             return;
         reproduce(rabbits, new_rabbits);
@@ -435,7 +474,16 @@ std::vector<std::shared_ptr<Tree>> trees;
 std::vector<std::shared_ptr<Wolf>> wolfs;
 
 //основной процесс
+
+void UpdateAllGrass() {
+    for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+        for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
+            chunk_grid[cx][cy].UpdateGrassGrowth();
+        }
+    }
+}
 void ProcessCreatures(PopulationManager& pop) {
+
     int dead_rabbits = 0;
     int dead_plants = 0;
     int dead_wolfs = 0;
@@ -471,7 +519,7 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(wolfs, dead_wolfs);
     remove_dead(trees, dead_plants);
 
-    // 3. Оптимизация добавления новых существ
+    // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
         dest.reserve(dest.size() + src.size());
         for (auto& entity : src) {
@@ -499,9 +547,11 @@ void InitGame() {
     Textures::LoadTextureFromFile(1, L"Debug/tree.png");
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
     Textures::LoadTextureFromFile(3, L"Debug/animal0.jpg");
-
+    Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
+    Textures::LoadTextureFromFile(5, L"Debug/grass2.png");
+    Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
     // Начальные растения
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
         tree->x =Random::Int(-base_rangex, base_rangex);
         tree->y = Random::Int(-50, 50);
@@ -582,6 +632,50 @@ void Showpopulations() {
 }
 
 void ShowRacketAndBall() {
+    std::vector<XMFLOAT4> lowGrowthInstances;
+    std::vector<XMFLOAT4> midGrowthInstances;
+    std::vector<XMFLOAT4> highGrowthInstances;
+    int grassCount = 0;
+    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+            const Chunk& chunk = chunk_grid[cx][cy];
+            int x1 = cx * CHUNK_SIZE - base_rangex;
+            int y1 = cy * CHUNK_SIZE - base_rangey;
+            int x2 = cx * CHUNK_SIZE + CHUNK_SIZE - base_rangex;
+            int y2 = cy * CHUNK_SIZE + CHUNK_SIZE - base_rangey;
+            XMFLOAT4 rect(x1, y1, x2, y2);
+
+            if (chunk.grass.growth < 33) {
+                lowGrowthInstances.push_back(rect);
+            }
+            else if (chunk.grass.growth < 66) {
+                midGrowthInstances.push_back(rect);
+            }
+            else {
+                highGrowthInstances.push_back(rect);
+            }
+            ConstBuf::global[grassCount++] = XMFLOAT4(x1, y1, x2, y2);
+        }
+    }
+    auto drawGroup = [](int textureIndex, const std::vector<XMFLOAT4>& instances) {
+        if (instances.empty()) return;
+        context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+        int count = static_cast<int>(instances.size());
+
+        // Копируем данные в ConstBuf::global (или отдельный буфер)
+        for (int i = 0; i < count; ++i) {
+            ConstBuf::global[i] = instances[i];
+        }
+
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, count);
+        };
+
+    drawGroup(6, lowGrowthInstances);   // текстура для низкого роста
+    drawGroup(5, midGrowthInstances);   // текстура для среднего роста
+    drawGroup(4, highGrowthInstances);  // текстура для высокого роста
+
     auto drawInstances = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
         context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
         int count = 0;

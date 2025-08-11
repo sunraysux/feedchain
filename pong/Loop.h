@@ -34,6 +34,6 @@ void mainLoop()
 	//UpdateChunks();
 	ShowRacketAndBall();
 	Showpopulations();
-	
+	UpdateAllGrass();
 	Draw::Present();
 }
