@@ -37,6 +37,23 @@ public:
     }
 };
 
+inline int coord_to_chunkx(float coord) {
+    // Смещаем координату из [-50,50] в [0,100]
+    float normalized = coord + 100.0f;
+    // Вычисляем индекс и ограничиваем его
+    int index = static_cast<int>(normalized / CHUNK_SIZE);
+    return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
+}
+
+inline int coord_to_chunky(float coord) {
+    // Смещаем координату из [-50,50] в [0,100]
+    float normalized = coord + 50.0f;
+    // Вычисляем индекс и ограничиваем его
+    int index = static_cast<int>(normalized / CHUNK_SIZE);
+    return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
+}
+
+
 class PopulationManager {
 public:
     int rabbit_count = 0;
@@ -91,15 +108,56 @@ class Creature : public std::enable_shared_from_this<Creature> {
 public:
     float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value;
     int age;
+    int current_chunk_x = -1;
+    int current_chunk_y = -1;
     gender_ gender;
     type_ type;
     bool dead = false;
     Creature(type_ t) : type(t) {}
+
+
+    void removeFromChunk() {
+        if (current_chunk_x < 0 || current_chunk_y < 0) return;
+
+        auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
+        auto& container = getChunkContainer(chunk);
+
+        // Удаляем weak_ptr, указывающий на текущий объект
+        container.erase(
+            std::remove_if(container.begin(), container.end(),
+                [this](const std::weak_ptr<Creature>& wp) {
+                    auto sp = wp.lock();
+                    return !sp || sp.get() == this;
+                }),
+            container.end()
+        );
+
+        current_chunk_x = -1;
+        current_chunk_y = -1;
+    }
     virtual ~Creature() = default;
+    virtual void updateChunk() {
+        int new_cx = coord_to_chunkx(x);
+        int new_cy = coord_to_chunky(y);
+
+        if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
+            removeFromChunk();  // Удаляем из старого чанка
+
+            // Добавляем в новый чанк
+            current_chunk_x = new_cx;
+            current_chunk_y = new_cy;
+            addToChunk(chunk_grid[new_cx][new_cy]);
+        }
+    }
 
     virtual void move() = 0;
     virtual bool shouldDie() const = 0;
 
+protected:
+    // Виртуальный метод для получения нужного контейнера в чанке
+    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) = 0;
+
+    // Виртуальный метод для добавления в чанк (уже объявлен)
     virtual void addToChunk(Chunk& chunk) = 0;
 };
 
@@ -129,7 +187,7 @@ public:
             seedling->age = 0;
             seedling->dead = false;
 
-            float distance = Random::Int(1,5); // 3–50
+            float distance = Random::Int(1,10); // 3–50
             float angle = Random::Float(0, 3.14 * 2);
             seedling->x += distance * cos(angle);
             seedling->y += distance * sin(angle);
@@ -137,7 +195,7 @@ public:
             // Обрезка по границам
             seedling->x = clamp(seedling->x, -base_rangex, base_rangex);
             seedling->y = clamp(seedling->y, -base_rangey, base_rangey);
-
+           
             // Проверка минимального расстояния (например, 2.0f)
             bool tooClose = false;
 
@@ -154,7 +212,7 @@ public:
             }
 
             if (nearbyCount >= 2) continue;
-
+            updateChunk();
             new_creatures.push_back(seedling);
         }
     }
@@ -168,10 +226,6 @@ public:
         return dead || age > age_limit ;
     }
 
-    void addToChunk(Chunk& chunk) override {
-        chunk.trees.push_back(std::weak_ptr<Creature>(shared_from_this()));
-    }
-
     void process(std::vector<std::shared_ptr<Tree>>& creatures,
         std::vector<std::shared_ptr<Tree>>& new_trees,
         PopulationManager& pop)  {
@@ -180,6 +234,14 @@ public:
         if (age >= maturity_age && pop.canAddTree(static_cast<int>(new_trees.size()))){
             reproduce(creatures, new_trees);
         }
+    }
+protected:
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
+        return chunk.trees;
+    }
+
+    void addToChunk(Chunk& chunk) override {
+        chunk.trees.push_back(weak_from_this());
     }
 };
 
@@ -204,6 +266,7 @@ public:
         // Проверка границ
         x = clamp(x, -base_rangex, base_rangex);
         y = clamp(y, -base_rangey, base_rangey);
+        updateChunk();
     }
 
     void reproduce(std::vector<std::shared_ptr<Rabbit>>& creatures,
@@ -262,10 +325,17 @@ public:
             return;
         reproduce(rabbits, new_rabbits);
     }
+
+protected:
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
+        return chunk.rabbits;
+    }
+
     void addToChunk(Chunk& chunk) override {
-        chunk.rabbits.push_back(std::weak_ptr<Creature>(shared_from_this()));
+        chunk.rabbits.push_back(weak_from_this());
     }
 };
+
 
 class Wolf : public Creature {
 public:
@@ -287,6 +357,7 @@ public:
         // Проверка границ
         x = clamp(x, -base_rangex, base_rangex);
         y = clamp(y, -base_rangey, base_rangey);
+        updateChunk();
     }
 
     void reproduce(std::vector<std::shared_ptr<Wolf>>& creatures,
@@ -345,9 +416,15 @@ public:
             return;
         reproduce(wolf, new_wolfs);
     }
-    void addToChunk(Chunk& chunk) override {
-        chunk.wolfs.push_back(std::weak_ptr<Creature>(shared_from_this()));
+protected:
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
+        return chunk.wolfs;
     }
+
+    void addToChunk(Chunk& chunk) override {
+        chunk.wolfs.push_back(weak_from_this());
+    }
+
 };
 
 // Глобальный контейнер существ
@@ -356,48 +433,6 @@ public:
 std::vector<std::shared_ptr<Rabbit>> rabbits;
 std::vector<std::shared_ptr<Tree>> trees;
 std::vector<std::shared_ptr<Wolf>> wolfs;
-
-inline int coord_to_chunkx(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + 100.0f;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / CHUNK_SIZE);
-    return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
-}
-
-inline int coord_to_chunky(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + 50.0f;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / CHUNK_SIZE);
-    return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
-}
-
-void UpdateChunks() {
-    for (auto& row : chunk_grid)                                                //
-        for (auto& chunk : row)                                                 //
-            chunk.trees.clear(), chunk.rabbits.clear(), chunk.wolfs.clear();                        //
-                                                                                //
-    for (auto& rabbit : rabbits) {                                              //
-        if (rabbit->dead) continue;                                             //
-        int cx = coord_to_chunkx(rabbit->x);                                     //
-        int cy = coord_to_chunky(rabbit->y);                                     //
-        chunk_grid[cx][cy].rabbits.push_back(rabbit);                           // надо будет исправить, чтобы обновлялось при перемещении и размножении/смерти
-    }                                                                           //
-                                                                                //
-    for (auto& tree : trees) {                                                //
-        if (tree->dead) continue;                                              //
-        int cx = coord_to_chunkx(tree->x);                                      //
-        int cy = coord_to_chunky(tree->y);                                      //
-        chunk_grid[cx][cy].trees.push_back(tree);                             //
-    }                    
-    for (auto& wolf : wolfs) {                                                //
-        if (wolf->dead) continue;                                              //
-        int cx = coord_to_chunkx(wolf->x);                                      //
-        int cy = coord_to_chunky(wolf->y);                                      //
-        chunk_grid[cx][cy].wolfs.push_back(wolf);                             //
-    }     
-}
 
 //основной процесс
 void ProcessCreatures(PopulationManager& pop) {
@@ -408,41 +443,51 @@ void ProcessCreatures(PopulationManager& pop) {
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
    
-    for (auto& rabbit : rabbits)
-        rabbit->process(rabbits, new_rabbits, trees, pop); //цикл кроликов
+    for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
+    for (auto& tree : trees) tree->process(trees, new_trees, pop);
+    for (auto& wolf : wolfs) wolf->process(wolfs, new_wolfs, rabbits, pop);
 
-    for (auto& tree : trees)
-        tree->process(trees, new_trees, pop); //цикл растений
 
-    for (auto& wolf : wolfs)
-        wolf->process(wolfs, new_wolfs, rabbits, pop); //цикл растений
-    
+    auto remove_dead = [](auto& container, int& counter) {
+        using ContainerType = typename std::remove_reference<decltype(container)>::type;
+        using ValueType = typename ContainerType::value_type;
 
-    rabbits.erase(std::remove_if(rabbits.begin(), rabbits.end(), [&](const auto& r) {            // удаление лишних
-        if (r->shouldDie()) { dead_rabbits++; return true; }                                     //
-        return false;                                                                            //
-        }), rabbits.end());                                                                      //
-                                                                                                 //
-    trees.erase(std::remove_if(trees.begin(), trees.end(), [&](const auto& p) {               //
-        if (p->shouldDie()) { dead_plants++; return true; }                                      //
-        return false;                                                                            //
-        }), trees.end());    
-    wolfs.erase(std::remove_if(wolfs.begin(), wolfs.end(), [&](const auto& r) {            // удаление лишних
-        if (r->shouldDie()) { dead_wolfs++; return true; }                                     //
-        return false;                                                                            //
-        }), wolfs.end());
+        container.erase(
+            std::remove_if(container.begin(), container.end(),
+                [&](const ValueType& entity) {
+                    if (entity->shouldDie()) {
+                        counter++;
+                        entity->removeFromChunk();
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            container.end()
+        );
+        };
 
-    wolfs.insert(wolfs.end(), new_wolfs.begin(), new_wolfs.end());
-    rabbits.insert(rabbits.end(), new_rabbits.begin(), new_rabbits.end());           //добавление новых существ
-    trees.insert(trees.end(), new_trees.begin(), new_trees.end());               //добавление новых существ
+    remove_dead(rabbits, dead_rabbits);
+    remove_dead(wolfs, dead_wolfs);
+    remove_dead(trees, dead_plants);
 
-                                             
+    // 3. Оптимизация добавления новых существ
+    auto add_new_entities = [](auto& dest, auto& src) {
+        dest.reserve(dest.size() + src.size());
+        for (auto& entity : src) {
+            entity->updateChunk();
+            dest.emplace_back(std::move(entity));
+        }
+        src.clear();
+        };
     pop.update(
         static_cast<int>(new_rabbits.size()) - dead_rabbits,//обновление статистики
         static_cast<int>(new_trees.size()) - dead_plants,
         static_cast<int>(new_wolfs.size()) - dead_wolfs
     );
-
+    add_new_entities(rabbits, new_rabbits);
+    add_new_entities(wolfs, new_wolfs);
+    add_new_entities(trees, new_trees);
 
 }
 //инициализация игры
@@ -460,6 +505,8 @@ void InitGame() {
         auto tree = std::make_shared<Tree>();
         tree->x =Random::Int(-base_rangex, base_rangex);
         tree->y = Random::Int(-50, 50);
+        tree->age = Random::Int(0, 100);
+        tree->updateChunk();
         trees.push_back(tree);
         population.tree_count++;
     }
@@ -478,8 +525,8 @@ void InitGame() {
        auto wolf = std::make_shared<Wolf>();
        wolf->y = Random::Int(-50, 50);
        wolf->x = Random::Int(-base_rangex, base_rangex);
-       wolf->hunger = 0;
-       wolf->age = 0;
+       wolf->hunger = Random::Int(-50, 50);
+       wolf->age = Random::Int(0, 50);
        wolfs.push_back(wolf);
        population.wolf_count++;
    }
@@ -545,10 +592,12 @@ void ShowRacketAndBall() {
                 for (const auto& weakPtr : creatureList) {
                     if (auto c = weakPtr.lock()) {
                         float t = c->age / ageScale;
-                        ConstBuf::global[count++] = XMFLOAT4(
-                            c->x - t / 1.2f, c->y,
-                            c->x + t, c->y + t
-                        );
+                        float x1 = c->x - t / 1.2f;
+                        float y1 = c->y;
+                        float x2 = c->x + t;
+                        float y2 = c->y + t;
+
+                        ConstBuf::global[count++] = XMFLOAT4(x1, y1, x2, y2);
                     }
                 }
             }

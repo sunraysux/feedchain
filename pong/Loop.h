@@ -27,10 +27,11 @@ void mainLoop()
 	
 	if (currentTime - TimeTic>100)
 	{
-		ProcessCreatures(population);
+		
 		TimeTic = currentTime;
 	}
-	UpdateChunks();
+	ProcessCreatures(population);
+	//UpdateChunks();
 	ShowRacketAndBall();
 	Showpopulations();
 	
