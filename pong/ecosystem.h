@@ -505,7 +505,7 @@ void InitGame() {
         auto tree = std::make_shared<Tree>();
         tree->x =Random::Int(-base_rangex, base_rangex);
         tree->y = Random::Int(-50, 50);
-        tree->age = Random::Int(0, 100);
+        tree->age = Random::Int(0, 1000);
         tree->updateChunk();
         trees.push_back(tree);
         population.tree_count++;
@@ -609,7 +609,13 @@ void ShowRacketAndBall() {
             Draw::NullDrawer(1, count);
         }
         };
-
+    drawInstances(
+        1,
+        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
+            return chunk.trees;
+        },
+        100.0f
+    );
     drawInstances(
         2,
         [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
@@ -618,13 +624,7 @@ void ShowRacketAndBall() {
         100.0f
     );
 
-    drawInstances(
-        1,
-        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
-            return chunk.trees;
-        },
-        100.0f
-    );
+
     drawInstances(
         3,
         [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
