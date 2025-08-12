@@ -548,7 +548,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
     Textures::LoadTextureFromFile(3, L"Debug/animal0.jpg");
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
-    Textures::LoadTextureFromFile(5, L"Debug/grass2.png");
+    Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
     // Начальные растения
     for (int i = 0; i < 500; i++) {
