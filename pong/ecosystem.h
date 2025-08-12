@@ -636,6 +636,7 @@ void ShowRacketAndBall() {
     std::vector<XMFLOAT4> midGrowthInstances;
     std::vector<XMFLOAT4> highGrowthInstances;
     int grassCount = 0;
+    XMFLOAT4 buf2[4000];
     for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
         for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
             const Chunk& chunk = chunk_grid[cx][cy];
@@ -654,6 +655,10 @@ void ShowRacketAndBall() {
             else {
                 highGrowthInstances.push_back(rect);
             }
+
+            if (grassCount > 4000) {
+                 buf2[4000-grassCount++]=XMFLOAT4(x1, y1, x2, y2);
+            }
             ConstBuf::global[grassCount++] = XMFLOAT4(x1, y1, x2, y2);
         }
     }
@@ -663,8 +668,17 @@ void ShowRacketAndBall() {
         int count = static_cast<int>(instances.size());
 
         // Копируем данные в ConstBuf::global (или отдельный буфер)
-        for (int i = 0; i < count; ++i) {
+        int i = 0;
+        for (; i < 4000; ++i) {
             ConstBuf::global[i] = instances[i];
+        }
+
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, count);
+
+        for (; i > 4000; ++i) {
+            ConstBuf::global[4000-i] = instances[i];
         }
 
         ConstBuf::Update(5, ConstBuf::global);
@@ -690,17 +704,24 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-
+                        if (grassCount > 4000) {
+                            buf2[4000-count++] = XMFLOAT4(x1, y1, x2, y2);
+                        }
                         ConstBuf::global[count++] = XMFLOAT4(x1, y1, x2, y2);
                     }
                 }
             }
         }
 
-        if (count > 0) {
+        if (4000>count > 0) {
             ConstBuf::Update(5, ConstBuf::global);
             ConstBuf::ConstToVertex(5);
             Draw::NullDrawer(1, count);
+        }
+        if (count >= 4000) {
+            ConstBuf::Update(5, ConstBuf::global);
+            ConstBuf::ConstToVertex(5);
+            Draw::NullDrawer(1, 4000-count);
         }
         };
     drawInstances(
