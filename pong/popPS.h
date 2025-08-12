@@ -39,9 +39,15 @@ struct VS_OUTPUT
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    if (input.wpos.y<-52)
+    if (input.wpos.x < -0.99) {
         return float4(1, 0, 0, 1);
-    else
+        }
+    else if (input.wpos.x < -0.98) {
         return float4(0, 1, 0, 1);
+        }
+    else {
+
+        return float4(0, 0, 1, 1);
+        }
 
 }

@@ -5,9 +5,9 @@ enum class gender_ { male, female };
 enum class type_ { tree, rabbit, wolf, grass };
 POINT p;
 float TimeTic;
-int base_rangey = 50;
-int base_rangex = 100;
-const int CHUNK_SIZE = 4; // Размер чанка
+int base_rangey = 500;
+int base_rangex = 1000;
+const int CHUNK_SIZE = 5; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex*2/ CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  
@@ -59,9 +59,9 @@ public:
     int rabbit_count = 0;
     int tree_count = 0;
     int wolf_count = 0;
-    const int wolf_limit = 100;
-    const int rabbit_limit = 4000;
-    const int tree_limit = 4000;
+    const int wolf_limit = 1000;
+    const int rabbit_limit = 1000;
+    const int tree_limit = 1000;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -103,19 +103,11 @@ struct Chunk {
         return count;
     }
     void UpdateGrassGrowth() {
-        int rabbitCount = countRabbits();
-
-        float maxRabbits = 10.0f;
-        float ratio = min(static_cast<float>(rabbitCount) / maxRabbits, 1.0f);
-
-        // growthLevel — коэффициент роста 
-        grass.growthLevel = 1.0f - ratio*10;
-
        
         float growthSpeed = 1.0f;    // скорость прироста травы 
 
         // Трава растет, прибавляем рост пропорционально growthLevel
-        grass.growth += growthSpeed * grass.growthLevel;
+        grass.growth += growthSpeed ;
     }
 };
 
@@ -554,8 +546,8 @@ void InitGame() {
     for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
         tree->x =Random::Int(-base_rangex, base_rangex);
-        tree->y = Random::Int(-50, 50);
-        tree->age = Random::Int(0, 1000);
+        tree->y = Random::Int(-base_rangey, base_rangey);
+        tree->age = Random::Int(0, 500);
         tree->updateChunk();
         trees.push_back(tree);
         population.tree_count++;
@@ -564,16 +556,16 @@ void InitGame() {
    // Начальные кролики
    for (int i = 0; i < 500; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-50, 50);
+       rabbit->y = Random::Int(-base_rangey, base_rangey);
        rabbit->x = Random::Int(-base_rangex, base_rangex);
        rabbit->hunger = Random::Int(-50, 50);
        rabbit->age = Random::Int(0, 50);
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
-   for (int i = 0; i < 100; i++) {
+   for (int i = 0; i < 0; i++) {
        auto wolf = std::make_shared<Wolf>();
-       wolf->y = Random::Int(-50, 50);
+       wolf->y = Random::Int(-base_rangey, base_rangey);
        wolf->x = Random::Int(-base_rangex, base_rangex);
        wolf->hunger = Random::Int(-50, 50);
        wolf->age = Random::Int(0, 50);
@@ -586,20 +578,30 @@ void mouse()
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
         GetCursorPos(&p);
         float X = p.x;
-        
         float Y = p.y;
+        float ndcX = ((float)p.x / width) * 2.0f - 1.0f;
+        float ndcY = (1.0f - (float)p.y / height) * 2.0f - 1.0f;
+        XMMATRIX view = XMMatrixLookAtLH(Camera::state.Eye, Camera::state.at, Camera::state.Up);
+        XMMATRIX proj = XMMatrixOrthographicLH(Camera::state.widthzoom, Camera::state.heightzoom, 0.01f, 1.0f);
+        XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
+        XMVECTOR mouseNDC = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
+        XMVECTOR worldPos = XMVector3TransformCoord(mouseNDC, invViewProj);
+
+        float worldX = XMVectorGetX(worldPos);
+        float worldY = XMVectorGetY(worldPos);
+
         auto wolf = std::make_shared<Wolf>();
-        X = clamp(X, -base_rangex, base_rangex);
-        Y = clamp(Y, -base_rangey, base_rangey);
-        wolf->y = X;
-        wolf->x = Y;
+        worldX = clamp(worldX, -base_rangex, base_rangex);
+        worldY = clamp(worldY, -base_rangey, base_rangey);
+        wolf->y = worldY;
+        wolf->x = worldX;
         wolf->hunger = 0;
         wolf->age = 0;
         wolfs.push_back(wolf);
         population.wolf_count++;
 
     }
-    
+
 }
 
 void Showpopulations() {
@@ -609,41 +611,64 @@ void Showpopulations() {
     Shaders::vShader(2);                                                                                     // и если полоса снизу доходит до края карты
     Shaders::pShader(2);                                                                                     // то количество существ в списке достигло лимита
     float rabbitRatio = min(                                                                                 //
-        static_cast<float>(population.rabbit_count) / population.rabbit_limit,                               //
-        1.0f                                                                                                 //
+        static_cast<float>(population.rabbit_count)*2 / population.rabbit_limit,                               //
+        2.0f                                                                                                 //
     );                                                                                                       //
                                                                                                              //
     float plantRatio = min(                                                                                  //
-        static_cast<float>(population.tree_count) / population.tree_limit,                                 //
-        1.0f                                                                                                 //
-    );        
-   
+        static_cast<float>(population.tree_count)*2 / population.tree_limit,                                 //
+        2.0f                                                                                                 //
+    );       
+
+    float wolfRatio = min(                                                                                  //
+        static_cast<float>(population.wolf_count)*2 / population.wolf_limit,                                 //
+        2.0f                                                                                                 //
+    );
+
     ConstBuf::global[0] = XMFLOAT4(                                                                          //
         rabbitRatio,                                                                                         //
         plantRatio,
-        0,
+        wolfRatio,
         0
     );
 
     ConstBuf::Update(5, ConstBuf::global);
     ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer12(1); 
+    Draw::NullDrawer18(1); 
     
+}
+int BATCH_SIZE = 4000;
+void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
+    if (instances.empty()) return;
+
+    context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+
+    for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
+        size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
+
+        // Копируем порцию данных в ConstBuf::global
+        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global);
+
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, static_cast<int>(count));
+    }
 }
 
 void ShowRacketAndBall() {
+    // Векторы для разных групп травы
     std::vector<XMFLOAT4> lowGrowthInstances;
     std::vector<XMFLOAT4> midGrowthInstances;
     std::vector<XMFLOAT4> highGrowthInstances;
-    int grassCount = 0;
-    XMFLOAT4 buf2[4000];
+
+    // Собираем траву по чанкам
     for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
         for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
             const Chunk& chunk = chunk_grid[cx][cy];
             int x1 = cx * CHUNK_SIZE - base_rangex;
             int y1 = cy * CHUNK_SIZE - base_rangey;
-            int x2 = cx * CHUNK_SIZE + CHUNK_SIZE - base_rangex;
-            int y2 = cy * CHUNK_SIZE + CHUNK_SIZE - base_rangey;
+            int x2 = x1 + CHUNK_SIZE;
+            int y2 = y1 + CHUNK_SIZE;
             XMFLOAT4 rect(x1, y1, x2, y2);
 
             if (chunk.grass.growth < 33) {
@@ -655,44 +680,17 @@ void ShowRacketAndBall() {
             else {
                 highGrowthInstances.push_back(rect);
             }
-
-            if (grassCount > 4000) {
-                 buf2[4000-grassCount++]=XMFLOAT4(x1, y1, x2, y2);
-            }
-            ConstBuf::global[grassCount++] = XMFLOAT4(x1, y1, x2, y2);
         }
     }
-    auto drawGroup = [](int textureIndex, const std::vector<XMFLOAT4>& instances) {
-        if (instances.empty()) return;
-        context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
-        int count = static_cast<int>(instances.size());
 
-        // Копируем данные в ConstBuf::global (или отдельный буфер)
-        int i = 0;
-        for (; i < 4000; ++i) {
-            ConstBuf::global[i] = instances[i];
-        }
+    // Отрисовываем траву батчами
+    DrawBatchedInstances(6, lowGrowthInstances);
+    DrawBatchedInstances(5, midGrowthInstances);
+    DrawBatchedInstances(4, highGrowthInstances);
 
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, count);
-
-        for (; i > 4000; ++i) {
-            ConstBuf::global[4000-i] = instances[i];
-        }
-
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, count);
-        };
-
-    drawGroup(6, lowGrowthInstances);   // текстура для низкого роста
-    drawGroup(5, midGrowthInstances);   // текстура для среднего роста
-    drawGroup(4, highGrowthInstances);  // текстура для высокого роста
-
-    auto drawInstances = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
-        context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
-        int count = 0;
+    // Универсальная функция для сбора и отрисовки существ
+    auto drawCreatures = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
+        std::vector<XMFLOAT4> instances;
 
         for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
             for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
@@ -704,47 +702,17 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        if (grassCount > 4000) {
-                            buf2[4000-count++] = XMFLOAT4(x1, y1, x2, y2);
-                        }
-                        ConstBuf::global[count++] = XMFLOAT4(x1, y1, x2, y2);
+                        instances.emplace_back(x1, y1, x2, y2);
                     }
                 }
             }
         }
 
-        if (4000>count > 0) {
-            ConstBuf::Update(5, ConstBuf::global);
-            ConstBuf::ConstToVertex(5);
-            Draw::NullDrawer(1, count);
-        }
-        if (count >= 4000) {
-            ConstBuf::Update(5, ConstBuf::global);
-            ConstBuf::ConstToVertex(5);
-            Draw::NullDrawer(1, 4000-count);
-        }
+        DrawBatchedInstances(textureIndex, instances);
         };
-    drawInstances(
-        1,
-        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
-            return chunk.trees;
-        },
-        100.0f
-    );
-    drawInstances(
-        2,
-        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
-            return chunk.rabbits;
-        },
-        100.0f
-    );
 
-
-    drawInstances(
-        3,
-        [](const Chunk& chunk) -> const std::vector<std::weak_ptr<Creature>>&{
-            return chunk.wolfs;
-        },
-        100.0f
-    );
+    
+    drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, 100.0f);
+    drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolfs; }, 50.0f);
+    drawCreatures(1, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.trees; }, 10.0f);
 }

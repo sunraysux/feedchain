@@ -46,17 +46,22 @@ float3 rotY(float3 pos, float a)
 VS_OUTPUT VS(uint vID : SV_VertexID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x1 = -50.0 + 100.0 * gConst[0].x;      // Фиксированная X-координата нижнего левого угла
-    int x = -50;
-    int y = -51;
-    int y1 = -50;
+    float x1 = -0.99;      // Фиксированная X-координата нижнего левого угла
+    float x = -1;
+    float y = -1;
+    float y1 = gConst[0].x-1;
 
-    float x2 = -50.0 + 100.0 * gConst[0].y ;
-    int x3 = -50;
-    int y3 = -53;
-    int y2 = -52;
+    float x2 = -0.98 ;
+    float x3 = -0.99;
+    float y3 = -1;
+    float y2 = gConst[0].y-1;
+
+    float x4 = -0.97;
+    float x5 = -0.98;
+    float y5 = -1;
+    float y4 = gConst[0].z-1;
     // Вершины квада (два треугольника)
-    float2 quad[12] = {
+    float2 quad[18] = {
         float2(x, y),   // Нижний левый
         float2(x, y1),  // Верхний левый
         float2(x1, y),  // Нижний правый
@@ -74,14 +79,23 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
 
         float2(x2, y3),  // Нижний правый (повтор)
         float2(x3, y2),   // Верхний левый (повтор)
-        float2(x2, y2) // Верхний правый
+        float2(x2, y2), // Верхний правый
+
+        float2(x5, y5),   // Нижний левый
+        float2(x5, y4),  // Верхний левый
+        float2(x4, y5),  // Нижний правый
+
+
+        float2(x4, y5),  // Нижний правый (повтор)
+        float2(x5, y4),   // Верхний левый (повтор)
+        float2(x4, y4) // Верхний правый
         
 
     };
     float4 viewPos = mul(float4(quad[vID], 0, 1.0f), view[0]);
     float4 projPos = mul(viewPos, proj[0]);
     output.wpos = float4(quad[vID], 0, 1.0f);
-    output.pos = projPos;  // Позиция в clip-пространстве
+    output.pos = float4(quad[vID], 0, 1.0f);  
 
     return output;
 }

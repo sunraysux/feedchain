@@ -959,14 +959,14 @@ namespace Draw
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
 	}
 
-	void NullDrawer12(int quadCount, unsigned int instances = 1)
+	void NullDrawer18(int quadCount, unsigned int instances = 1)
 	{
 		ConstBuf::Update(0, ConstBuf::drawerV);
 		ConstBuf::ConstToVertex(0);
 		ConstBuf::Update(1, ConstBuf::drawerP);
 		ConstBuf::ConstToPixel(1);
 
-		context->DrawInstanced(quadCount * 12, instances, 0, 0);
+		context->DrawInstanced(quadCount * 18, instances, 0, 0);
 	}
 
 	void Present()
@@ -1000,7 +1000,7 @@ namespace Camera
 		bool mouse = false;
 		float camDist = 5.0f;
 		float minDist = 1.0f;
-		float maxDist = 30000.0f;
+		float maxDist = 93;
 		int widthzoom = width;
 		int heightzoom = height;
 		float fovAngle = 60.0f;
@@ -1057,13 +1057,37 @@ namespace Camera
 			state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
 		}
 
-		float x = Camera::state.constellationOffset.r[3].m128_f32[0] * state.camDist / 2;
-		float y = Camera::state.constellationOffset.r[3].m128_f32[1] * state.camDist / 2;
+		float offsetX = state.constellationOffset.r[3].m128_f32[0];
+		float offsetY = state.constellationOffset.r[3].m128_f32[1];
 
-		// Устанавливаем at в плоскости XY (z=0)
+		// Твои границы мира
+		float minX = -1000.0f;
+		float maxX = 1000.0f;
+		float minY = -500.0f;
+		float maxY = 500.0f;
+
+		// Рассчитываем текущие размеры области
+		float halfWidth = state.widthzoom / 2.0f;
+		float halfHeight = state.heightzoom / 2.0f;
+
+		// Максимальные и минимальные значения сдвига в local space (до умножения на camDist/2)
+		float maxOffsetX = (maxX - halfWidth) / (state.camDist / 2);
+		float minOffsetX = (minX + halfWidth) / (state.camDist / 2);
+		float maxOffsetY = (maxY - halfHeight) / (state.camDist / 2);
+		float minOffsetY = (minY + halfHeight) / (state.camDist / 2);
+
+		// Ограничиваем offsetX и offsetY
+		offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
+		offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
+
+		// Записываем обратно ограниченный сдвиг
+		state.constellationOffset.r[3] = XMVectorSet(offsetX, offsetY, state.constellationOffset.r[3].m128_f32[2], 1.0f);
+
+		// Теперь вычисляем итоговую позицию камеры
+		float x = offsetX * state.camDist / 2;
+		float y = offsetY * state.camDist / 2;
+
 		Camera::state.at = XMVectorSet(x, y, 0, 0);
-
-		// Позиция камеры находится на расстоянии camDist по оси Z от at
 		Camera::state.Eye = XMVectorSet(x, y, -state.camDist, 0);
 
 		// Вектор направления камеры (от камеры к точке at)
