@@ -984,15 +984,7 @@ void frameConst()
 	ConstBuf::UpdateFrame();
 }
 
-#define PI 3.1415926535897932384626433832795f
-float DegreesToRadians(float degrees)
-{
-	return degrees * PI / 180.f;
-}
-float clamp(float x, float a, float b)
-{
-	return fmax(fmin(x, b), a);
-}
+
 namespace Camera
 {
 	struct State
@@ -1012,10 +1004,29 @@ namespace Camera
 		XMVECTOR Up = XMVector3Rotate(defaultUp, currentRotation);
 		XMVECTOR Eye = at - (Forward * camDist);
 		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
+		float mouseY = 0;
+		float mouseX = 0;
 	} static state;
 
+	void screenmouse() {
+		GetCursorPos(&p);
+		float X = p.x;
+		float Y = p.y;
+		float ndcX = ((float)p.x / width) * 2.0f - 1.0f;
+		float ndcY = (1.0f - (float)p.y / height) * 2.0f - 1.0f;
+		XMMATRIX view = XMMatrixLookAtLH(Camera::state.Eye, Camera::state.at, Camera::state.Up);
+		XMMATRIX proj = XMMatrixOrthographicLH(Camera::state.widthzoom, Camera::state.heightzoom, 0.01f, 1.0f);
+		XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
+		XMVECTOR mouseNDC = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
+		XMVECTOR worldPos = XMVector3TransformCoord(mouseNDC, invViewProj);
 
+		float worldX = XMVectorGetX(worldPos);
+		float worldY = XMVectorGetY(worldPos);
 
+		
+		state.mouseX = clamp(worldX, -base_rangex, base_rangex);
+		state.mouseY = clamp(worldY, -base_rangey, base_rangey);
+	}
 	void HandleMouseWheel(int delta)
 	{
 		state.camDist -= delta * 0.0125;
@@ -1086,7 +1097,8 @@ namespace Camera
 		// Теперь вычисляем итоговую позицию камеры
 		float x = offsetX * state.camDist / 2;
 		float y = offsetY * state.camDist / 2;
-
+		float xat = offsetX;
+		float yat = offsetY;
 		Camera::state.at = XMVectorSet(x, y, 0, 0);
 		Camera::state.Eye = XMVectorSet(x, y, -state.camDist, 0);
 

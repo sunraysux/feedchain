@@ -17,7 +17,8 @@ HWND hWnd;
 #include "resource.h"
 
 #include "WICTextureLoader.h"
-
+#include "GameConfig.h"
+#include "Classes.h"
 #include "dx11.h"
 #include "ecosystem.h"
 
@@ -92,19 +93,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (time >= timer::nextFrameTime)
         {
             currentTime = timer::GetCounter();
-            if(currentTime>5000)
-            {
-                int o = 0;
-            }
-
-            if (currentTime > 25000)
-            {
-                int o = 0;
-            }
-            if (currentTime > 50000)
-            {
-                int o = 0;
-            }
+            
             timer::frameBeginTime = timer::GetCounter();
 
 
