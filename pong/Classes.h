@@ -197,13 +197,83 @@ public:
         hunger_limit = 50;
         hunger = 0;
     }
-
+    bool isDirectionSelect = false;
+    int step = 0;
+    float nextPositionX;
+    float nextPositionY;
     void move() override {
         int move_range = 1;
-        x += Random::Int(-move_range, move_range);
-        y += Random::Int(-move_range, move_range);
+        bool isHunger = hunger > 10;
 
-        // Проверка границ
+        if (!isHunger) {
+            if (!isDirectionSelect) {
+                isDirectionSelect = true;
+                step = Random::Int(2, 5);
+                nextPositionX = Random::Int(-move_range, move_range);
+                nextPositionY = Random::Int(-move_range, move_range);
+            }
+            if (isDirectionSelect) {
+                step -= 1;
+                if (step == 0) {
+                    isDirectionSelect = false;
+                }
+                x += nextPositionX;
+                y += nextPositionY;
+            }
+
+        }
+        else {
+            int cx = coord_to_chunkx(x);
+            int cy = coord_to_chunky(y);
+            int rabbitX = 0;
+            int rabbitY = 0;
+            bool broke = false;
+            for (int i = -1; (cx + i > 0) && (cx + i < cx + 1) && (cx + i < CHUNKS_PER_SIDEX); i++) {
+                for (int j = -1; (cy + j > 0) && (cy + j < cy + 1) && (cy + j < CHUNKS_PER_SIDEY); j++) {
+                    if (chunk_grid[cx + i][cy + j].countRabbits() == 0) {
+                        continue;
+                    }
+                    std::pair<int, int> rabbitCoords = chunk_grid[cx + i][cy + i].RabbitXY();
+                    rabbitX = rabbitCoords.first;
+                    rabbitY = rabbitCoords.second;
+                    broke = true;
+                    break;
+                }
+                if (broke) break;
+            }
+            if (rabbitX != 0 || rabbitY != 0) {
+                if (rabbitX > x) {
+                    x += move_range;
+                }
+                else {
+                    x -= move_range;
+                }
+                if (rabbitY > y) {
+                    y += move_range;
+                }
+                else {
+                    y -= move_range;
+                }
+            }
+            else {
+
+                if (!isDirectionSelect) {
+                    isDirectionSelect = true;
+                    step = Random::Int(2, 5);
+                    nextPositionX = Random::Int(-move_range, move_range);
+                    nextPositionY = Random::Int(-move_range, move_range);
+                }
+                if (isDirectionSelect) {
+                    step -= 1;
+                    if (step == 0) {
+                        isDirectionSelect = false;
+                    }
+                    x += nextPositionX;
+                    y += nextPositionY;
+                }
+            }
+
+        }
         x = clamp(x, -base_rangex, base_rangex);
         y = clamp(y, -base_rangey, base_rangey);
         updateChunk();

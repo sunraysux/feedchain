@@ -77,7 +77,7 @@ public:
     int wolf_count = 0;
     const int wolf_limit = 1000;
     const int rabbit_limit = 1000;
-    const int tree_limit = 1000;
+    const int tree_limit = 10;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -99,48 +99,16 @@ public:
 };
 
 PopulationManager population;
-
+class Chunk;
+extern std::vector<std::vector<Chunk>> chunk_grid(
+    CHUNKS_PER_SIDEX,
+    std::vector<Chunk>(CHUNKS_PER_SIDEY)
+);
 struct Grass {
     float growthLevel = 1.0f;
     float growth = 100;
     int maxGrowth = 100;
 };
-
-struct Chunk {
-    std::vector<std::weak_ptr<Creature>> trees;
-    std::vector<std::weak_ptr<Creature>> rabbits;
-    std::vector<std::weak_ptr<Creature>> wolfs;
-    Grass grass;
-    int countRabbits() const {
-        int count = 0;
-        for (const auto& weak_rabbit : rabbits) {
-            if (!weak_rabbit.expired()) ++count;
-        }
-        return count;
-    }
-    void UpdateGrassGrowth() {
-
-        float growthSpeed = 1.0f;    // скорость прироста травы 
-
-        // “рава растет, прибавл€ем рост пропорционально growthLevel
-        grass.growth += growthSpeed;
-    }
-};
-
-std::vector<std::vector<Chunk>> chunk_grid(
-    CHUNKS_PER_SIDEX,
-    std::vector<Chunk>(CHUNKS_PER_SIDEY)
-);
-
-extern std::vector<std::vector<Chunk>> chunk_grid;
-extern std::vector<std::shared_ptr<Creature>> creatures;
-
-inline float distanceSquared(float x1, float y1, float x2, float y2) {
-    float dx = x1 - x2;
-    float dy = y1 - y2;
-    return dx * dx + dy * dy;
-}
-
 class Creature : public std::enable_shared_from_this<Creature> {
 public:
     float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value;
@@ -197,6 +165,48 @@ protected:
     // ¬иртуальный метод дл€ добавлени€ в чанк (уже объ€влен)
     virtual void addToChunk(Chunk& chunk) = 0;
 };
+
+struct Chunk {
+    std::vector<std::weak_ptr<Creature>> trees;
+    std::vector<std::weak_ptr<Creature>> rabbits;
+    std::vector<std::weak_ptr<Creature>> wolfs;
+    Grass grass;
+    int countRabbits() const {
+        int count = 0;
+        for (const auto& weak_rabbit : rabbits) {
+            if (!weak_rabbit.expired()) ++count;
+        }
+        return count;
+    }
+    void UpdateGrassGrowth() {
+
+        float growthSpeed = 1.0f;    // скорость прироста травы 
+
+        // “рава растет, прибавл€ем рост пропорционально growthLevel
+        grass.growth += growthSpeed;
+    }
+
+    std::pair<int, int> RabbitXY() const {
+        if (countRabbits() == 0) return { 0,0 };
+        int rx;
+        int ry;
+        for (const auto& weak_rabbit : rabbits) {
+            if (auto rabbit = weak_rabbit.lock()) {
+                rx = static_cast<int>(rabbit->x);
+                ry = static_cast<int>(rabbit->y);
+                return { rx,ry };
+            }
+        }
+    }
+};
+
+
+inline float distanceSquared(float x1, float y1, float x2, float y2) {
+    float dx = x1 - x2;
+    float dy = y1 - y2;
+    return dx * dx + dy * dy;
+}
+
 
 
 
