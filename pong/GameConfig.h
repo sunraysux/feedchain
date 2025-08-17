@@ -2,11 +2,11 @@
 #include <random> 
 #include <memory>
 
-float SIZEWOLFS = 10;
-float SIZETREES = 10;
-float SIZERABBITS = 10;
-int base_rangey = 500;
-int base_rangex = 1000;
+float SIZEWOLFS = 10.0f;
+float SIZETREES = 10.0f;
+float SIZERABBITS = 10.0f;
+float base_rangey = 500.0f;
+float base_rangex = 1000.0f;
 POINT p;
 enum class gender_ { male, female };
 enum class type_ { tree, rabbit, wolf, grass };
@@ -23,6 +23,12 @@ float clamp(float x, float a, float b)
     return fmax(fmin(x, b), a);
 }
 
+inline float Wrap(float x, float range) {
+    float size = range * 2.0f; // полный размер мира
+    if (x >= range) x -= size;
+    if (x < -range) x += size;
+    return x;
+}
 inline float WrapX(float x) {
     float size = base_rangex * 2.0f; // ширина мира
     x = fmod(x + size, size);        // чтобы всё оказалось в [0, size)
@@ -89,9 +95,9 @@ public:
     int rabbit_count = 0;
     int tree_count = 0;
     int wolf_count = 0;
-    const int wolf_limit = 1000;
-    const int rabbit_limit = 1000;
-    const int tree_limit = 10;
+    const int wolf_limit = 500;
+    const int rabbit_limit = 500;
+    const int tree_limit = 500;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -192,6 +198,15 @@ struct Chunk {
         }
         return count;
     }
+
+    int countTrees() const {
+        int count = 0;
+        for (const auto& weak_tree : trees) {
+            if (!weak_tree.expired()) ++count;
+        }
+        return count;
+    }
+
     void UpdateGrassGrowth() {
 
         float growthSpeed = 1.0f;    // скорость прироста травы 

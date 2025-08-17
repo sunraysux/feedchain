@@ -6,8 +6,8 @@ public:
         // Инициализация параметров растения
         nutritional_value = 100;
         age = 0;
-        maturity_age = 115;
-        age_limit = 1170;
+        maturity_age = 100;
+        age_limit = 170;
     }
 
     void reproduce(std::vector<std::shared_ptr<Tree>>& all_trees,
@@ -23,32 +23,25 @@ public:
             auto seedling = std::make_shared<Tree>(*this);
             seedling->age = 0;
             seedling->dead = false;
-
-            float distance = Random::Int(1, 10); // 3–50
+            seedling->maturity_age+= Random::Int(-10, 10);
+            seedling->age_limit += Random::Int(-10, 10);
+            float distance = Random::Int(10, 100); // 3–50
             float angle = Random::Float(0, 3.14 * 2);
             seedling->x += distance * cos(angle);
             seedling->y += distance * sin(angle);
 
             // Обрезка по границам
-            seedling->x = clamp(seedling->x, -base_rangex, base_rangex);
-            seedling->y = clamp(seedling->y, -base_rangey, base_rangey);
+            seedling->x = Wrap(seedling->x, base_rangex);
+            seedling->y = Wrap(seedling->y, base_rangey);
 
             // Проверка минимального расстояния (например, 2.0f)
             bool tooClose = false;
 
             // Проверка плотности (например, не более 10 растений в радиусе 5)
             int nearbyCount = 0;
-            const float radius2 = 5.0f * 5.0f;
-
-            for (const auto& other : all_trees) {
-                if (!other) continue;
-                if (distanceSquared(seedling->x, seedling->y, other->x, other->y) < radius2) {
-                    nearbyCount++;
-                    if (nearbyCount >= 5) break;
-                }
-            }
-
-            if (nearbyCount >= 5) continue;
+            int xc=coord_to_chunkx(seedling->x);
+            int yc=coord_to_chunky(seedling->y);
+            if (chunk_grid[xc][yc].countTrees()>50) continue;
             updateChunk();
             new_creatures.push_back(seedling);
         }
@@ -97,12 +90,10 @@ public:
 
     void move() override {
         int move_range = 10;
-        x += Random::Int(-move_range, move_range+10);
-        y += Random::Int(-move_range, move_range+10);
-        if (x < -base_rangex)x = base_rangex;
-        if (x > base_rangex)x = -base_rangex;
-        if (y > base_rangey)y = -base_rangey;
-        if (y < -base_rangey)y = base_rangey;
+        x += Random::Int(-move_range, move_range);
+        y += Random::Int(-move_range, move_range);
+        x = Wrap(x, base_rangex);
+        y = Wrap(y, base_rangey);
 
         updateChunk();
     }
@@ -275,10 +266,8 @@ public:
             }
 
         }
-        if (x < -base_rangex)x = base_rangex;
-        if (x > base_rangex)x = -base_rangex;
-        if (y > base_rangey)y = -base_rangey;
-        if (y < -base_rangey)y = base_rangey;
+        x = Wrap(x, base_rangex);
+        y = Wrap(y, base_rangey);
         updateChunk();
     }
 

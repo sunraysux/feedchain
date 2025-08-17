@@ -77,10 +77,10 @@ void InitGame() {
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
     // Начальные растения
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 50; i++) {
         auto tree = std::make_shared<Tree>();
-        tree->x =Random::Int(-base_rangex, base_rangex);
-        tree->y = Random::Int(-base_rangey, base_rangey);
+        tree->x = 0;
+        tree->y = 0;
         tree->age = Random::Int(0, 500);
         tree->updateChunk();
         trees.push_back(tree);
