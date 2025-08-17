@@ -1006,6 +1006,8 @@ namespace Camera
 		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
 		float mouseY = 0;
 		float mouseX = 0;
+		float camX = 0;
+		float camY = 0;
 	} static state;
 
 	void screenmouse() {
@@ -1072,31 +1074,32 @@ namespace Camera
 		float offsetY = state.constellationOffset.r[3].m128_f32[1];
 
 		// Твои границы мира
-		float minX = -1000.0f;
-		float maxX = 1000.0f;
-		float minY = -500.0f;
-		float maxY = 500.0f;
+		//float minX = -1000.0f;
+		//float maxX = 1000.0f;
+		//float minY = -500.0f;
+		//float maxY = 500.0f;
 
 		// Рассчитываем текущие размеры области
-		float halfWidth = state.widthzoom / 2.0f;
-		float halfHeight = state.heightzoom / 2.0f;
+		//float halfWidth = state.widthzoom / 2.0f;
+		//float halfHeight = state.heightzoom / 2.0f;
 
 		// Максимальные и минимальные значения сдвига в local space (до умножения на camDist/2)
-		float maxOffsetX = (maxX - halfWidth) / (state.camDist / 2);
-		float minOffsetX = (minX + halfWidth) / (state.camDist / 2);
-		float maxOffsetY = (maxY - halfHeight) / (state.camDist / 2);
-		float minOffsetY = (minY + halfHeight) / (state.camDist / 2);
+		//float maxOffsetX = (maxX - halfWidth) / (state.camDist / 2);
+		//float minOffsetX = (minX + halfWidth) / (state.camDist / 2);
+		//float maxOffsetY = (maxY - halfHeight) / (state.camDist / 2);
+		//float minOffsetY = (minY + halfHeight) / (state.camDist / 2);
 
 		// Ограничиваем offsetX и offsetY
-		offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
-		offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
-
+		//offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
+		//offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
+		//offsetX = WrapX(offsetX);
+		//offsetY = WrapY(offsetY);
 		// Записываем обратно ограниченный сдвиг
-		state.constellationOffset.r[3] = XMVectorSet(offsetX, offsetY, state.constellationOffset.r[3].m128_f32[2], 1.0f);
+	//	state.constellationOffset.r[3] = XMVectorSet(offsetX, offsetY, state.constellationOffset.r[3].m128_f32[2], 1.0f);
 
 		// Теперь вычисляем итоговую позицию камеры
-		float x = offsetX * state.camDist / 2;
-		float y = offsetY * state.camDist / 2;
+		float x = WrapX(offsetX * 100);
+		float y = WrapY(offsetY * 100);
 		float xat = offsetX;
 		float yat = offsetY;
 		Camera::state.at = XMVectorSet(x, y, 0, 0);
@@ -1107,7 +1110,8 @@ namespace Camera
 
 		// Вектор вверх остается неизменным (0,1,0)
 		Camera::state.Up = state.defaultUp;
-
+		state.camX = XMVectorGetX(Camera::state.at);
+		state.camY = XMVectorGetY(Camera::state.at);
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
 		ConstBuf::UpdateCamera();

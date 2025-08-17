@@ -174,6 +174,24 @@ void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instanc
     }
 }
 
+auto isVisible = [&](float x1, float y1, float x2, float y2) {
+    // координаты камеры
+
+    // размеры области камеры
+    float halfW = Camera::state.widthzoom / 2.0f;
+    float halfH = Camera::state.heightzoom / 2.0f;
+
+    // прямоугольник видимости
+    float viewMinX = Camera::state.camX - halfW;
+    float viewMaxX = Camera::state.camX + halfW;
+    float viewMinY = Camera::state.camY - halfH;
+    float viewMaxY = Camera::state.camY + halfH;
+
+    // проверка пересечения
+    return !(x2 < viewMinX || x1 > viewMaxX ||
+        y2 < viewMinY || y1 > viewMaxY);
+    };
+
 void ShowRacketAndBall() {
     // Векторы для разных групп травы
     std::vector<XMFLOAT4> lowGrowthInstances;
@@ -188,19 +206,39 @@ void ShowRacketAndBall() {
             int y1 = cy * CHUNK_SIZE - base_rangey;
             int x2 = x1 + CHUNK_SIZE;
             int y2 = y1 + CHUNK_SIZE;
-            XMFLOAT4 rect(x1, y1, x2, y2);
+            float worldWidth = base_rangex * 2.0f;
+            float worldHeight = base_rangey * 2.0f;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    float px1 = x1 + dx * worldWidth;
+                    float py1 = y1 + dy * worldHeight;
+                    float px2 = x2 + dx * worldWidth;
+                    float py2 = y2 + dy * worldHeight;
 
-            if (chunk.grass.growth < 33) {
-                lowGrowthInstances.push_back(rect);
+                    if (isVisible(px1, py1, px2, py2)) {
+                        XMFLOAT4 rect(px1, py1, px2, py2);
+                        if (chunk.grass.growth < 33) {
+                            lowGrowthInstances.push_back(rect);
+                        }
+                        else if (chunk.grass.growth < 66) {
+                            midGrowthInstances.push_back(rect);
+                        }
+                        else {
+                            highGrowthInstances.push_back(rect);
+                        }
+                    }
+
+                }
             }
-            else if (chunk.grass.growth < 66) {
-                midGrowthInstances.push_back(rect);
-            }
-            else {
-                highGrowthInstances.push_back(rect);
-            }
+
+
         }
     }
+
+
+            
+        
+    
 
     // Отрисовываем траву батчами
     DrawBatchedInstances(6, lowGrowthInstances);
@@ -221,7 +259,21 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        instances.emplace_back(x1, y1, x2, y2);
+                        float worldWidth = base_rangex * 2.0f;
+                        float worldHeight = base_rangey * 2.0f;
+
+                        // 3×3 сетка (оригинал + 8 копий)
+                        for (int dx = -1; dx <= 1; dx++) {
+                            for (int dy = -1; dy <= 1; dy++) {
+                                float px1 = x1 + dx * worldWidth;
+                                float py1 = y1 + dy * worldHeight;
+                                float px2 = x2 + dx * worldWidth;
+                                float py2 = y2 + dy * worldHeight;
+                                if (isVisible(px1, py1, px2, py2)) {
+                                    instances.emplace_back(px1, py1, px2, py2);
+                                }
+                            }
+                        }
                     }
                 }
             }

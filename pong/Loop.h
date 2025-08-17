@@ -16,9 +16,9 @@ void mainLoop()
 	ConstBuf::ConstToVertex(4);
 	ConstBuf::ConstToPixel(4);
 
-	Shaders::vShader(1);     // фон
-	Shaders::pShader(1);
-	Draw::NullDrawer(1, 1);
+	//Shaders::vShader(1);     // фон
+	//Shaders::pShader(1);
+	//Draw::NullDrawer(1, 1);
 	mouse();
 	
 	

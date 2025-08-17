@@ -96,13 +96,14 @@ public:
     }
 
     void move() override {
-        int move_range = 1;
-        x += Random::Int(-move_range, move_range);
-        y += Random::Int(-move_range, move_range);
+        int move_range = 10;
+        x += Random::Int(-move_range, move_range+10);
+        y += Random::Int(-move_range, move_range+10);
+        if (x < -base_rangex)x = base_rangex;
+        if (x > base_rangex)x = -base_rangex;
+        if (y > base_rangey)y = -base_rangey;
+        if (y < -base_rangey)y = base_rangey;
 
-        // Проверка границ
-        x = clamp(x, -base_rangex, base_rangex);
-        y = clamp(y, -base_rangey, base_rangey);
         updateChunk();
     }
 
@@ -117,7 +118,7 @@ public:
             Rabbit* partner = dynamic_cast<Rabbit*>(other.get());
             if (partner && partner->age >= maturity_age &&
                 partner->gender != gender &&
-                distanceSquared(x, y, partner->x, partner->y) < 20.0f) {
+                distanceSquared(x, y, partner->x, partner->y) < 200.0f) {
 
                 auto offspring = std::make_shared<Rabbit>(*this);
                 offspring->age = 0;
@@ -190,11 +191,11 @@ class Wolf : public Creature {
 public:
     Wolf() : Creature(type_::wolf) {
         gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
-        eating_range = 2;
+        eating_range = 20;
         age = 0;
-        maturity_age = 100;
-        age_limit = 200;
-        hunger_limit = 50;
+        maturity_age = 300;
+        age_limit = 500;
+        hunger_limit = 200;
         hunger = 0;
     }
     bool isDirectionSelect = false;
@@ -202,8 +203,8 @@ public:
     float nextPositionX;
     float nextPositionY;
     void move() override {
-        int move_range = 1;
-        bool isHunger = hunger > 10;
+        int move_range = 20;
+        bool isHunger = hunger > 50;
 
         if (!isHunger) {
             if (!isDirectionSelect) {
@@ -274,8 +275,10 @@ public:
             }
 
         }
-        x = clamp(x, -base_rangex, base_rangex);
-        y = clamp(y, -base_rangey, base_rangey);
+        if (x < -base_rangex)x = base_rangex;
+        if (x > base_rangex)x = -base_rangex;
+        if (y > base_rangey)y = -base_rangey;
+        if (y < -base_rangey)y = base_rangey;
         updateChunk();
     }
 
@@ -290,7 +293,7 @@ public:
             Wolf* partner = dynamic_cast<Wolf*>(other.get());
             if (partner && partner->age >= maturity_age &&
                 partner->gender != gender &&
-                distanceSquared(x, y, partner->x, partner->y) < 20.0f) {
+                distanceSquared(x, y, partner->x, partner->y) < 200.0f) {
 
                 auto offspring = std::make_shared<Wolf>(*this);
                 offspring->age = 0;

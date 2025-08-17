@@ -2,9 +2,9 @@
 #include <random> 
 #include <memory>
 
-float SIZEWOLFS = 50;
+float SIZEWOLFS = 10;
 float SIZETREES = 10;
-float SIZERABBITS = 100;
+float SIZERABBITS = 10;
 int base_rangey = 500;
 int base_rangex = 1000;
 POINT p;
@@ -23,7 +23,21 @@ float clamp(float x, float a, float b)
     return fmax(fmin(x, b), a);
 }
 
-const int CHUNK_SIZE = 5; // –азмер чанка
+inline float WrapX(float x) {
+    float size = base_rangex * 2.0f; // ширина мира
+    x = fmod(x + size, size);        // чтобы всЄ оказалось в [0, size)
+    if (x < 0) x += size;            // страховка дл€ отрицательных значений
+    return x - base_rangex;          // смещаем обратно в [-base_rangex, base_rangex)
+}
+
+inline float WrapY(float y) {
+    float size = base_rangey * 2.0f; // высота мира
+    y = fmod(y + size, size);
+    if (y < 0) y += size;
+    return y - base_rangey;
+}
+
+const int CHUNK_SIZE = 100; // –азмер чанка
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секци€ данных игры  
