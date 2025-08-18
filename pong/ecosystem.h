@@ -112,8 +112,8 @@ void mouse()
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
         Camera::screenmouse();
         auto wolf = std::make_shared<Wolf>();
-        wolf->y = Camera::state.mouseY;
-        wolf->x = Camera::state.mouseX;
+        wolf->y = Wrap(Camera::state.mouseY,base_rangey);
+        wolf->x = Wrap(Camera::state.mouseX,base_rangex);
         wolf->hunger = 0;
         wolf->age = 0;
         wolfs.push_back(wolf);

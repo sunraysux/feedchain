@@ -1026,8 +1026,8 @@ namespace Camera
 		float worldY = XMVectorGetY(worldPos);
 
 		
-		state.mouseX = clamp(worldX, -base_rangex, base_rangex);
-		state.mouseY = clamp(worldY, -base_rangey, base_rangey);
+		state.mouseX = worldX;
+		state.mouseY = worldY;
 	}
 	void HandleMouseWheel(int delta)
 	{
