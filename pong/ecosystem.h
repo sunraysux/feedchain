@@ -122,6 +122,21 @@ void mouse()
     }
 
 }
+void mouse2()
+{
+    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+        Camera::screenmouse();
+        auto rabbit = std::make_shared<Rabbit>();
+        rabbit->y = Wrap(Camera::state.mouseY, base_rangey);
+        rabbit->x = Wrap(Camera::state.mouseX, base_rangex);
+        rabbit->hunger = 0;
+        rabbit->age = 0;
+        rabbits.push_back(rabbit);
+        population.rabbit_count++;
+
+    }
+
+}
 
 void Showpopulations() {
 
@@ -173,6 +188,22 @@ void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instanc
         Draw::NullDrawer(1, static_cast<int>(count));
     }
 }
+void DrawBatchedInstancesfon(int textureIndex, const std::vector<XMFLOAT4>& instances) {
+    if (instances.empty()) return;
+
+    context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+
+    for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
+        size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
+
+        // Копируем порцию данных в ConstBuf::global
+        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global);
+
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, static_cast<int>(count));
+    }
+}
 
 auto isVisible = [&](float x1, float y1, float x2, float y2) {
     // координаты камеры
@@ -193,6 +224,9 @@ auto isVisible = [&](float x1, float y1, float x2, float y2) {
     };
 
 void ShowRacketAndBall() {
+
+    Shaders::vShader(1);
+    Shaders::pShader(1);
     // Векторы для разных групп травы
     std::vector<XMFLOAT4> lowGrowthInstances;
     std::vector<XMFLOAT4> midGrowthInstances;
@@ -245,6 +279,9 @@ void ShowRacketAndBall() {
     DrawBatchedInstances(5, midGrowthInstances);
     DrawBatchedInstances(4, highGrowthInstances);
 
+
+    Shaders::vShader(0);
+    Shaders::pShader(0);
     // Универсальная функция для сбора и отрисовки существ
     auto drawCreatures = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
         std::vector<XMFLOAT4> instances;

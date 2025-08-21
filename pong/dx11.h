@@ -1098,8 +1098,8 @@ namespace Camera
 	//	state.constellationOffset.r[3] = XMVectorSet(offsetX, offsetY, state.constellationOffset.r[3].m128_f32[2], 1.0f);
 
 		// Теперь вычисляем итоговую позицию камеры
-		float x = WrapX(offsetX * 100);
-		float y = WrapY(offsetY * 100);
+		float x = WrapX(offsetX * 10);
+		float y = WrapY(offsetY * 10);
 		float xat = offsetX;
 		float yat = offsetY;
 		Camera::state.at = XMVectorSet(x, y, 0, 0);

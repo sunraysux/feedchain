@@ -43,33 +43,45 @@ float3 rotY(float3 pos, float a)
     return pos;
 }
 
-VS_OUTPUT VS(uint vID : SV_VertexID)
+VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x = gConst[0].x;      // Фиксированная X-координата нижнего левого угла
-    float y = gConst[0].y;      // Фиксированная Y-координата нижнего левого угла
-    float sz = gConst[0].z;     // Ширина (размер по X)
-    float years = gConst[0].w;   // Высота (размер по Y)
+    float x = gConst[iID].x;      // Фиксированная X-координата нижнего левого угла
+    float y = gConst[iID].y;      // Фиксированная Y-координата нижнего левого угла
+    float x1 = gConst[iID].z;     // Ширина (размер по X)
+    float y1 = gConst[iID].w;   // Высота (размер по Y)
 
-    // Рассчитываем углы прямоугольника
-    float x1 = x + sz;          // Правая граница (X)
-    float y1 = y + years;       // Верхняя граница (Y)
 
     // Вершины квада (два треугольника)
     float2 quad[6] = {
-        float2(-100, -50),
-        float2(-100, 50),
-        float2(100, -50),
+        float2(x, y),   // Нижний левый
+        float2(x, y1),  // Верхний левый
+        float2(x1, y),  // Нижний правый
 
-        float2(100, -50),
-        float2(-100, 50),
-        float2(100,50)
+
+        float2(x1, y),  // Нижний правый (повтор)
+        float2(x, y1),   // Верхний левый (повтор)
+        float2(x1, y1) // Верхний правый
+
 
     };
-    float4 viewPos = mul(float4(quad[vID], 0, 1.0f), view[0]);
+
+    float2 uvCoords[6] = {
+    float2(0, 1), // Нижний левый
+    float2(0, 0), // Нижний правый
+    float2(1, 1), // Верхний правый
+
+    float2(1, 1), // Нижний правый
+    float2(0, 0), // Верхний левый
+    float2(1, 0) // Верхний правый
+    };
+    float4 viewPos = mul(float4(quad[vID], 1, 1.0f), view[0]);
     float4 projPos = mul(viewPos, proj[0]);
 
-    output.pos = projPos;  // Позиция в clip-пространстве
+    output.pos = projPos; 
+    float2 uv = quad[vID]/32 ;
+    uv = frac(uv);                  
+    output.uv = uv;
 
     return output;
 }

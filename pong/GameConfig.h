@@ -95,8 +95,8 @@ public:
     int rabbit_count = 0;
     int tree_count = 0;
     int wolf_count = 0;
-    const int wolf_limit = 500;
-    const int rabbit_limit = 500;
+    const int wolf_limit = 1000;
+    const int rabbit_limit = 1000;
     const int tree_limit = 500;
 
     bool canAddWolf(int pending = 0) const {
@@ -212,6 +212,7 @@ struct Chunk {
         float growthSpeed = 1.0f;    // скорость прироста травы 
 
         // Трава растет, прибавляем рост пропорционально growthLevel
+        if(grass.growth<grass.maxGrowth)
         grass.growth += growthSpeed;
     }
 

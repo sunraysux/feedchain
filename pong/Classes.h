@@ -138,14 +138,14 @@ public:
 
         // Чем больше трава, тем больше уменьшается голод
         // Например, hunger уменьшается пропорционально growthLevel (0..1)
-        float hungerReduction = chunk.grass.growth * 1.0f; // 10 — можно настроить
+        float hungerReduction = chunk.grass.growth * 0.10f; // 10 — можно настроить
 
         hunger -= hungerReduction;
 
         if (hunger < -100) hunger = 0;
 
         // Можно дополнительно уменьшить рост травы в чанке из-за поедания
-        chunk.grass.growth -= 5;  // немного съели травы
+        chunk.grass.growth -= 50;  // немного съели травы
 
         if (chunk.grass.growth < 0) chunk.grass.growth = 0;
     }
@@ -194,7 +194,7 @@ public:
     float nextPositionX;
     float nextPositionY;
     void move() override {
-        int move_range = 20;
+        int move_range = 10;
         bool isHunger = hunger > 50;
 
         if (!isHunger) {
@@ -282,7 +282,7 @@ public:
             Wolf* partner = dynamic_cast<Wolf*>(other.get());
             if (partner && partner->age >= maturity_age &&
                 partner->gender != gender &&
-                distanceSquared(x, y, partner->x, partner->y) < 200.0f) {
+                distanceSquared(x, y, partner->x, partner->y) < 2000.0f) {
 
                 auto offspring = std::make_shared<Wolf>(*this);
                 offspring->age = 0;

@@ -20,10 +20,9 @@ void mainLoop()
 	//Shaders::pShader(1);
 	//Draw::NullDrawer(1, 1);
 	mouse();
+	mouse2();
 	
-	
-	Shaders::vShader(0);
-	Shaders::pShader(0);
+
 	
 	if (currentTime - TimeTic>100)
 	{
