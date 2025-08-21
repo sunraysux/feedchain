@@ -88,12 +88,12 @@ void InitGame() {
     }
 
    // Начальные кролики
-   for (int i = 0; i < 500; i++) {
+   for (int i = 0; i < 5; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-base_rangey, base_rangey);
-       rabbit->x = Random::Int(-base_rangex, base_rangex);
+       rabbit->y = Random::Int(-1, 1);
+       rabbit->x = Random::Int(-1, 1);
        rabbit->hunger = Random::Int(-50, 50);
-       rabbit->age = Random::Int(0, 50);
+       rabbit->age = Random::Int(0, 500);
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
@@ -101,7 +101,7 @@ void InitGame() {
        auto wolf = std::make_shared<Wolf>();
        wolf->y = Random::Int(-base_rangey, base_rangey);
        wolf->x = Random::Int(-base_rangex, base_rangex);
-       wolf->hunger = Random::Int(-50, 50);
+       wolf->hunger = Random::Int(0, 50);
        wolf->age = Random::Int(0, 50);
        wolfs.push_back(wolf);
        population.wolf_count++;
