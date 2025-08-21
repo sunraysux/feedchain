@@ -153,7 +153,7 @@ public:
         }
 
         // --- комбинируем цель и отталкивание
-        const float avoidanceWeight = 0.1f; // подбери 0.1..0.5
+        const float avoidanceWeight = 0.1f; // 
         float moveX = nextPositionX + ax * (move_range * avoidanceWeight);
         float moveY = nextPositionY + ay * (move_range * avoidanceWeight);
 
