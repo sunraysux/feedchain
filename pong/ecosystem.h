@@ -88,7 +88,7 @@ void InitGame() {
     }
 
    // Начальные кролики
-   for (int i = 0; i < 5; i++) {
+   for (int i = 0; i < 50; i++) {
        auto rabbit = std::make_shared<Rabbit>();
        rabbit->y = Random::Int(-1, 1);
        rabbit->x = Random::Int(-1, 1);

@@ -18,6 +18,7 @@ HWND hWnd;
 
 #include "WICTextureLoader.h"
 #include "GameConfig.h"
+#include "Chunks.h"
 #include "Classes.h"
 #include "dx11.h"
 #include "ecosystem.h"

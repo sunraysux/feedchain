@@ -86,34 +86,33 @@ public:
         age_limit = 2000;
         hunger_limit = 500;
         hunger = 0;
+        birth_time = currentTime;
+
+        isDirectionSelect = false;
+        step = 0;
+        nextPositionX = 0;
+        nextPositionY = 0;
+        move_range = 2;
     }
 
-    float birth_time = 0.0f;
-    bool isDirectionSelect = false;
-    int step = 0;
-    float nextPositionX = 0;
-    float nextPositionY = 0;
-
     void move() override {
-        const int move_range = 2;
         const float avoidance_radius = 5.0f;
+        const float avoidanceStrength = 0.5f;
 
-        bool isHunger = hunger > 10;
-        bool isMaturity = (age >= maturity_age) && (birth_time == 0.0f) && !isHunger;
+        bool isHunger = hunger > 100;
+        bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
-        // --- Избегание соседей ---
+        //  избегание соседей 
         float ax = 0.0f, ay = 0.0f;
         int nearbyCount = 0;
         for (int i = -1; i <= 1; ++i) {
             for (int j = -1; j <= 1; ++j) {
                 int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
                 int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                int nearbyCount;
-                float ax, ay;
-                auto t = chunk_grid[ncx][ncy].nearly_creature(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
-                 nearbyCount = std::get<0>(t);
-                 ax = std::get<1>(t);
-                 ay = std::get<2>(t);
+                auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
+                nearbyCount += std::get<0>(t);
+                ax += std::get<1>(t);
+                ay += std::get<2>(t);
             }
         }
 
@@ -121,31 +120,29 @@ public:
             ax /= nearbyCount;
             ay /= nearbyCount;
             float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax /= len; ay /= len; }
+            if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
+            ay = (ay / len) * avoidanceStrength; }
         }
 
-        // --- Выбор цели ---
-        bool needNewDir = (!isDirectionSelect || step <= 0);
-
-        if (isMaturity) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::rabbit, 3, true);
-            float targetX = target.first;
-            float targetY = target.second;
-            if (targetX != -5000.0f) {
-                float dx = torusDelta(x, targetX, base_rangex);
-                float dy = torusDelta(y, targetY, base_rangey);
-                float d = std::sqrt(dx * dx + dy * dy);
-                if (d > 1e-3f) {
+        //  Выбор цели для размножения 
+        if (isMaturity && (!isDirectionSelect || step <= 0)) {
+            auto target = searchNearestCreature(x, y, type_::rabbit, 3, true);
+            if (target.first != -5000.0f) {
+                float dx = torusDelta(x, target.first, base_rangex);
+                float dy = torusDelta(y, target.second, base_rangey);
+                float dist2 = dx * dx + dy * dy;
+                if (dist2 > 1.0f) {
+                    float d = std::sqrt(dist2);
                     nextPositionX = (dx / d) * move_range;
                     nextPositionY = (dy / d) * move_range;
                     isDirectionSelect = true;
                     step = Random::Int(5, 15);
-                    needNewDir = false;
                 }
             }
         }
 
-        if (needNewDir) {
+        //  Случайное движение если нет цели 
+        if (!isDirectionSelect || step <= 0) {
             do {
                 nextPositionX = Random::Int(-move_range, move_range);
                 nextPositionY = Random::Int(-move_range, move_range);
@@ -157,11 +154,9 @@ public:
             --step;
         }
 
-        // --- Комбинируем цель и отталкивание ---
-        const float avoidanceWeight = 0.1f;
-        float moveX = nextPositionX + ax * (move_range * avoidanceWeight);
-        float moveY = nextPositionY + ay * (move_range * avoidanceWeight);
-
+        //  Комбинируем цель и слабое избегание 
+        float moveX = nextPositionX + ax;
+        float moveY = nextPositionY + ay;
         float mlen = std::sqrt(moveX * moveX + moveY * moveY);
         if (mlen > move_range && mlen > 1e-6f) {
             moveX = (moveX / mlen) * move_range;
@@ -174,62 +169,81 @@ public:
         updateChunk();
     }
 
-    void reproduce(std::vector<std::shared_ptr<Rabbit>>& creatures,
-        std::vector<std::shared_ptr<Rabbit>>& new_creatures) {
+    void reproduce(std::vector<std::shared_ptr<Rabbit>>& rabbits,
+        std::vector<std::shared_ptr<Rabbit>>& new_rabbits) {
+        const float mateCooldown = 200.0f;
+        if (age < maturity_age || (currentTime - birth_time) < mateCooldown || dead) return;
 
-        if (age < maturity_age || birth_time != 0.0f || dead) return;
+        int base_cx = coord_to_chunkx(x);
+        int base_cy = coord_to_chunky(y);
 
-        for (auto& other : creatures) {
-            if (other->dead || other->type != type_::rabbit || other.get() == this) continue;
+        for (auto& w : chunk_grid[base_cx][base_cy].rabbits) {
+            if (auto partner = w.lock()) {
+                if (partner.get() == this || partner->dead) continue;
+                if (partner->gender == gender) continue;
+                if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
 
-            Rabbit* partner = dynamic_cast<Rabbit*>(other.get());
-            if (partner && partner->age >= maturity_age && partner->birth_time == 0.0f &&
-                partner->gender != gender &&
-                distanceSquared(x, y, partner->x, partner->y) < 20.0f) {
+                // расстояние с учётом тора
+                float dx = torusDelta(x, partner->x, base_rangex);
+                float dy = torusDelta(y, partner->y, base_rangey);
+                float dist2 = dx * dx + dy * dy;
 
-                auto offspring = std::make_shared<Rabbit>(*this);
-                offspring->age = 0;
-                offspring->hunger = 0;
-                offspring->dead = false;
-                offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
-                offspring->x += Random::Int(-5, 5);
-                offspring->y += Random::Int(-5, 5);
-                new_creatures.push_back(offspring);
-                birth_time = currentTime;
-                break;
+                if (dist2 < 50.0f) {
+                    auto offspring = std::make_shared<Rabbit>();
+                    offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
+                    offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
+                    offspring->birth_time = currentTime;
+                    offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+
+                    // Обновляем cooldown родителей
+                    birth_time = currentTime;
+                    partner->birth_time = currentTime;
+
+                    // разнесение, чтобы не слипались
+                    const float nudge = 5.0f;
+                    float nd = std::sqrt(dx * dx + dy * dy);
+                    do {
+                        nextPositionX = Random::Int(-move_range, move_range);
+                        nextPositionY = Random::Int(-move_range, move_range);
+                    } while (nextPositionX == 0 && nextPositionY == 0);
+                    isDirectionSelect = true;
+                    step = Random::Int(5, 15);
+
+                    do {
+                        partner->nextPositionX = Random::Int(-move_range, move_range);
+                        partner->nextPositionY = Random::Int(-move_range, move_range);
+                    } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
+                    partner->isDirectionSelect = true;
+                    partner->step = Random::Int(5, 15);
+
+                    new_rabbits.push_back(offspring);
+                    break;
+                }
             }
+
         }
     }
-
+        
+    
 
     void eat() {
         if (hunger <= 10 || dead) return;
-
-        // Определяем, в каком чанке находится существо
         int cx = coord_to_chunkx(x);
         int cy = coord_to_chunky(y);
-
-        if (cx < 0 || cx >= CHUNKS_PER_SIDEX || cy < 0 || cy >= CHUNKS_PER_SIDEY) return;
+        if (cx < 0 || cy < 0 || cx >= CHUNKS_PER_SIDEX || cy >= CHUNKS_PER_SIDEY) return;
 
         Chunk& chunk = chunk_grid[cx][cy];
-
-        // Чем больше трава, тем больше уменьшается голод
-        // Например, hunger уменьшается пропорционально growthLevel (0..1)
-        float hungerReduction = chunk.grass.growth * 1.0f; // 10 — можно настроить
-
-        hunger -= hungerReduction;
-
-        if (hunger < -100) hunger = 0;
-
-        // Можно дополнительно уменьшить рост травы в чанке из-за поедания
-        chunk.grass.growth -= 5;  // немного съели травы
-
-        if (chunk.grass.growth < 0) chunk.grass.growth = 0;
+        if (chunk.grass.growth > 50) {
+            float hungerReduction = chunk.grass.growth * 1.0f;
+            hunger -= hungerReduction;
+            if (hunger < 0) hunger = 0;
+            chunk.grass.growth -= 50;
+            if (chunk.grass.growth < 0) chunk.grass.growth = 0;
+        }
     }
 
     bool shouldDie() const override {
         return dead || age > age_limit || hunger > hunger_limit;
-
     }
 
     void process(std::vector<std::shared_ptr<Rabbit>>& rabbits,
@@ -238,29 +252,20 @@ public:
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
-        if (birth_time != 0.0f) {
-            if (currentTime - birth_time > 2000.0f) {
-                birth_time = 0.0f;
-            }
-        }
         move();
         eat();
-        if (!pop.canAddRabbit(static_cast<int>(new_rabbits.size())))
-            return;
-        reproduce(rabbits, new_rabbits);
+        if (pop.canAddRabbit(static_cast<int>(new_rabbits.size())))
+            reproduce(rabbits, new_rabbits);
     }
 
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
         return chunk.rabbits;
     }
-
     void addToChunk(Chunk& chunk) override {
         chunk.rabbits.push_back(weak_from_this());
     }
 };
-
-
 class Wolf : public Creature {
 public:
     Wolf() : Creature(type_::wolf) {
@@ -280,7 +285,7 @@ public:
     float birth_time = 0.0f;
 
     void move() override {
-        const int move_range = Random::Int(1, 60);//разная скорость
+        const int move_range = Random::Int(1, 15);//разная скорость
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 500;
@@ -293,7 +298,7 @@ public:
             for (int j = -1; j <= 1; ++j) {
                 int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
                 int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                auto result = chunk_grid[ncx][ncy].nearly_creature(chunk_grid[ncx][ncy].wolfs, x, y, avoidance_radius);
+                auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].wolfs, x, y, avoidance_radius);
                 int count = std::get<0>(result);
                 float dx = std::get<1>(result);
                 float dy = std::get<2>(result);
@@ -324,7 +329,7 @@ public:
                     nextPositionX = (dx / d) * move_range;
                     nextPositionY = (dy / d) * move_range;
                     isDirectionSelect = true;
-                    step = Random::Int(10, 60);
+                    step = Random::Int(10, 30);
                     needNewDir = false;
                 }
             }
@@ -341,7 +346,7 @@ public:
                     nextPositionX = (dx / d) * move_range;
                     nextPositionY = (dy / d) * move_range;
                     isDirectionSelect = true;
-                    step = Random::Int(10, 60);
+                    step = Random::Int(10, 30);
                     needNewDir = false;
                 }
             }
@@ -353,7 +358,7 @@ public:
                 nextPositionY = Random::Int(-move_range, move_range);
             } while (nextPositionX == 0 && nextPositionY == 0);
             isDirectionSelect = true;
-            step = Random::Int(10, 60);
+            step = Random::Int(10, 30);
         }
         else {
             --step;

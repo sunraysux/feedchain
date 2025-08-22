@@ -41,6 +41,18 @@
     <Image Include="Debug\tree.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\animal0.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\grass.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\grass2.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\grass3.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
@@ -96,6 +108,15 @@
     </ClInclude>
     <ClInclude Include="popPS.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Chunks.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

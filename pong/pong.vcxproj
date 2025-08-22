@@ -152,6 +152,7 @@
     <Media Include="..\Debug\music.mp3" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Chunks.h" />
     <ClInclude Include="Classes.h" />
     <ClInclude Include="dx11.h" />
     <ClInclude Include="ecosystem.h" />
