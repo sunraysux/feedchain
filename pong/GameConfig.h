@@ -2,7 +2,7 @@
 #include <random> 
 #include <memory>
 
-float SIZEWOLFS = 10.0f;
+float SIZEWOLFS = 100.0f;
 float SIZETREES = 10.0f;
 float SIZERABBITS = 100.0f;
 float base_rangey = 500.0f;
@@ -205,15 +205,31 @@ struct Chunk {
     std::vector<std::weak_ptr<Creature>> wolfs;
     Grass grass;
 
+    // Поиск ближайшего существа указанного типа в этом чанке
+    std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly) const {
+    switch (creatureType) {
+        case type_::rabbit:
+            return nearest_mature_creature(rabbits, x, y, matureOnly);
+        case type_::wolf:
+            return nearest_mature_creature(wolfs, x, y, matureOnly);
+        case type_::tree:
+            return nearest_mature_creature(trees, x, y, matureOnly);
+        default:
+            return { -5000.0f, -5000.0f };
+    }
+}
+
+    // Универсальный поиск ближайшего (с поддержкой matureOnly)
     template<typename T>
-    std::pair<float, float> nearest_mature_creature(const std::vector<std::weak_ptr<T>>& creatures, float x, float y) const {
+    std::pair<float, float> nearest_mature_creature(const std::vector<std::weak_ptr<T>>& creatures,
+        float x, float y, bool matureOnly) const {
         float best_dx = 0, best_dy = 0;
-        float best_dist2 = 1e9f; // очень большое число
+        float best_dist2 = 1e9f;
         bool found = false;
 
         for (const auto& w : creatures) {
             if (auto c = w.lock()) {
-                if (c->age < c->maturity_age) continue; // только зрелые
+                if (matureOnly && c->age < c->maturity_age) continue;
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -229,22 +245,20 @@ struct Chunk {
         return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-5000.0f, -5000.0f);
     }
 
+    // Универсальная проверка на близость (например, для избегания)
     template<typename T>
     std::tuple<int, float, float> nearly_creature(const std::vector<std::weak_ptr<T>>& creatures,
-        float x, float y, float avoidance_radius) {
+        float x, float y, float avoidance_radius) const {
         float avoidX = 0, avoidY = 0;
         int nearby = 0;
         const float r2 = avoidance_radius * avoidance_radius;
 
         for (const auto& w : creatures) {
             if (auto c = w.lock()) {
-                // короткая дельта на торе (size берём из глобалок)
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
-
                 float dist2 = dx * dx + dy * dy;
                 if (dist2 > 0.0f && dist2 < r2) {
-                    // вектор от соседа к себе = отталкивание
                     avoidX += -dx;
                     avoidY += -dy;
                     ++nearby;
@@ -254,7 +268,7 @@ struct Chunk {
         return { nearby, avoidX, avoidY };
     }
 
-
+    // Подсчёт любых существ
     template<typename T>
     int countCreatures(const std::vector<std::weak_ptr<T>>& creatures) const {
         int count = 0;
@@ -264,7 +278,7 @@ struct Chunk {
         return count;
     }
 
-    // Шаблонная функция для получения случайных координат существа
+    // Случайные координаты зрелого существа
     template<typename T>
     std::pair<int, int> RandomCreatureXY(const std::vector<std::weak_ptr<T>>& creatures) const {
         if (countCreatures(creatures) == 0) return { -5000, -5000 };
@@ -275,8 +289,7 @@ struct Chunk {
         for (const auto& weak_creature : creatures) {
             if (auto creature = weak_creature.lock()) {
                 count++;
-                // С вероятностью 1/count заменяем выбранное существо на текущее
-                if ((creature->age > creature->maturity_age)&&   (Random::Int(1, count) == 1) ){
+                if ((creature->age > creature->maturity_age) && (Random::Int(1, count) == 1)) {
                     rx = static_cast<int>(creature->x);
                     ry = static_cast<int>(creature->y);
                 }
@@ -285,132 +298,66 @@ struct Chunk {
 
         return (count > 0) ? std::make_pair(rx, ry) : std::make_pair(-5000, -5000);
     }
-    std::tuple<int, float, float> nearly_wolfs(float x, float y, float avoidance_radius) {
-        return nearly_creature(wolfs, x, y, avoidance_radius);
-    }
 
-    std::tuple<int, float, float> nearly_rabbits(float x, float y, float avoidance_radius) {
-        return nearly_creature(rabbits, x, y, avoidance_radius);
-    }
-    // Оригинальные функции для обратной совместимости
-    int countRabbits() const {
-        return countCreatures(rabbits);
-    }
-
-    std::pair<int, int> RandomRabbitXY() const {
-        return RandomCreatureXY(rabbits);
-    }
-
-    int countTrees() const {
-        int count = 0;
-        for (const auto& weak_tree : trees) {
-            if (!weak_tree.expired()) ++count;
-        }
-        return count;
-    }
-
-    // Дополнительные удобные функции
-    int countWolfs() const {
-        return countCreatures(wolfs);
-    }
-
-    std::pair<int, int> RandomWolfXY() const {
-        return RandomCreatureXY(wolfs);
-    }
-
+    // Рост травы
     void UpdateGrassGrowth() {
-
-        float growthSpeed = 1.0f;    // скорость прироста травы 
-
-        // Трава растет, прибавляем рост пропорционально growthLevel
+        float growthSpeed = 1.0f;
         if (grass.growth < grass.maxGrowth)
-        grass.growth += growthSpeed;
+            grass.growth += growthSpeed;
     }
 };
 
-std::pair<float, float> search_nearest_rabbit(float x, float y) {
+
+// === Глобальная функция поиска по чанкам ===
+// возвращает абсолютные координаты ближайшего существа или (-5000,-5000) если не найдено
+std::pair<float, float> searchNearestCreature(
+    float x, float y,
+    type_ creatureType,
+    int max_chunk_radius,
+    bool matureOnly
+) {
     int center_cx = coord_to_chunkx(x);
     int center_cy = coord_to_chunky(y);
 
-    // сначала проверяем текущий чанк
-    auto delta = chunk_grid[center_cx][center_cy].nearest_mature_creature(chunk_grid[center_cx][center_cy].rabbits, x, y);
-    if (delta.first != -5000.0f)
-        return std::make_pair(x + delta.first, y + delta.second);
+    float best_dx = 0.0f, best_dy = 0.0f;
+    float best_dist2 = 1e18f;
+    bool found = false;
 
-    // если не нашли, проверяем соседние чанки в радиусе 1..10
-    for (int chunk_factor = 1; chunk_factor <= 10; ++chunk_factor) {
-        int R = CHUNK_SIZE * chunk_factor;
-        float angle_step = 360.0f / (8 * chunk_factor);
-        for (float angle = 0; angle < 360.0f; angle += angle_step) {
-            float rad = angle * (PI / 180.0f);
-            int dotX = x + R * cos(rad);
-            int dotY = y + R * sin(rad);
-            dotX = Wrap(dotX, base_rangex);
-            dotY = Wrap(dotY, base_rangey);
-
-            int cx = coord_to_chunkx(dotX);
-            int cy = coord_to_chunky(dotY);
-
-            auto delta = chunk_grid[cx][cy].nearest_mature_creature(chunk_grid[cx][cy].rabbits, x, y);
-            if (delta.first != -5000.0f)
-                return std::make_pair(x + delta.first, y + delta.second);
-        }
-    }
-
-    return std::make_pair(-5000.0f, -5000.0f);
-}
-
-std::pair<float, float> search_creature(float x, float y, const std::string& creatureType) {
-    int foundX = 0, foundY = 0;
-    int center_cx = coord_to_chunkx(x);
-    int center_cy = coord_to_chunky(y);
-
-    // Лямбда-функции для условий поиска
-    auto condition = [&](const Chunk& chunk) -> bool {
-        if (creatureType == "rabbit") return chunk.countRabbits() > 0;
-        if (creatureType == "wolf") return chunk.countWolfs() > 0;
-        return false;
-        };
-
-    auto getCoords = [&](const Chunk& chunk) -> std::pair<int, int> {
-        if (creatureType == "rabbit") return chunk.RandomRabbitXY();
-        if (creatureType == "wolf") return chunk.RandomWolfXY();
-        return { -5000, -5000 };
-        };
-
-
-    auto& chunk = chunk_grid[center_cx][center_cy];
-    if (condition(chunk)) {
-        return getCoords(chunk);
-    }
-
-
-    // Ищем в соседних чанках
-    for (int chunk_factor = 1; chunk_factor <= 10; chunk_factor++) {
-        int R = (CHUNK_SIZE * chunk_factor);
-        float angel_step = 360.0f / (8 * chunk_factor);
-
-        for (float angle = 0; angle < 360.0f; angle += angel_step) {
-            float rad = angle * (PI / 180.0f);
-            int dotX = x + R * cos(rad);
-            int dotY = y + R * sin(rad);
-            dotX = Wrap(dotX, base_rangex);
-            dotY = Wrap(dotY, base_rangey);
-            int cx = coord_to_chunkx(dotX);
-            int cy = coord_to_chunky(dotY);
-
-            auto& chunk = chunk_grid[cx][cy];
-            if (condition(chunk)) {
-                return getCoords(chunk);
+    auto checkChunk = [&](const Chunk& chunk) {
+        auto p = chunk.nearest_creature(creatureType, x, y, matureOnly);
+        float dx = p.first;
+        float dy = p.second;
+        if (dx != -5000.0f) {
+            float dist2 = dx * dx + dy * dy;
+            if (dist2 < best_dist2) {
+                best_dist2 = dist2;
+                best_dx = dx;
+                best_dy = dy;
+                found = true;
             }
+        }
+        };
 
+    // центр
+    checkChunk(chunk_grid[center_cx][center_cy]);
+
+    // кольца вокруг центра
+    for (int ring = 1; ring <= max_chunk_radius; ++ring) {
+        int R = CHUNK_SIZE * ring;
+        float angle_step = 360.0f / (8 * ring);
+        for (float angle = 0.0f; angle < 360.0f; angle += angle_step) {
+            float rad = angle * (PI / 180.0f);
+            int dotX = Wrap(x + R * cos(rad), base_rangex);
+            int dotY = Wrap(y + R * sin(rad), base_rangey);
+            int cx = coord_to_chunkx(dotX);
+            int cy = coord_to_chunky(dotY);
+            checkChunk(chunk_grid[cx][cy]);
         }
     }
 
-    return std::make_pair(-5000, -5000);
+    if (!found) return { -5000.0f, -5000.0f };
+
+    float targetX = Wrap(x + best_dx, base_rangex);
+    float targetY = Wrap(y + best_dy, base_rangey);
+    return { targetX, targetY };
 }
-
-
-
-
-
