@@ -1,4 +1,4 @@
-#include <algorithm>
+п»ї#include <algorithm>
 #include <random> 
 #include <memory>
 
@@ -24,39 +24,39 @@ float clamp(float x, float a, float b)
 }
 
 inline float Wrap(float x, float range) {
-    float size = range * 2.0f; // полный размер мира
+    float size = range * 2.0f; // РїРѕР»РЅС‹Р№ СЂР°Р·РјРµСЂ РјРёСЂР°
     if (x >= range) x -= size;
     if (x < -range) x += size;
     return x;
 }
 inline float WrapX(float x) {
-    float size = base_rangex * 2.0f; // ширина мира
-    x = fmod(x + size, size);        // чтобы всё оказалось в [0, size)
-    if (x < 0) x += size;            // страховка для отрицательных значений
-    return x - base_rangex;          // смещаем обратно в [-base_rangex, base_rangex)
+    float size = base_rangex * 2.0f; // С€РёСЂРёРЅР° РјРёСЂР°
+    x = fmod(x + size, size);        // С‡С‚РѕР±С‹ РІСЃС‘ РѕРєР°Р·Р°Р»РѕСЃСЊ РІ [0, size)
+    if (x < 0) x += size;            // СЃС‚СЂР°С…РѕРІРєР° РґР»СЏ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹С… Р·РЅР°С‡РµРЅРёР№
+    return x - base_rangex;          // СЃРјРµС‰Р°РµРј РѕР±СЂР°С‚РЅРѕ РІ [-base_rangex, base_rangex)
 }
 
 inline float WrapY(float y) {
-    float size = base_rangey * 2.0f; // высота мира
+    float size = base_rangey * 2.0f; // РІС‹СЃРѕС‚Р° РјРёСЂР°
     y = fmod(y + size, size);
     if (y < 0) y += size;
     return y - base_rangey;
 }
 
-const int CHUNK_SIZE = 50; // Размер чанка
+const int CHUNK_SIZE = 50; // Р Р°Р·РјРµСЂ С‡Р°РЅРєР°
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
-// секция данных игры  
+// СЃРµРєС†РёСЏ РґР°РЅРЅС‹С… РёРіСЂС‹  
 class Creature;
 
 class Random {
 public:
     static std::mt19937& GetGenerator() {
-        static std::mt19937 gen{ std::random_device{}() }; // Инициализируется один раз
+        static std::mt19937 gen{ std::random_device{}() }; // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚СЃСЏ РѕРґРёРЅ СЂР°Р·
         return gen;
     }
 
-    // Дополнительно — хелперы:
+    // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕ вЂ” С…РµР»РїРµСЂС‹:
     static float Float(float min, float max) {
         std::uniform_real_distribution<float> dist(min, max);
         return dist(GetGenerator());
@@ -67,24 +67,24 @@ public:
         return dist(GetGenerator());
     }
 
-    static bool Chance(float probability) { // от 0.0 до 1.0
+    static bool Chance(float probability) { // РѕС‚ 0.0 РґРѕ 1.0
         std::bernoulli_distribution dist(probability);
         return dist(GetGenerator());
     }
 };
 
 inline int coord_to_chunkx(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
+    // РЎРјРµС‰Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёР· [-50,50] РІ [0,100]
     float normalized = coord + base_rangex;
-    // Вычисляем индекс и ограничиваем его
+    // Р’С‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ Рё РѕРіСЂР°РЅРёС‡РёРІР°РµРј РµРіРѕ
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
 }
 
 inline int coord_to_chunky(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
+    // РЎРјРµС‰Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёР· [-50,50] РІ [0,100]
     float normalized = coord + base_rangey;
-    // Вычисляем индекс и ограничиваем его
+    // Р’С‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ Рё РѕРіСЂР°РЅРёС‡РёРІР°РµРј РµРіРѕ
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
 }
@@ -155,7 +155,7 @@ public:
         auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
         auto& container = getChunkContainer(chunk);
 
-        // Удаляем weak_ptr, указывающий на текущий объект
+        // РЈРґР°Р»СЏРµРј weak_ptr, СѓРєР°Р·С‹РІР°СЋС‰РёР№ РЅР° С‚РµРєСѓС‰РёР№ РѕР±СЉРµРєС‚
         container.erase(
             std::remove_if(container.begin(), container.end(),
                 [this](const std::weak_ptr<Creature>& wp) {
@@ -174,9 +174,9 @@ public:
         int new_cy = coord_to_chunky(y);
 
         if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
-            removeFromChunk();  // Удаляем из старого чанка
+            removeFromChunk();  // РЈРґР°Р»СЏРµРј РёР· СЃС‚Р°СЂРѕРіРѕ С‡Р°РЅРєР°
 
-            // Добавляем в новый чанк
+            // Р”РѕР±Р°РІР»СЏРµРј РІ РЅРѕРІС‹Р№ С‡Р°РЅРє
             current_chunk_x = new_cx;
             current_chunk_y = new_cy;
             addToChunk(chunk_grid[new_cx][new_cy]);
@@ -187,10 +187,10 @@ public:
     virtual bool shouldDie() const = 0;
 
 protected:
-    // Виртуальный метод для получения нужного контейнера в чанке
+    // Р’РёСЂС‚СѓР°Р»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РЅСѓР¶РЅРѕРіРѕ РєРѕРЅС‚РµР№РЅРµСЂР° РІ С‡Р°РЅРєРµ
     virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) = 0;
 
-    // Виртуальный метод для добавления в чанк (уже объявлен)
+    // Р’РёСЂС‚СѓР°Р»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РІ С‡Р°РЅРє (СѓР¶Рµ РѕР±СЉСЏРІР»РµРЅ)
     virtual void addToChunk(Chunk& chunk) = 0;
 };
 
@@ -199,15 +199,16 @@ inline float torusDelta(float from, float to, float size) {
     return Wrap(d, size);
 }
 
+
 struct Chunk {
     std::vector<std::weak_ptr<Creature>> trees;
     std::vector<std::weak_ptr<Creature>> rabbits;
     std::vector<std::weak_ptr<Creature>> wolfs;
     Grass grass;
 
-    // Поиск ближайшего существа указанного типа в этом чанке
+    // РџРѕРёСЃРє Р±Р»РёР¶Р°Р№С€РµРіРѕ СЃСѓС‰РµСЃС‚РІР° СѓРєР°Р·Р°РЅРЅРѕРіРѕ С‚РёРїР° РІ СЌС‚РѕРј С‡Р°РЅРєРµ
     std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly) const {
-    switch (creatureType) {
+        switch (creatureType) {
         case type_::rabbit:
             return nearest_mature_creature(rabbits, x, y, matureOnly);
         case type_::wolf:
@@ -216,13 +217,15 @@ struct Chunk {
             return nearest_mature_creature(trees, x, y, matureOnly);
         default:
             return { -5000.0f, -5000.0f };
+        }
     }
-}
 
-    // Универсальный поиск ближайшего (с поддержкой matureOnly)
+    //  РїРѕРёСЃРє Р±Р»РёР¶Р°Р№С€РµРіРѕ (СЃ РїРѕРґРґРµСЂР¶РєРѕР№ matureOnly)
     template<typename T>
-    std::pair<float, float> nearest_mature_creature(const std::vector<std::weak_ptr<T>>& creatures,
-        float x, float y, bool matureOnly) const {
+    std::pair<float, float> nearest_mature_creature(
+        const std::vector<std::weak_ptr<T>>& creatures,
+        float x, float y, bool matureOnly
+    ) const {
         float best_dx = 0, best_dy = 0;
         float best_dist2 = 1e9f;
         bool found = false;
@@ -230,9 +233,11 @@ struct Chunk {
         for (const auto& w : creatures) {
             if (auto c = w.lock()) {
                 if (matureOnly && c->age < c->maturity_age) continue;
+
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
+
                 if (dist2 > 0.0f && dist2 < best_dist2) {
                     best_dist2 = dist2;
                     best_dx = dx;
@@ -245,10 +250,13 @@ struct Chunk {
         return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-5000.0f, -5000.0f);
     }
 
-    // Универсальная проверка на близость (например, для избегания)
+    //  РїСЂРѕРІРµСЂРєР° РЅР° Р±Р»РёР·РѕСЃС‚СЊ (РЅР°РїСЂРёРјРµСЂ, РґР»СЏ РёР·Р±РµРіР°РЅРёСЏ)
     template<typename T>
-    std::tuple<int, float, float> nearly_creature(const std::vector<std::weak_ptr<T>>& creatures,
-        float x, float y, float avoidance_radius) const {
+    std::tuple<int, float, float> nearly_creature(
+        const std::vector<std::weak_ptr<T>>& creatures,
+        float x, float y,
+        float avoidance_radius
+    ) const {
         float avoidX = 0, avoidY = 0;
         int nearby = 0;
         const float r2 = avoidance_radius * avoidance_radius;
@@ -258,6 +266,7 @@ struct Chunk {
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
+
                 if (dist2 > 0.0f && dist2 < r2) {
                     avoidX += -dx;
                     avoidY += -dy;
@@ -265,10 +274,11 @@ struct Chunk {
                 }
             }
         }
+
         return { nearby, avoidX, avoidY };
     }
 
-    // Подсчёт любых существ
+    // РџРѕРґСЃС‡С‘С‚ Р»СЋР±С‹С… СЃСѓС‰РµСЃС‚РІ
     template<typename T>
     int countCreatures(const std::vector<std::weak_ptr<T>>& creatures) const {
         int count = 0;
@@ -278,7 +288,7 @@ struct Chunk {
         return count;
     }
 
-    // Случайные координаты зрелого существа
+    // РЎР»СѓС‡Р°Р№РЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ Р·СЂРµР»РѕРіРѕ СЃСѓС‰РµСЃС‚РІР°
     template<typename T>
     std::pair<int, int> RandomCreatureXY(const std::vector<std::weak_ptr<T>>& creatures) const {
         if (countCreatures(creatures) == 0) return { -5000, -5000 };
@@ -299,7 +309,7 @@ struct Chunk {
         return (count > 0) ? std::make_pair(rx, ry) : std::make_pair(-5000, -5000);
     }
 
-    // Рост травы
+    // Р РѕСЃС‚ С‚СЂР°РІС‹
     void UpdateGrassGrowth() {
         float growthSpeed = 1.0f;
         if (grass.growth < grass.maxGrowth)
@@ -307,9 +317,7 @@ struct Chunk {
     }
 };
 
-
-// === Глобальная функция поиска по чанкам ===
-// возвращает абсолютные координаты ближайшего существа или (-5000,-5000) если не найдено
+// РІРѕР·РІСЂР°С‰Р°РµС‚ Р°Р±СЃРѕР»СЋС‚РЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ Р±Р»РёР¶Р°Р№С€РµРіРѕ СЃСѓС‰РµСЃС‚РІР° РёР»Рё (-5000,-5000) РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅРѕ
 std::pair<float, float> searchNearestCreature(
     float x, float y,
     type_ creatureType,
@@ -327,6 +335,7 @@ std::pair<float, float> searchNearestCreature(
         auto p = chunk.nearest_creature(creatureType, x, y, matureOnly);
         float dx = p.first;
         float dy = p.second;
+
         if (dx != -5000.0f) {
             float dist2 = dx * dx + dy * dy;
             if (dist2 < best_dist2) {
@@ -338,24 +347,27 @@ std::pair<float, float> searchNearestCreature(
         }
         };
 
-    // центр
+    // РџСЂРѕРІРµСЂСЏРµРј С†РµРЅС‚СЂ
     checkChunk(chunk_grid[center_cx][center_cy]);
 
-    // кольца вокруг центра
+    // РљРѕР»СЊС†Р° РІРѕРєСЂСѓРі С†РµРЅС‚СЂР°
     for (int ring = 1; ring <= max_chunk_radius; ++ring) {
         int R = CHUNK_SIZE * ring;
         float angle_step = 360.0f / (8 * ring);
+
         for (float angle = 0.0f; angle < 360.0f; angle += angle_step) {
             float rad = angle * (PI / 180.0f);
             int dotX = Wrap(x + R * cos(rad), base_rangex);
             int dotY = Wrap(y + R * sin(rad), base_rangey);
             int cx = coord_to_chunkx(dotX);
             int cy = coord_to_chunky(dotY);
+
             checkChunk(chunk_grid[cx][cy]);
         }
     }
 
-    if (!found) return { -5000.0f, -5000.0f };
+    if (!found)
+        return { -5000.0f, -5000.0f };
 
     float targetX = Wrap(x + best_dx, base_rangex);
     float targetY = Wrap(y + best_dy, base_rangey);
