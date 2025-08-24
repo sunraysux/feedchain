@@ -11,14 +11,17 @@ void UpdateAllGrass() {
 void ProcessCreatures(PopulationManager& pop) {
 
     int dead_rabbits = 0;
-    int dead_plants = 0;
+    int dead_trees = 0;
     int dead_wolfs = 0;
+    int dead_bushes = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
-   
+    std::vector<std::shared_ptr<Bush>> new_bushes;
+
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
+    for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
     for (auto& wolf : wolfs) wolf->process(wolfs, new_wolfs, rabbits, pop);
 
 
@@ -43,7 +46,8 @@ void ProcessCreatures(PopulationManager& pop) {
 
     remove_dead(rabbits, dead_rabbits);
     remove_dead(wolfs, dead_wolfs);
-    remove_dead(trees, dead_plants);
+    remove_dead(trees, dead_trees);
+    remove_dead(bushes, dead_bushes);
 
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -56,12 +60,14 @@ void ProcessCreatures(PopulationManager& pop) {
         };
     pop.update(
         static_cast<int>(new_rabbits.size()) - dead_rabbits,//обновление статистики
-        static_cast<int>(new_trees.size()) - dead_plants,
-        static_cast<int>(new_wolfs.size()) - dead_wolfs
+        static_cast<int>(new_trees.size()) - dead_trees,
+        static_cast<int>(new_wolfs.size()) - dead_wolfs,
+        static_cast<int>(new_bushes.size()) - dead_bushes
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolfs, new_wolfs);
     add_new_entities(trees, new_trees);
+    add_new_entities(bushes, new_bushes);
 
 }
 //инициализация игры
@@ -76,6 +82,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
+    Textures::LoadTextureFromFile(7, L"Debug/kust.png");
     // Начальные растения
     for (int i = 0; i < 50; i++) {
         auto tree = std::make_shared<Tree>();
@@ -86,7 +93,15 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-
+    for (int i = 0; i < 50; i++) {
+        auto bush = std::make_shared<Bush>();
+        bush->x = 0;
+        bush->y = 0;
+        bush->age = Random::Int(0, 500);
+        bush->updateChunk();
+        bushes.push_back(bush);
+        population.bush_count++;
+    }
    // Начальные кролики
    for (int i = 0; i < 50; i++) {
        auto rabbit = std::make_shared<Rabbit>();
@@ -149,7 +164,7 @@ void Showpopulations() {
         2.0f                                                                                                 //
     );                                                                                                       //
                                                                                                              //
-    float plantRatio = min(                                                                                  //
+    float treeRatio = min(                                                                                  //
         static_cast<float>(population.tree_count)*2 / population.tree_limit,                                 //
         2.0f                                                                                                 //
     );       
@@ -158,12 +173,17 @@ void Showpopulations() {
         static_cast<float>(population.wolf_count)*2 / population.wolf_limit,                                 //
         2.0f                                                                                                 //
     );
+    float bushRatio = min(                                                                                  //
+        static_cast<float>(population.bush_count) * 2 / population.bush_limit,                                 //
+        2.0f                                                                                                 //
+    );
 
     ConstBuf::global[0] = XMFLOAT4(                                                                          //
         rabbitRatio,                                                                                         //
-        plantRatio,
+        treeRatio,
         wolfRatio,
-        0
+        bushRatio
+        
     );
 
     ConstBuf::Update(5, ConstBuf::global);
@@ -319,7 +339,9 @@ void ShowRacketAndBall() {
         DrawBatchedInstances(textureIndex, instances);
         };
     
+    drawCreatures(7, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolfs; }, SIZEWOLFS);
     drawCreatures(1, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.trees; }, SIZETREES);
+    
 }
