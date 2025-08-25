@@ -23,7 +23,7 @@ public:
             auto seedling = std::make_shared<Tree>(*this);
             seedling->age = 0;
             seedling->dead = false;
-            seedling->maturity_age+= Random::Int(-10, 10);
+            seedling->maturity_age += Random::Int(-10, 10);
             seedling->age_limit += Random::Int(-10, 10);
             float distance = Random::Int(10, 100); // 3Ц50
             float angle = Random::Float(0, 3.14 * 2);
@@ -39,8 +39,8 @@ public:
 
             // ѕроверка плотности (например, не более 10 растений в радиусе 5)
             int nearbyCount = 0;
-            int xc=coord_to_chunkx(seedling->x);
-            int yc=coord_to_chunky(seedling->y);
+            int xc = coord_to_chunkx(seedling->x);
+            int yc = coord_to_chunky(seedling->y);
             if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 50) continue;
             updateChunk();
             new_creatures.push_back(seedling);
@@ -82,7 +82,7 @@ public:
         gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
-        maturity_age = 1000;
+        maturity_age = 500;
         age_limit = 2000;
         hunger_limit = 500;
         hunger = 0;
@@ -120,8 +120,10 @@ public:
             ax /= nearbyCount;
             ay /= nearbyCount;
             float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
-            ay = (ay / len) * avoidanceStrength; }
+            if (len > 1e-6f) {
+                ax = (ax / len) * avoidanceStrength;
+                ay = (ay / len) * avoidanceStrength;
+            }
         }
 
         //  ¬ыбор цели дл€ размножени€ 
@@ -223,8 +225,8 @@ public:
 
         }
     }
-        
-    
+
+
 
     void eat() {
         if (hunger <= 10 || dead) return;
@@ -233,11 +235,14 @@ public:
         if (cx < 0 || cy < 0 || cx >= CHUNKS_PER_SIDEX || cy >= CHUNKS_PER_SIDEY) return;
 
         Chunk& chunk = chunk_grid[cx][cy];
-        if (chunk.grass.growth > 50) {
-            float hungerReduction = chunk.grass.growth * 1.0f;
+        if (chunk.grass.growth >= 10) {
+            int h = hunger;
+            float hungerReduction = min(hunger, chunk.grass.growth) * 1.0f;
+
             hunger -= hungerReduction;
+            chunk.grass.growth -= hungerReduction;
             if (hunger < 0) hunger = 0;
-            chunk.grass.growth -= 50;
+
             if (chunk.grass.growth < 0) chunk.grass.growth = 0;
         }
     }
@@ -272,7 +277,7 @@ public:
         gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
-        maturity_age = 2000;
+        maturity_age = 500;
         age_limit = 4000;
         hunger_limit = 1000;
         hunger = 0;
@@ -285,7 +290,7 @@ public:
     float birth_time = 0.0f;
 
     void move() override {
-        const int move_range = Random::Int(1, 15);//разна€ скорость
+        move_range = Random::Int(1, 15);//разна€ скорость
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 500;
@@ -381,29 +386,59 @@ public:
         updateChunk();
     }
 
-    void reproduce(std::vector<std::shared_ptr<Wolf>>& creatures,
-        std::vector<std::shared_ptr<Wolf>>& new_creatures) {
-        if (age < maturity_age || birth_time != 0.0f || dead) return;
+    void reproduce(std::vector<std::shared_ptr<Wolf>>& wolfs,
+        std::vector<std::shared_ptr<Wolf>>& new_wolfs) {
+        const float mateCooldown = 200.0f;
+        if (age < maturity_age || (currentTime - birth_time) < mateCooldown || dead) return;
 
-        for (auto& other : creatures) {
-            if (other->dead || other->type != type_::wolf || other.get() == this) continue;
+        int base_cx = coord_to_chunkx(x);
+        int base_cy = coord_to_chunky(y);
 
-            Wolf* partner = dynamic_cast<Wolf*>(other.get());
-            if (partner && partner->age >= maturity_age && partner->birth_time == 0.0f &&
-                partner->gender != gender &&
-                distanceSquared(x, y, partner->x, partner->y) < 20.0f) {
+        for (auto& w : chunk_grid[base_cx][base_cy].wolfs) {
+            if (auto partner = w.lock()) {
+                if (partner.get() == this || partner->dead) continue;
+                if (partner->gender == gender) continue;
+                if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
 
-                auto offspring = std::make_shared<Wolf>(*this);
-                offspring->age = 0;
-                offspring->hunger = 0;
-                offspring->dead = false;
-                offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
-                offspring->x += Random::Int(-5, 5);
-                offspring->y += Random::Int(-5, 5);
-                new_creatures.push_back(offspring);
-                birth_time = currentTime;
-                break;
+                // рассто€ние с учЄтом тора
+                move_range = Random::Int(1, 10);
+                float dx = torusDelta(x, partner->x, base_rangex);
+                float dy = torusDelta(y, partner->y, base_rangey);
+                float dist2 = dx * dx + dy * dy;
+
+                if (dist2 < 50.0f) {
+                    auto offspring = std::make_shared<Wolf>();
+                    offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
+                    offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
+                    offspring->birth_time = currentTime;
+                    offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+
+                    // ќбновл€ем cooldown родителей
+                    birth_time = currentTime;
+                    partner->birth_time = currentTime;
+
+                    // разнесение, чтобы не слипались
+                    const float nudge = 5.0f;
+                    float nd = std::sqrt(dx * dx + dy * dy);
+                    do {
+                        nextPositionX = Random::Int(-move_range, move_range);
+                        nextPositionY = Random::Int(-move_range, move_range);
+                    } while (nextPositionX == 0 && nextPositionY == 0);
+                    isDirectionSelect = true;
+                    step = Random::Int(5, 15);
+
+                    do {
+                        partner->nextPositionX = Random::Int(-move_range, move_range);
+                        partner->nextPositionY = Random::Int(-move_range, move_range);
+                    } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
+                    partner->isDirectionSelect = true;
+                    partner->step = Random::Int(5, 15);
+
+                    new_wolfs.push_back(offspring);
+                    break;
+                }
             }
+
         }
     }
 
