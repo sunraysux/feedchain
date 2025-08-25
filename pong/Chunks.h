@@ -9,9 +9,9 @@ struct Chunk {
     std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly) const {
         switch (creatureType) {
         case type_::rabbit: return nearest_mature_creature(rabbits, x, y, matureOnly);
+        case type_::wolf:   return nearest_mature_creature(wolfs, x, y, matureOnly);
+        case type_::tree:   return nearest_mature_creature(trees, x, y, matureOnly);
         case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly);
-        case type_::wolf: return nearest_mature_creature(wolfs, x, y, matureOnly);
-        case type_::tree: return nearest_mature_creature(trees, x, y, matureOnly);
         default: return { -5000.0f, -5000.0f };
         }
     }
@@ -79,9 +79,55 @@ struct Chunk {
         return count;
     }
 
-    void UpdateGrassGrowth() {
+    bool Grassneightboor() {
+        return grass.growth > 80;
+    }
+
+    void UpdateGrassGrowth(int x, int y) {
         float growthSpeed = 1.0f;
-        if (grass.growth < grass.maxGrowth) grass.growth += growthSpeed;
+        int N = 0;
+        if (grass.growth <= 0) {
+            // ѕолучаем мировые координаты центра текущего чанка
+            float world_center_x = (x + 0.5f) * CHUNK_SIZE - base_rangex;
+            float world_center_y = (y + 0.5f) * CHUNK_SIZE - base_rangey;
+
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    // ѕропускаем текущий чанк
+                    if (i == 0 && j == 0) continue;
+                    if (i == 1 && j == 1) continue;
+                    if (i == -1 && j == -1) continue;
+                    if (i == -1 && j == 1) continue;
+                    if (i == 1 && j == -1) continue;
+                    // ¬ычисл€ем мировые координаты соседнего чанка
+                    float neighbor_x = world_center_x + i * CHUNK_SIZE;
+                    float neighbor_y = world_center_y + j * CHUNK_SIZE;
+
+                    // ќборачиваем координаты, если они выход€т за границы мира
+                    neighbor_x = Wrap(neighbor_x, base_rangex);
+                    neighbor_y = Wrap(neighbor_y, base_rangey);
+
+                    // ѕреобразуем мировые координаты в индексы чанков
+                    int ncx = coord_to_chunkx(neighbor_x);
+                    int ncy = coord_to_chunky(neighbor_y);
+
+                    // ѕровер€ем, что индексы в пределах массива
+                    if (ncx >= 0 && ncx < CHUNKS_PER_SIDEX &&
+                        ncy >= 0 && ncy < CHUNKS_PER_SIDEY) {
+
+                        if (chunk_grid[ncx][ncy].Grassneightboor()) {
+                            N += 1;
+                        }
+                    }
+                }
+            }
+
+            grass.growth += growthSpeed * N;
+            return;
+        }
+
+        if (grass.growth < grass.maxGrowth && grass.growth>0) grass.growth += growthSpeed;
+
     }
 };
 

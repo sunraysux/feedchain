@@ -4,7 +4,7 @@
 void UpdateAllGrass() {
     for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
         for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
-            chunk_grid[cx][cy].UpdateGrassGrowth();
+            chunk_grid[cx][cy].UpdateGrassGrowth(cx,cy);
         }
     }
 }

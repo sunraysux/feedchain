@@ -1003,7 +1003,7 @@ namespace Camera
 		XMVECTOR at = XMVectorSet(0, 0, 0, 0);
 		XMVECTOR Up = XMVector3Rotate(defaultUp, currentRotation);
 		XMVECTOR Eye = at - (Forward * camDist);
-		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
+		XMMATRIX constellationOffset = XMMatrixTranslation(100, 50, 0);
 		float mouseY = 0;
 		float mouseX = 0;
 		float camX = 0;
