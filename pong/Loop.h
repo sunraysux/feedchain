@@ -29,6 +29,7 @@ void mainLoop()
 		
 		TimeTic = currentTime;
 	}
+
 	ProcessCreatures(population);
 	//UpdateChunks();
 	ShowRacketAndBall();

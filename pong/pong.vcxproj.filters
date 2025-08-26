@@ -56,6 +56,9 @@
     <Image Include="Debug\kust.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\bear.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">

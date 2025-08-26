@@ -140,6 +140,7 @@
     <Image Include="..\Debug\racket_enemy.bmp" />
     <Image Include="Debug\animal.png" />
     <Image Include="Debug\animal0.jpg" />
+    <Image Include="Debug\bear.png" />
     <Image Include="Debug\grass.jpg" />
     <Image Include="Debug\grass2.jpg" />
     <Image Include="Debug\grass3.jpg" />

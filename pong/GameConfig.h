@@ -6,11 +6,12 @@ float SIZEWOLFS = 100.0f;
 float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
 float SIZERABBITS = 100.0f;
+float SIZEBEARS = 100.0f;
 float base_rangey = 500.0f;
 float base_rangex = 1000.0f;
 POINT p;
 enum class gender_ { male, female };
-enum class type_ { tree, rabbit, wolf, grass,bush };
+enum class type_ { tree, rabbit, wolf, grass,bush, bear,berry };
 
 float TimeTic;
 
@@ -44,7 +45,7 @@ inline float WrapY(float y) {
     return y - base_rangey;
 }
 
-const int CHUNK_SIZE = 50; // Размер чанка
+const int CHUNK_SIZE = 10; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  
@@ -97,10 +98,12 @@ public:
     int tree_count = 0;
     int wolf_count = 0;
     int bush_count = 0;
-    const int wolf_limit = 1000;
-    const int rabbit_limit = 1000;
-    const int tree_limit = 500;
-    const int bush_limit = 500;
+    int bear_count = 0;
+    const int wolf_limit = 2000;
+    const int rabbit_limit = 5000;
+    const int tree_limit = 2000;
+    const int bush_limit = 2000;
+    const int bear_limit = 2000;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -117,11 +120,16 @@ public:
         return bush_count + pending < bush_limit;
     }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes) {
+    bool canAddBear(int pending = 0) const {
+        return bear_count + pending < bear_limit;
+    }
+
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_bears) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
         bush_count += delta_bushes;
+        bear_count += delta_bears;
     }
 };
 

@@ -1,17 +1,19 @@
 struct Chunk {
     std::vector<std::weak_ptr<Creature>> trees;
     std::vector<std::weak_ptr<Creature>> rabbits;
-    std::vector<std::weak_ptr<Creature>> wolfs;
+    std::vector<std::weak_ptr<Creature>> wolves;
     std::vector<std::weak_ptr<Creature>> bushes;
+    std::vector<std::weak_ptr<Creature>> bears;
     Grass grass;
 
     // Поиск ближайшего существа указанного типа
     std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly) const {
         switch (creatureType) {
         case type_::rabbit: return nearest_mature_creature(rabbits, x, y, matureOnly);
-        case type_::wolf:   return nearest_mature_creature(wolfs, x, y, matureOnly);
+        case type_::wolf:   return nearest_mature_creature(wolves, x, y, matureOnly);
         case type_::tree:   return nearest_mature_creature(trees, x, y, matureOnly);
         case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly);
+        case type_::bear: return nearest_mature_creature(bears, x, y, matureOnly);
         default: return { -5000.0f, -5000.0f };
         }
     }
