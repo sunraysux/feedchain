@@ -41,9 +41,6 @@
     <Image Include="Debug\tree.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Debug\animal0.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Debug\grass.jpg">
       <Filter>Resource Files</Filter>
     </Image>
@@ -54,6 +51,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\kust.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\wolf.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\bear.png">

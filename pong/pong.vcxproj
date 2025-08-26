@@ -139,7 +139,6 @@
     <Image Include="..\Debug\racket.bmp" />
     <Image Include="..\Debug\racket_enemy.bmp" />
     <Image Include="Debug\animal.png" />
-    <Image Include="Debug\animal0.jpg" />
     <Image Include="Debug\bear.png" />
     <Image Include="Debug\grass.jpg" />
     <Image Include="Debug\grass2.jpg" />
@@ -147,6 +146,7 @@
     <Image Include="Debug\kust.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\tree.png" />
+    <Image Include="Debug\wolf.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav" />

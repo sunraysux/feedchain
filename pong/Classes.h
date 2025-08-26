@@ -1,78 +1,78 @@
 
-class Berry : public Creature {
-public:
-    Berry() : Creature(type_::berry) {
-        // Инициализация параметров растения
-        nutritional_value = 100;
-        age = 0;
-        maturity_age = 100;
-        age_limit = 170;
-    }
-
-    void reproduce(std::vector<std::shared_ptr<Tree>>& all_trees,
-        std::vector<std::shared_ptr<Tree>>& new_creatures) {
-
-        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
-        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
-            return;
-
-        int seeds = Random::Int(1, 5);
-
-        for (int s = 0; s < seeds; s++) {
-            auto seedling = std::make_shared<Tree>(*this);
-            seedling->age = 0;
-            seedling->dead = false;
-            seedling->maturity_age += Random::Int(-10, 10);
-            seedling->age_limit += Random::Int(-10, 10);
-            float distance = Random::Int(10, 100); // 3–50
-            float angle = Random::Float(0, 3.14 * 2);
-            seedling->x += distance * cos(angle);
-            seedling->y += distance * sin(angle);
-
-            // Обрезка по границам
-            seedling->x = Wrap(seedling->x, base_rangex);
-            seedling->y = Wrap(seedling->y, base_rangey);
-
-            // Проверка минимального расстояния (например, 2.0f)
-            bool tooClose = false;
-
-            // Проверка плотности (например, не более 10 растений в радиусе 5)
-            int nearbyCount = 0;
-            int xc = coord_to_chunkx(seedling->x);
-            int yc = coord_to_chunky(seedling->y);
-            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 50) continue;
-            updateChunk();
-            new_creatures.push_back(seedling);
-        }
-    }
-
-
-    void move() override {} // Растения не двигаются
-
-    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Растения не едят
-
-    bool shouldDie() const override {
-        return dead || age > age_limit;
-    }
-
-    void process(std::vector<std::shared_ptr<Tree>>& creatures,
-        std::vector<std::shared_ptr<Tree>>& new_trees,
-        PopulationManager& pop) {
-        if (shouldDie()) return;
-        age++;
-        if (age >= maturity_age && pop.canAddTree(static_cast<int>(new_trees.size()))) {
-            reproduce(creatures, new_trees);
-        }
-    }
-protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.trees;
-    }
-
-    void addToChunk(Chunk& chunk) override {
-        chunk.trees.push_back(weak_from_this());
-    }
-};
+//class Berry : public Creature {
+//public:
+//    Berry() : Creature(type_::berry) {
+//        // Инициализация параметров растения
+//        nutritional_value = 100;
+//        age = 0;
+//        maturity_age = 100;
+//        age_limit = 170;
+//    }
+//
+//    void reproduce(std::vector<std::shared_ptr<Tree>>& all_trees,
+//        std::vector<std::shared_ptr<Tree>>& new_creatures) {
+//
+//        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
+//        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
+//            return;
+//
+//        int seeds = Random::Int(1, 5);
+//
+//        for (int s = 0; s < seeds; s++) {
+//            auto seedling = std::make_shared<Tree>(*this);
+//            seedling->age = 0;
+//            seedling->dead = false;
+//            seedling->maturity_age += Random::Int(-10, 10);
+//            seedling->age_limit += Random::Int(-10, 10);
+//            float distance = Random::Int(10, 100); // 3–50
+//            float angle = Random::Float(0, 3.14 * 2);
+//            seedling->x += distance * cos(angle);
+//            seedling->y += distance * sin(angle);
+//
+//            // Обрезка по границам
+//            seedling->x = Wrap(seedling->x, base_rangex);
+//            seedling->y = Wrap(seedling->y, base_rangey);
+//
+//            // Проверка минимального расстояния (например, 2.0f)
+//            bool tooClose = false;
+//
+//            // Проверка плотности (например, не более 10 растений в радиусе 5)
+//            int nearbyCount = 0;
+//            int xc = coord_to_chunkx(seedling->x);
+//            int yc = coord_to_chunky(seedling->y);
+//            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 50) continue;
+//            updateChunk();
+//            new_creatures.push_back(seedling);
+//        }
+//    }
+//
+//
+//    void move() override {} // Растения не двигаются
+//
+//    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Растения не едят
+//
+//    bool shouldDie() const override {
+//        return dead || age > age_limit;
+//    }
+//
+//    void process(std::vector<std::shared_ptr<Tree>>& creatures,
+//        std::vector<std::shared_ptr<Tree>>& new_trees,
+//        PopulationManager& pop) {
+//        if (shouldDie()) return;
+//        age++;
+//        if (age >= maturity_age && pop.canAddTree(static_cast<int>(new_trees.size()))) {
+//            reproduce(creatures, new_trees);
+//        }
+//    }
+//protected:
+//    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
+//        return chunk.trees;
+//    }
+//
+//    void addToChunk(Chunk& chunk) override {
+//        chunk.trees.push_back(weak_from_this());
+//    }
+//};
 
 class Tree : public Creature {
 public:
