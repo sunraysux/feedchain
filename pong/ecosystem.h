@@ -51,7 +51,7 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(wolves, dead_wolfs);
     remove_dead(trees, dead_trees);
     remove_dead(bushes, dead_bushes);
-    remove_dead(bushes, dead_bears);
+    remove_dead(bears, dead_bears);
 
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -101,7 +101,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(9, L"Debug/tree.png");
     Textures::CreateDepthForTexture(9);
     // Начальные растения
-    for (int i = 0; i < 1500; i++) {
+    for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
@@ -110,7 +110,7 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-    for (int i = 0; i < 1500; i++) {
+    for (int i = 0; i < 500; i++) {
         auto bush = std::make_shared<Bush>();
         bush-> y = Random::Int(-base_rangey, base_rangey);
         bush-> x = Random::Int(-base_rangex, base_rangex);
@@ -120,7 +120,7 @@ void InitGame() {
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 5000; i++) {
+   for (int i = 0; i < 500; i++) {
        auto rabbit = std::make_shared<Rabbit>();
        rabbit->y = Random::Int(-base_rangey, base_rangey);
        rabbit->x = Random::Int(-base_rangex, base_rangex);
@@ -129,7 +129,7 @@ void InitGame() {
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
-   for (int i = 0; i < 50; i++) {
+   for (int i = 0; i < 500; i++) {
        auto wolf = std::make_shared<Wolf>();
        wolf->y = Random::Int(-base_rangey, base_rangey);
        wolf->x = Random::Int(-base_rangex, base_rangex);
@@ -139,7 +139,7 @@ void InitGame() {
        population.wolf_count++;
    }
 
-   for (int i = 0; i < 50; i++) {
+   for (int i = 0; i < 500; i++) {
        auto bear = std::make_shared<Bear>();
        bear->y = Random::Int(-base_rangey, base_rangey);
        bear->x = Random::Int(-base_rangex, base_rangex);
