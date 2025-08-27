@@ -234,30 +234,29 @@ void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instanc
         Draw::NullDrawer(1, static_cast<int>(count));
     }
 }
+auto isVisible = [&](float x, float y) -> bool {
+    // Вектор направления камеры
+    XMVECTOR camForward = Camera::state.Forward;
+    XMVECTOR camPos = Camera::state.Eye;
 
-auto isVisible = [&](float x1, float y1, float x2, float y2, float z = 500.0f) -> bool {
-    // Центр камеры в XY
-    float camX = XMVectorGetX(Camera::state.Eye);
-    float camY = XMVectorGetY(Camera::state.Eye);
-    float camZ = XMVectorGetZ(Camera::state.Eye);
-
-    // Примерная ширина и высота видимой области на глубине z
-    float halfHeight = z * tanf(Camera::state.fovAngle * 1);
-    float halfWidth = halfHeight * ((float)width / (float)height);
-
-    // Центр камеры на плоскости z
+    // Центр на XY
     float centerX = XMVectorGetX(Camera::state.at);
     float centerY = XMVectorGetY(Camera::state.at);
 
-    // Границы прямоугольника
-    float viewMinX = centerX - halfWidth;
-    float viewMaxX = centerX + halfWidth;
-    float viewMinY = centerY - halfHeight;
-    float viewMaxY = centerY + halfHeight;
+    // Половина размеров видимой области на плоскости XY (упрощение)
+    float halfHeight = Camera::state.camDist * tanf(Camera::state.fovAngle );
+    float halfWidth = halfHeight * ((float)width / (float)height);
 
-    // Проверка пересечения
-    return !(x2 < viewMinX-1000 || x1 > viewMaxX+1000 || y2 < viewMinY+1000 || y1 > viewMaxY+10000);
+    // Границы
+    float minX = centerX - halfWidth ;
+    float maxX = centerX + halfWidth ;
+    float minY = centerY - halfHeight;
+    float maxY = centerY + halfHeight*2.3 ;
+
+    // Если объект попадает в прямоугольник
+    return (x >= minX && x <= maxX && y >= minY && y <= maxY);
     };
+
 void ShowRacketAndBall() {
     Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
     Shaders::vShader(0);
@@ -282,12 +281,13 @@ void ShowRacketAndBall() {
                         // 3×3 сетка (оригинал + 8 копий)
                         for (int dx = -1; dx <= 1; dx++) {
                             for (int dy = -1; dy <= 1; dy++) {
-                                float px1 = x1 + dx * worldWidth;
-                                float py1 = y1 + dy * worldHeight;
-                                float px2 = x2 + dx * worldWidth;
-                                float py2 = y2 + dy * worldHeight;
-                                if (isVisible(px1, py1, px2, py2)) {
-                                    instances.emplace_back(c->x, c->y, c->age, ageScale);
+                                float px = c->x + dx * worldWidth;
+                                float py = c->y + dy * worldHeight;
+
+                                // Проверяем видимость центра существа
+                                if (isVisible(px, py)) {
+                                    // Передаём x, y, age, scale
+                                    instances.emplace_back(px, py, c->age, ageScale);
                                 }                          
                             }
                         }

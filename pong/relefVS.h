@@ -46,20 +46,24 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     float CHUNK_SIZE = 8.0;
 
-    // базова€ позици€ квадрата
-    float2 p = float2(-base_rangex + x * CHUNK_SIZE,
-        -base_rangey + y * CHUNK_SIZE)
-        + offset * CHUNK_SIZE;
+    // ширина одной сетки (одного "мира") в юнитах
+    float worldSizeX = gridX * CHUNK_SIZE;
+    float worldSizeY = gridY * CHUNK_SIZE;
+
+    // нормализуем тайл в [0 .. worldSize]
+    float2 p = float2(x * CHUNK_SIZE, y * CHUNK_SIZE) + offset * CHUNK_SIZE;
 
     // --- смещение инстанса ---
-    // Ќапример, рисуем 3x3 копии вокруг центра
     int tilesPerSide = 3;
-    int instX = iID % tilesPerSide - tilesPerSide / 2;
+    int instX = iID % tilesPerSide - tilesPerSide / 2; // -1,0,1
     int instY = iID / tilesPerSide - tilesPerSide / 2;
 
-    // сдвигаем на размер всего "мира" (gridX * CHUNK_SIZE)
-    p += float2(instX * gridX * CHUNK_SIZE,
-        instY * gridY * CHUNK_SIZE);
+    // теперь центрируем так, чтобы вс€ сетка укладывалась в [-2*base .. +2*base]
+    p += float2(instX * worldSizeX, instY * worldSizeY);
+
+    // масштабируем в диапазон [-2*base, +2*base]
+    p.x = (p.x / worldSizeX - 0.5) * (4.0 * base_rangex);
+    p.y = (p.y / worldSizeY - 0.5) * (4.0 * base_rangey);
 
     // uv заворачиваем (тайлим)
     float2 uv = frac(p / float2(base_rangex, base_rangey) * 0.5 + 0.5);
