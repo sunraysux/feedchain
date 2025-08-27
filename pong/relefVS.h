@@ -62,8 +62,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     p += float2(instX * worldSizeX, instY * worldSizeY);
 
     // масштабируем в диапазон [-2*base, +2*base]
-    p.x = (p.x / worldSizeX - 0.5) * (4.0 * base_rangex);
-    p.y = (p.y / worldSizeY - 0.5) * (4.0 * base_rangey);
+    p.x = (p.x / worldSizeX - 0.5) * (2.0 * base_rangex);
+    p.y = (p.y / worldSizeY - 0.5) * (2.0 * base_rangey);
+
 
     // uv заворачиваем (тайлим)
     float2 uv = frac(p / float2(base_rangex, base_rangey) * 0.5 + 0.5);

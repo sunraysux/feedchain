@@ -1056,7 +1056,7 @@ namespace Camera
 
 	void HandleMouseWheel(int delta)
 	{
-		state.camDist -= delta * 0.0125f;
+		state.camDist -= delta * 0.5f;
 		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
 
 		// Пересчитываем позицию камеры

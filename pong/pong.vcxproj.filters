@@ -124,6 +124,12 @@
     <ClInclude Include="Chunks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="relefPS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="relefVS.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
