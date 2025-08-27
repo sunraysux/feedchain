@@ -21,6 +21,7 @@ HWND hWnd;
 #include "Chunks.h"
 #include "Classes.h"
 #include "dx11.h"
+
 #include "ecosystem.h"
 
 
@@ -78,6 +79,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg = { 0 };
 
     timer::StartCounter();
+    
+    terraloop();
     Camera::Camera();
     // Main message loop:
     while (msg.message != WM_QUIT)
@@ -96,9 +99,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             currentTime = timer::GetCounter();
             
             timer::frameBeginTime = timer::GetCounter();
-
-
-            mainLoop();
+            Loop();
+            //mainLoop();
+            
+            
             timer::frameEndTime = timer::GetCounter();
             timer::frameRenderingDuration = timer::frameEndTime - timer::frameBeginTime;
             timer::nextFrameTime = timer::frameBeginTime + FRAME_LEN;

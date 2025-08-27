@@ -151,140 +151,6 @@ namespace Textures
 	textureDesc Texture[max_tex];
 
 	byte currentRT = 0;
-
-	void CreateTex(int i, const uint8_t* data = nullptr)
-	{
-		auto& cTex = Texture[i];
-
-		tdesc.Width = (UINT)cTex.size.x;
-		tdesc.Height = (UINT)cTex.size.y;
-		int maxSize = max((int)cTex.size.x, (int)cTex.size.y);
-		tdesc.MipLevels = cTex.mipMaps ? (UINT)(floor(log2(maxSize)) + 1) : 1;
-		tdesc.ArraySize = 1;
-		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | (cTex.mipMaps ? D3D11_BIND_RENDER_TARGET : 0);
-		tdesc.MiscFlags = cTex.mipMaps ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
-		tdesc.CPUAccessFlags = 0;
-		tdesc.SampleDesc.Count = 1;
-		tdesc.SampleDesc.Quality = 0;
-		tdesc.Usage = D3D11_USAGE_DEFAULT;
-		tdesc.Format = dxTFormat[cTex.format];
-		if (cTex.mipMaps)
-			tdesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-
-		if (cTex.mipMaps)
-			tdesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
-
-
-		HRESULT hr;
-
-		if (cTex.mipMaps)
-		{
-			hr = device->CreateTexture2D(&tdesc, nullptr, &cTex.pTexture);
-			if (FAILED(hr)) throw std::runtime_error("Failed to create texture with mipmaps");
-
-			if (data)
-			{
-				context->UpdateSubresource(cTex.pTexture, 0, nullptr, data, (UINT)cTex.size.x * 4, 0);
-			}
-		}
-		else
-		{
-			D3D11_SUBRESOURCE_DATA initData = {};
-			initData.pSysMem = data;
-			initData.SysMemPitch = (UINT)cTex.size.x * 4;
-			initData.SysMemSlicePitch = 0;
-
-			hr = device->CreateTexture2D(&tdesc, data ? &initData : nullptr, &cTex.pTexture);
-			if (FAILED(hr)) throw std::runtime_error("Failed to create texture without mipmaps");
-		}
-	}
-
-	void ShaderRes(int i)
-	{
-		svDesc.Format = tdesc.Format;
-		svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-
-		if (Texture[i].type == cube)
-		{
-			svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-			svDesc.TextureCube.MostDetailedMip = 0;
-			svDesc.TextureCube.MipLevels = -1;
-		}
-		else
-		{
-			svDesc.Texture2D.MipLevels = -1;
-			svDesc.Texture2D.MostDetailedMip = 0;
-		}
-
-		HRESULT hr = device->CreateShaderResourceView(Texture[i].pTexture, &svDesc, &Texture[i].TextureResView);
-		if (FAILED(hr)) throw std::runtime_error("Failed to create ShaderResourceView");
-	}
-
-	void rtView(int i)
-	{
-		renderTargetViewDesc.Format = tdesc.Format;
-		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		renderTargetViewDesc.Texture2D.MipSlice = 0;
-
-		if (Texture[i].type == cube)
-		{
-			renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-			renderTargetViewDesc.Texture2DArray.ArraySize = 1;
-			renderTargetViewDesc.Texture2DArray.MipSlice = 0;
-
-			for (int j = 0; j < 6; j++)
-			{
-				renderTargetViewDesc.Texture2DArray.FirstArraySlice = j;
-				HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[0][j]);
-				if (FAILED(hr)) throw std::runtime_error("Failed to create cube RTV");
-			}
-		}
-		else
-		{
-			HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[0][0]);
-			if (FAILED(hr)) throw std::runtime_error("Failed to create RTV");
-		}
-	}
-
-	void Depth(int i)
-	{
-		auto cTex = Texture[i];
-
-		tdesc.Width = (UINT)cTex.size.x;
-		tdesc.Height = (UINT)cTex.size.y;
-		tdesc.MipLevels = cTex.mipMaps ? (UINT)(_log2(max(cTex.size.x, cTex.size.y))) : 0;
-		tdesc.CPUAccessFlags = 0;
-		tdesc.SampleDesc.Count = 1;
-		tdesc.SampleDesc.Quality = 0;
-		tdesc.Usage = D3D11_USAGE_DEFAULT;
-
-		tdesc.ArraySize = 1;
-		tdesc.Format = DXGI_FORMAT_R32_TYPELESS;
-		tdesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		tdesc.MiscFlags = 0;
-		HRESULT hr = device->CreateTexture2D(&tdesc, NULL, &Texture[i].pDepth);
-
-		descDSV.Format = DXGI_FORMAT_D32_FLOAT;
-		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		descDSV.Flags = 0;
-
-		for (unsigned int m = 0; m < max(1, tdesc.MipLevels); m++)
-		{
-			descDSV.Texture2D.MipSlice = m;
-			HRESULT hr = device->CreateDepthStencilView(Texture[i].pDepth, &descDSV, &Texture[i].DepthStencilView[m]);
-		}
-	}
-
-	void shaderResDepth(int i)
-	{
-		svDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		svDesc.Texture2D.MostDetailedMip = 0;
-		svDesc.Texture2D.MipLevels = 1;
-
-		HRESULT hr = device->CreateShaderResourceView(Texture[i].pDepth, &svDesc, &Texture[i].DepthResView);
-	}
-
 	void LoadTextureFromFile(int index, const wchar_t* filename)
 	{
 		if (index < 0 || index >= max_tex) return;
@@ -345,6 +211,158 @@ namespace Textures
 		tex.mipMaps = (desc.MipLevels > 1);
 		tex.depth = false;
 		tex.format = tFormat::u8;
+	}
+	void CreateDepthForTexture(int i)
+	{
+		auto& tex = Texture[i];
+
+		if (!tex.pTexture) return; // текстура должна существовать
+
+		D3D11_TEXTURE2D_DESC depthDesc = {};
+		depthDesc.Width = (UINT)tex.size.x;
+		depthDesc.Height = (UINT)tex.size.y;
+		depthDesc.MipLevels = 1;
+		depthDesc.ArraySize = 1;
+		depthDesc.Format = DXGI_FORMAT_R32_TYPELESS; // тип без конкретного формата
+		depthDesc.SampleDesc.Count = 1;
+		depthDesc.SampleDesc.Quality = 0;
+		depthDesc.Usage = D3D11_USAGE_DEFAULT;
+		depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+
+		HRESULT hr = device->CreateTexture2D(&depthDesc, nullptr, &tex.pDepth);
+		if (FAILED(hr)) throw std::runtime_error("Failed to create depth texture");
+
+		// DSV
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Texture2D.MipSlice = 0;
+
+		hr = device->CreateDepthStencilView(tex.pDepth, &dsvDesc, &tex.DepthStencilView[0]);
+		if (FAILED(hr)) throw std::runtime_error("Failed to create DSV");
+
+		// SRV для шейдера
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+
+		hr = device->CreateShaderResourceView(tex.pDepth, &srvDesc, &tex.DepthResView);
+		if (FAILED(hr)) throw std::runtime_error("Failed to create depth SRV");
+	}
+	void CreateTex(int i)
+	{
+		auto cTex = Texture[i];
+
+		tdesc.Width = (UINT)cTex.size.x;
+		tdesc.Height = (UINT)cTex.size.y;
+		tdesc.MipLevels = cTex.mipMaps ? (UINT)(_log2(max(cTex.size.x, cTex.size.y))) : 0;
+		tdesc.ArraySize = 1;
+		tdesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+		tdesc.CPUAccessFlags = 0;
+		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Quality = 0;
+		tdesc.Usage = D3D11_USAGE_DEFAULT;
+		tdesc.Format = dxTFormat[cTex.format];
+
+		if (cTex.type == cube)
+		{
+			tdesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | tdesc.MiscFlags;
+			tdesc.ArraySize = 6;
+		}
+
+		HRESULT hr = device->CreateTexture2D(&tdesc, NULL, &Texture[i].pTexture);
+
+	}
+
+	void ShaderRes(int i)
+	{
+		svDesc.Format = tdesc.Format;
+		svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+		if (Texture[i].type == cube)
+		{
+			svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+			svDesc.TextureCube.MostDetailedMip = 0;
+			svDesc.TextureCube.MipLevels = -1;
+
+		}
+		else
+		{
+			svDesc.Texture2D.MipLevels = -1;
+			svDesc.Texture2D.MostDetailedMip = 0;
+		}
+
+		HRESULT hr = device->CreateShaderResourceView(Texture[i].pTexture, &svDesc, &Texture[i].TextureResView);
+	}
+
+	void rtView(int i)
+	{
+		renderTargetViewDesc.Format = tdesc.Format;
+		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDesc.Texture2D.MipSlice = 0;
+
+		if (Texture[i].type == cube)
+		{
+			renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+			renderTargetViewDesc.Texture2DArray.ArraySize = 1;
+			renderTargetViewDesc.Texture2DArray.MipSlice = 0;
+
+			for (int j = 0; j < 6; j++)
+			{
+				renderTargetViewDesc.Texture2DArray.FirstArraySlice = j;
+				HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[0][j]);
+			}
+		}
+		else
+		{
+			for (unsigned int m = 0; m <= tdesc.MipLevels; m++)
+			{
+				renderTargetViewDesc.Texture2D.MipSlice = m;
+				HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[m][0]);
+			}
+		}
+	}
+	
+	void Depth(int i)
+	{
+		auto cTex = Texture[i];
+
+		tdesc.Width = (UINT)cTex.size.x;
+		tdesc.Height = (UINT)cTex.size.y;
+		tdesc.MipLevels = cTex.mipMaps ? (UINT)(_log2(max(cTex.size.x, cTex.size.y))) : 1;
+		tdesc.CPUAccessFlags = 0;
+		tdesc.SampleDesc.Count = 1;
+		tdesc.SampleDesc.Quality = 0;
+		tdesc.Usage = D3D11_USAGE_DEFAULT;
+
+		tdesc.ArraySize = 1;
+		tdesc.Format = DXGI_FORMAT_R32_TYPELESS;
+		tdesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+		tdesc.MiscFlags = 0;
+		HRESULT hr = device->CreateTexture2D(&tdesc, NULL, &Texture[i].pDepth);
+
+		descDSV.Format = DXGI_FORMAT_D32_FLOAT;
+		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		descDSV.Flags = 0;
+
+		for (unsigned int m = 0; m < max(1, tdesc.MipLevels); m++)
+		{
+			descDSV.Texture2D.MipSlice = m;
+			HRESULT hr = device->CreateDepthStencilView(Texture[i].pDepth, &descDSV, &Texture[i].DepthStencilView[m]);
+		}
+	}
+
+	void shaderResDepth(int i)
+	{
+		svDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		svDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		svDesc.Texture2D.MostDetailedMip = 0;
+		svDesc.Texture2D.MipLevels = 1;
+
+		HRESULT hr = device->CreateShaderResourceView(Texture[i].pDepth, &svDesc, &Texture[i].DepthResView);
 	}
 
 	void Create(int i, tType type, tFormat format, XMFLOAT2 size, bool mipMaps, bool depth)
@@ -537,6 +555,8 @@ namespace Shaders {
 		CreatePS(1, nameToPatchLPCWSTR("fonPS.h"));
 		CreateVS(2, nameToPatchLPCWSTR("popVS.h"));
 		CreatePS(2, nameToPatchLPCWSTR("popPS.h"));
+		CreateVS(3, nameToPatchLPCWSTR("relefVS.h"));
+		CreatePS(3, nameToPatchLPCWSTR("relefPS.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -622,7 +642,7 @@ namespace ConstBuf
 {
 	ID3D11Buffer* buffer[6];
 
-#define constCount 7000
+#define constCount 4000
 
 	//b0 - use "params" label in shader
 	float drawerV[constCount];//update per draw call
@@ -652,9 +672,9 @@ namespace ConstBuf
 	//b5
 	XMFLOAT4 global[constCount];//update once on start
 
-	int roundUp(int n, int r)
+	int roundUp(int n, int r) 
 	{
-		return 	n - (n % r) + r;
+		return ((n + r - 1) / r) * r; 
 	}
 
 	void Create(ID3D11Buffer*& buf, int size)
@@ -726,14 +746,14 @@ namespace Blend
 	enum class blendmode { off, on, alpha };
 	enum class blendop { add, sub, revsub, min, max };
 
-	ID3D11BlendState* blendState[3][5];
+	ID3D11BlendState* blendState[3][5] = {};
 	D3D11_BLEND_DESC bSDesc;
 
 	void CreateMixStates(int j)
 	{
 		for (int i = 0; i < 5; i++)
 		{
-			bSDesc.RenderTarget[0].BlendOp = (D3D11_BLEND_OP)(i + 1);
+			bSDesc.RenderTarget[0].BlendOp = (D3D11_BLEND_OP)(i+1 );
 			HRESULT hr = device->CreateBlendState(&bSDesc, &blendState[j][i]);
 		}
 	}
@@ -777,7 +797,12 @@ namespace Blend
 	void Blending(blendmode mode = blendmode::off, blendop operation = blendop::add)
 	{
 		float blendFactor[4] = { .0f,.0f,.0f,.0f };
-		context->OMSetBlendState(blendState[(int)mode][(int)operation], blendFactor, 0xffffffff);
+		if (blendState[(int)mode][(int)operation] == nullptr) {
+			// fallback: use default blend state or skip
+		}
+		else {
+			context->OMSetBlendState(blendState[(int)mode][(int)operation], blendFactor, 0xffffffff);
+		}
 	}
 }
 
@@ -925,7 +950,9 @@ void Dx11Init()
 	Shaders::Init();
 
 	//main RT
-	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, false);
+	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
+	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
+
 }
 
 
@@ -990,16 +1017,16 @@ namespace Camera
 	struct State
 	{
 		bool mouse = false;
-		float camDist = 5.0f;
+		float camDist = 500.0f;
 		float minDist = 1.0f;
-		float maxDist = 93;
+		float maxDist = 10000;
 		int widthzoom = width;
 		int heightzoom = height;
-		float fovAngle = 60.0f;
+		float fovAngle = XMConvertToRadians(30.0f); // угол обзора в радианах
 		XMVECTOR relativeMovement = XMVectorSet(1, 0, 0, 0);
 		XMVECTOR currentRotation = XMQuaternionIdentity();
-		XMVECTOR Forward = XMVectorSet(0, 0, 1, 0);
-		XMVECTOR defaultUp = XMVectorSet(0, 1, 0, 0);
+		XMVECTOR Forward = XMVectorSet(5, 10, 5, 0); // вперед вдоль Y
+		XMVECTOR defaultUp = XMVectorSet(0, 0, 1, 0); // верх по Z
 		XMVECTOR at = XMVectorSet(0, 0, 0, 0);
 		XMVECTOR Up = XMVector3Rotate(defaultUp, currentRotation);
 		XMVECTOR Eye = at - (Forward * camDist);
@@ -1011,109 +1038,72 @@ namespace Camera
 	} static state;
 
 	void screenmouse() {
+		POINT p;
 		GetCursorPos(&p);
-		float X = p.x;
-		float Y = p.y;
 		float ndcX = ((float)p.x / width) * 2.0f - 1.0f;
 		float ndcY = (1.0f - (float)p.y / height) * 2.0f - 1.0f;
+
 		XMMATRIX view = XMMatrixLookAtLH(Camera::state.Eye, Camera::state.at, Camera::state.Up);
-		XMMATRIX proj = XMMatrixOrthographicLH(Camera::state.widthzoom, Camera::state.heightzoom, 0.01f, 1.0f);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 1000.0f);
 		XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
+
 		XMVECTOR mouseNDC = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
 		XMVECTOR worldPos = XMVector3TransformCoord(mouseNDC, invViewProj);
 
-		float worldX = XMVectorGetX(worldPos);
-		float worldY = XMVectorGetY(worldPos);
-
-		
-		state.mouseX = worldX;
-		state.mouseY = worldY;
+		state.mouseX = XMVectorGetX(worldPos);
+		state.mouseY = XMVectorGetY(worldPos);
 	}
+
 	void HandleMouseWheel(int delta)
 	{
-		state.camDist -= delta * 0.0125;
+		state.camDist -= delta * 0.0125f;
 		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
-		state.widthzoom = width * (state.camDist / 100.0f);
-		state.heightzoom = height * (state.camDist / 100.0f);
+
 		// Пересчитываем позицию камеры
-		state.Eye = state.at + (state.Forward * state.camDist);
+		state.Eye = state.at - (state.Forward * state.camDist);
 	}
 
 	void Camera()
 	{
 		HandleMouseWheel(0);
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-
-		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
-
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(
+			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 1000.0f)
+		);
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
 	}
+
 	void update()
 	{
-		if (GetAsyncKeyState('W') & 0x8000) {
-			// Добавляем вектор направления камеры (уже нормализован)
-			state.constellationOffset *= XMMatrixTranslation(0, 1, 0);
-		}
-		if (GetAsyncKeyState('S') & 0x8000) {
-			// Движение назад - обратное направление
-			state.constellationOffset *= XMMatrixTranslation(0, -1, 0);
-		}
-
-		if (GetAsyncKeyState('A') & 0x8000) {
-			// Добавляем вектор направления камеры (уже нормализован)
-			state.constellationOffset *= XMMatrixTranslation(-1, 0, 0);
-		}
-		if (GetAsyncKeyState('D') & 0x8000) {
-			// Движение назад - обратное направление
-			state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
-		}
+		if (GetAsyncKeyState('W') & 0x8000) state.constellationOffset *= XMMatrixTranslation(0, 1, 0);
+		if (GetAsyncKeyState('S') & 0x8000) state.constellationOffset *= XMMatrixTranslation(0, -1, 0);
+		if (GetAsyncKeyState('A') & 0x8000) state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
+		if (GetAsyncKeyState('D') & 0x8000) state.constellationOffset *= XMMatrixTranslation(-1, 0, 0);
 
 		float offsetX = state.constellationOffset.r[3].m128_f32[0];
 		float offsetY = state.constellationOffset.r[3].m128_f32[1];
 
-		// Твои границы мира
-		//float minX = -1000.0f;
-		//float maxX = 1000.0f;
-		//float minY = -500.0f;
-		//float maxY = 500.0f;
-
-		// Рассчитываем текущие размеры области
-		//float halfWidth = state.widthzoom / 2.0f;
-		//float halfHeight = state.heightzoom / 2.0f;
-
-		// Максимальные и минимальные значения сдвига в local space (до умножения на camDist/2)
-		//float maxOffsetX = (maxX - halfWidth) / (state.camDist / 2);
-		//float minOffsetX = (minX + halfWidth) / (state.camDist / 2);
-		//float maxOffsetY = (maxY - halfHeight) / (state.camDist / 2);
-		//float minOffsetY = (minY + halfHeight) / (state.camDist / 2);
-
-		// Ограничиваем offsetX и offsetY
-		//offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
-		//offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
-		//offsetX = WrapX(offsetX);
-		//offsetY = WrapY(offsetY);
-		// Записываем обратно ограниченный сдвиг
-	//	state.constellationOffset.r[3] = XMVectorSet(offsetX, offsetY, state.constellationOffset.r[3].m128_f32[2], 1.0f);
-
-		// Теперь вычисляем итоговую позицию камеры
+		// Итоговая позиция камеры
 		float x = WrapX(offsetX * 10);
 		float y = WrapY(offsetY * 10);
-		float xat = offsetX;
-		float yat = offsetY;
 		Camera::state.at = XMVectorSet(x, y, 0, 0);
-		Camera::state.Eye = XMVectorSet(x, y, -state.camDist, 0);
+		Camera::state.Eye = XMVectorSet(x, y - state.camDist, state.camDist * 0.5f, 0); // смещаем по Y и Z для 3D
 
-		// Вектор направления камеры (от камеры к точке at)
+		// Вектор направления камеры
 		Camera::state.Forward = XMVector3Normalize(state.at - state.Eye);
 
-		// Вектор вверх остается неизменным (0,1,0)
+		// Вверх всегда по Z
 		Camera::state.Up = state.defaultUp;
+
 		state.camX = XMVectorGetX(Camera::state.at);
 		state.camY = XMVectorGetY(Camera::state.at);
+
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixOrthographicLH(state.widthzoom, state.heightzoom, 0.01f, 1.0f));
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(
+			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 10000.0f)
+		);
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);

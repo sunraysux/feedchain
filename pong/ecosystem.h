@@ -82,14 +82,24 @@ void InitGame() {
     std::mt19937 gen(rd()); // генератор
     std::uniform_real_distribution<float> plant_dist(-base_rangex , base_rangey );
 
-    Textures::LoadTextureFromFile(1, L"Debug/tree.png");
+
+
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
+    Textures::CreateDepthForTexture(2);
     Textures::LoadTextureFromFile(3, L"Debug/wolf.png");
+    Textures::CreateDepthForTexture(3);
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
+    Textures::CreateDepthForTexture(4);
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
+    Textures::CreateDepthForTexture(5);
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
+    Textures::CreateDepthForTexture(6);
     Textures::LoadTextureFromFile(7, L"Debug/kust.png");
+    Textures::CreateDepthForTexture(7);
     Textures::LoadTextureFromFile(8, L"Debug/bear.png");
+    Textures::CreateDepthForTexture(8);
+    Textures::LoadTextureFromFile(9, L"Debug/tree.png");
+    Textures::CreateDepthForTexture(9);
     // Начальные растения
     for (int i = 0; i < 1500; i++) {
         auto tree = std::make_shared<Tree>();
@@ -211,25 +221,8 @@ void Showpopulations() {
 int BATCH_SIZE = 4000;
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
-
+    Textures::TextureToShader(1, 0, vertex);
     context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
-
-    for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
-        size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
-
-        // Копируем порцию данных в ConstBuf::global
-        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global);
-
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, static_cast<int>(count));
-    }
-}
-void DrawBatchedInstancesfon(int textureIndex, const std::vector<XMFLOAT4>& instances) {
-    if (instances.empty()) return;
-
-    context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
-
     for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
         size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
 
@@ -242,81 +235,31 @@ void DrawBatchedInstancesfon(int textureIndex, const std::vector<XMFLOAT4>& inst
     }
 }
 
-auto isVisible = [&](float x1, float y1, float x2, float y2) {
-    // координаты камеры
+auto isVisible = [&](float x1, float y1, float x2, float y2, float z = 500.0f) -> bool {
+    // Центр камеры в XY
+    float camX = XMVectorGetX(Camera::state.Eye);
+    float camY = XMVectorGetY(Camera::state.Eye);
+    float camZ = XMVectorGetZ(Camera::state.Eye);
 
-    // размеры области камеры
-    float halfW = Camera::state.widthzoom / 2.0f;
-    float halfH = Camera::state.heightzoom / 2.0f;
+    // Примерная ширина и высота видимой области на глубине z
+    float halfHeight = z * tanf(Camera::state.fovAngle * 1);
+    float halfWidth = halfHeight * ((float)width / (float)height);
 
-    // прямоугольник видимости
-    float viewMinX = Camera::state.camX - halfW;
-    float viewMaxX = Camera::state.camX + halfW;
-    float viewMinY = Camera::state.camY - halfH;
-    float viewMaxY = Camera::state.camY + halfH;
+    // Центр камеры на плоскости z
+    float centerX = XMVectorGetX(Camera::state.at);
+    float centerY = XMVectorGetY(Camera::state.at);
 
-    // проверка пересечения
-    return !(x2 < viewMinX || x1 > viewMaxX ||
-        y2 < viewMinY || y1 > viewMaxY);
+    // Границы прямоугольника
+    float viewMinX = centerX - halfWidth;
+    float viewMaxX = centerX + halfWidth;
+    float viewMinY = centerY - halfHeight;
+    float viewMaxY = centerY + halfHeight;
+
+    // Проверка пересечения
+    return !(x2 < viewMinX-1000 || x1 > viewMaxX+1000 || y2 < viewMinY+1000 || y1 > viewMaxY+10000);
     };
-
 void ShowRacketAndBall() {
-
-    Shaders::vShader(1);
-    Shaders::pShader(1);
-    // Векторы для разных групп травы
-    std::vector<XMFLOAT4> lowGrowthInstances;
-    std::vector<XMFLOAT4> midGrowthInstances;
-    std::vector<XMFLOAT4> highGrowthInstances;
-
-    // Собираем траву по чанкам
-    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-            const Chunk& chunk = chunk_grid[cx][cy];
-            int x1 = cx * CHUNK_SIZE - base_rangex;
-            int y1 = cy * CHUNK_SIZE - base_rangey;
-            int x2 = x1 + CHUNK_SIZE;
-            int y2 = y1 + CHUNK_SIZE;
-            float worldWidth = base_rangex * 2.0f;
-            float worldHeight = base_rangey * 2.0f;
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    float px1 = x1 + dx * worldWidth;
-                    float py1 = y1 + dy * worldHeight;
-                    float px2 = x2 + dx * worldWidth;
-                    float py2 = y2 + dy * worldHeight;
-
-                    if (isVisible(px1, py1, px2, py2)) {
-                        XMFLOAT4 rect(px1, py1, px2, py2);
-                        if (chunk.grass.growth < 33) {
-                            lowGrowthInstances.push_back(rect);
-                        }
-                        else if (chunk.grass.growth < 66) {
-                            midGrowthInstances.push_back(rect);
-                        }
-                        else {
-                            highGrowthInstances.push_back(rect);
-                        }
-                    }
-
-                }
-            }
-
-
-        }
-    }
-
-
-            
-        
-    
-
-    // Отрисовываем траву батчами
-    DrawBatchedInstances(6, lowGrowthInstances);
-    DrawBatchedInstances(5, midGrowthInstances);
-    DrawBatchedInstances(4, highGrowthInstances);
-
-
+    Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
     Shaders::vShader(0);
     Shaders::pShader(0);
     // Универсальная функция для сбора и отрисовки существ
@@ -344,8 +287,8 @@ void ShowRacketAndBall() {
                                 float px2 = x2 + dx * worldWidth;
                                 float py2 = y2 + dy * worldHeight;
                                 if (isVisible(px1, py1, px2, py2)) {
-                                    instances.emplace_back(px1, py1, px2, py2);
-                                }
+                                    instances.emplace_back(c->x, c->y, c->age, ageScale);
+                                }                          
                             }
                         }
                     }
@@ -360,6 +303,6 @@ void ShowRacketAndBall() {
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
     drawCreatures(8, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bears; }, SIZEBEARS);
-    drawCreatures(1, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.trees; }, SIZETREES);
+    drawCreatures(9, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.trees; }, SIZETREES);
     
 }

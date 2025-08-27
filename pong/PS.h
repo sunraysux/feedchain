@@ -6,11 +6,6 @@ cbuffer global : register(b5)
     float4 gConst[32];
 };
 
-cbuffer frame : register(b4)
-{
-    float4 time;
-    float4 aspect;
-};
 
 cbuffer camera : register(b3)
 {
@@ -18,36 +13,21 @@ cbuffer camera : register(b3)
     float4x4 view[2];
     float4x4 proj[2];
 };
-
-cbuffer drawMat : register(b2)
-{
-    float4x4 model;
-    float hilight;
-};
-
-cbuffer params : register(b1)
-{
-    float r, g, b;
-};
-
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float4 vpos : POSITION0;
-    float4 wpos : POSITION1;
-    float4 vnorm : NORMAL1;
     float2 uv : TEXCOORD0;
 };
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    float pi = 3.141519;
+    
+    float4 color = tex.Sample(samplerState, input.uv);
 
-//return float4(frac(input.uv.x+time.x*.01), 0, 0, 1);
+    // если фон чЄрный Ч отбросить пиксель
+    if (color.r < 0.01 && color.g < 0.01 && color.b < 0.01)
+        discard;
 
-    float c = 1;
-
-
-    return tex.Sample(samplerState, input.uv);
+    return color;
 
 }

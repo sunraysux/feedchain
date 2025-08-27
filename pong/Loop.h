@@ -1,39 +1,53 @@
-﻿
-void mainLoop()
+﻿void terraloop()
 {
-	frameConst();
-
 	InputAssembler::IA(InputAssembler::topology::triList);
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 
+	Textures::RenderTarget(1, 0);
+	Draw::Clear({ 0,0,0,0 });
+	Draw::ClearDepth();
+	Depth::Depth(Depth::depthmode::on);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Shaders::vShader(1);
+	Shaders::pShader(1);
+	ConstBuf::ConstToVertex(4);
+	ConstBuf::ConstToPixel(4);
+	Draw::NullDrawer(1);
+	Draw::Present();
+}
+
+
+void Loop() {
+	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+	Camera::update();
+	frameConst();
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
-	Depth::Depth(Depth::depthmode::off);
-	Rasterizer::Cull(Rasterizer::cullmode::front);
-	Camera::update();
-
-	ConstBuf::ConstToVertex(4);
-	ConstBuf::ConstToPixel(4);
-
-	//Shaders::vShader(1);     // фон
-	//Shaders::pShader(1);
-	//Draw::NullDrawer(1, 1);
-	mouse();
-	mouse2();
-	
-
-	
-	if (currentTime - TimeTic>100)
-	{
-		
-		TimeTic = currentTime;
-	}
 
 	ProcessCreatures(population);
-	//UpdateChunks();
 	ShowRacketAndBall();
 	Showpopulations();
 	UpdateAllGrass();
+
+	mouse();
+	mouse2();
+	Shaders::vShader(3);
+	Shaders::pShader(3);
+
+
+
+	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX, (float)CHUNKS_PER_SIDEY, 0, 0);
+	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
+	ConstBuf::ConstToVertex(5);
+	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
+	Textures::TextureToShader(1, 0, vertex);
+
+
+
+	Draw::NullDrawer(32768, 9);
+
+
+
 	Draw::Present();
 }

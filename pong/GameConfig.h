@@ -7,8 +7,8 @@ float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
 float SIZERABBITS = 100.0f;
 float SIZEBEARS = 100.0f;
-float base_rangey = 500.0f;
-float base_rangex = 1000.0f;
+float base_rangey = 512.0f;
+float base_rangex = 1024.0f;
 POINT p;
 enum class gender_ { male, female };
 enum class type_ { tree, rabbit, wolf, grass,bush, bear,berry };
@@ -31,21 +31,42 @@ inline float Wrap(float x, float range) {
     if (x < -range) x += size;
     return x;
 }
-inline float WrapX(float x) {
-    float size = base_rangex * 2.0f; // ширина мира
-    x = fmod(x + size, size);        // чтобы всё оказалось в [0, size)
-    if (x < 0) x += size;            // страховка для отрицательных значений
-    return x - base_rangex;          // смещаем обратно в [-base_rangex, base_rangex)
+
+inline float WrapXcam(float x)
+{
+    x *= 2;
+    float size = base_rangex * 2.0f;
+    while (x < -base_rangex) x += size;
+    while (x > base_rangex) x -= size;
+    return x/2;
 }
 
-inline float WrapY(float y) {
-    float size = base_rangey * 2.0f; // высота мира
-    y = fmod(y + size, size);
-    if (y < 0) y += size;
-    return y - base_rangey;
+inline float WrapYcam(float y)
+{
+    y *= 2;
+    float size = base_rangey * 2.0f;
+    while (y < -base_rangey) y += size;
+    while (y > base_rangey) y -= size;
+    return y/2;
 }
 
-const int CHUNK_SIZE = 10; // Размер чанка
+
+inline float WrapX(float x)
+{
+    float size = base_rangex * 2.0f;
+    while (x < -base_rangex) x += size;
+    while (x > base_rangex) x -= size;
+    return x;
+}
+
+inline float WrapY(float y)
+{
+    float size = base_rangey * 2.0f;
+    while (y < -base_rangey) y += size;
+    while (y > base_rangey) y -= size;
+    return y;
+}
+const int CHUNK_SIZE = 8; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  
@@ -99,11 +120,11 @@ public:
     int wolf_count = 0;
     int bush_count = 0;
     int bear_count = 0;
-    const int wolf_limit = 2000;
-    const int rabbit_limit = 5000;
-    const int tree_limit = 2000;
-    const int bush_limit = 2000;
-    const int bear_limit = 2000;
+    const int wolf_limit = 500;
+    const int rabbit_limit = 500;
+    const int tree_limit = 500;
+    const int bush_limit = 500;
+    const int bear_limit = 500;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;

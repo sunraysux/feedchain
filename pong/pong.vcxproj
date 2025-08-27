@@ -167,6 +167,8 @@
     <ClInclude Include="popPS.h" />
     <ClInclude Include="popVS.h" />
     <ClInclude Include="PS.h" />
+    <ClInclude Include="relefPS.h" />
+    <ClInclude Include="relefVS.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="timer.h" />

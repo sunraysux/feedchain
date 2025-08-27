@@ -189,3 +189,4 @@ std::pair<float, float> searchNearestCreature(
     float targetY = Wrap(y + best_dy, base_rangey);
     return { targetX, targetY };
 }
+
