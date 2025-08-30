@@ -100,6 +100,8 @@ void InitGame() {
     Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/tree.png");
     Textures::CreateDepthForTexture(9);
+    Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
+    Textures::CreateDepthForTexture(10);
     // Начальные растения
     for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
@@ -221,7 +223,7 @@ void Showpopulations() {
 int BATCH_SIZE = 4000;
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
-    Textures::TextureToShader(1, 0, vertex);
+    Textures::TextureToShader(10, 0, vertex);
     context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
     for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
         size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
@@ -277,21 +279,21 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                         float worldWidth = base_rangex * 2.0f;
                         float worldHeight = base_rangey * 2.0f;
-
+                        instances.emplace_back(c->x, c->y, c->age, ageScale);
                         // 3×3 сетка (оригинал + 8 копий)
-                        for (int dx = -1; dx <= 1; dx++) {
-                            for (int dy = -1; dy <= 1; dy++) {
-                                float px = c->x + dx * worldWidth;
-                                float py = c->y + dy * worldHeight;
-
-                                // Проверяем видимость центра существа
-                                if (isVisible(px, py)) {
-                                    // Передаём x, y, age, scale
-                                    instances.emplace_back(px, py, c->age, ageScale);
-                                }                          
-                            }
-                        }
-                    }
+                        //for (int dx = -1; dx <= 1; dx++) {
+                        //    for (int dy = -1; dy <= 1; dy++) {
+                        //        float px = c->x + dx * worldWidth;
+                        //        float py = c->y + dy * worldHeight;
+                        //
+                        //        // Проверяем видимость центра существа
+                        //        if (isVisible(px, py)) {
+                        //            // Передаём x, y, age, scale
+                        //            instances.emplace_back(px, py, c->age, ageScale);
+                        //        }                          
+                        //    }
+                        //}
+                    }   //
                 }
             }
         }

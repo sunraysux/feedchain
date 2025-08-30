@@ -54,12 +54,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float2 p = float2(x * CHUNK_SIZE, y * CHUNK_SIZE) + offset * CHUNK_SIZE;
 
     // --- смещение инстанса ---
-    int tilesPerSide = 3;
-    int instX = iID % tilesPerSide - tilesPerSide / 2; // -1,0,1
-    int instY = iID / tilesPerSide - tilesPerSide / 2;
+   // int tilesPerSide = 3;
+   // int instX = iID % tilesPerSide - tilesPerSide / 2; // -1,0,1
+   // int instY = iID / tilesPerSide - tilesPerSide / 2;
 
     // теперь центрируем так, чтобы вся сетка укладывалась в [-2*base .. +2*base]
-    p += float2(instX * worldSizeX, instY * worldSizeY);
+   // p += float2(instX * worldSizeX, instY * worldSizeY);
 
     // масштабируем в диапазон [-2*base, +2*base]
     p.x = (p.x / worldSizeX - 0.5) * (2.0 * base_rangex);
@@ -72,12 +72,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float4 pos = float4(p, 0, 1);
 
     // высота
-    float height = heightMap.SampleLevel(sampLinear, uv, 0).r;
+    float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
     float heightScale = 100;
     pos.z += height * heightScale;
     output.wpos = pos.xy; // пробрасываем мировые XY отдельно
     output.pos = mul(pos, mul(view[0], proj[0]));
-    output.uv = uv;
+    output.uv = uv/2;
     output.height = height;
     return output;
 }

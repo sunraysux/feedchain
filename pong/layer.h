@@ -1,20 +1,12 @@
 Texture2D heightMap : register(t0);
 SamplerState sampLinear : register(s0);
 
-
-cbuffer global : register(b5)
-{
-    float4 gConst[32];
-};
-
-
 cbuffer camera : register(b3)
 {
     float4x4 world[2];
     float4x4 view[2];
     float4x4 proj[2];
 };
-
 
 struct VS_OUTPUT
 {
@@ -23,38 +15,34 @@ struct VS_OUTPUT
 };
 
 
-
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x = gConst[iID].x;      // Фиксированная X-координата нижнего левого угла
-    float y = gConst[iID].y;      // Фиксированная Y-координата нижнего левого угла
-    float age = gConst[iID].z;     // Ширина (размер по X)
-    float scale = gConst[iID].w;   // Высота (размер по Y)
+    float x =0;      // Фиксированная X-координата нижнего левого угла
+    float y = 0;      // Фиксированная Y-координата нижнего левого угла
 
     float base_rangex = 1024.0f;
     float base_rangey = 1024.0f;
     // Вершины квада (два треугольника)
 
-    float3 p =float3( x,y,0);
-    float2 uv = frac(p.xy / float2(base_rangex, base_rangey) * 0.5 + 0.5);
+    float3 p = float3(x, y, 0);
 
 
     // высота
-    float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
+    float height = 0.50;
     p.z = height;
     float heightScale = 100;
-    p.z = height * heightScale ;
-    float sz = age / scale;
+    p.z = height * heightScale;
+    float sz = 1024;
     float3 quad[6] = {
-    float3(p.x - sz, p.y,p.z ),   // Нижний левый
-    float3(p.x + sz, p.y,p.z ),  // Верхний левый
-    float3(p.x - sz, p.y,p.z + sz),  // Нижний правый
-                           
-                           
-    float3(p.x + sz, p.y,p.z ),  // Нижний правый (повтор)
-    float3(p.x + sz, p.y,p.z + sz),   // Верхний левый (повтор)
-    float3(p.x - sz, p.y,p.z + sz) // Верхний правый
+    float3(p.x - sz, p.y-sz,p.z),   // Нижний левый
+    float3(p.x + sz, p.y-sz,p.z),  // Верхний левый
+    float3(p.x - sz, p.y+sz,p.z),  // Нижний правый
+
+
+    float3(p.x + sz, p.y-sz,p.z),  // Нижний правый (повтор)
+    float3(p.x + sz, p.y+sz,p.z),   // Верхний левый (повтор)
+    float3(p.x - sz, p.y+sz,p.z) // Верхний правый
 
 
     };

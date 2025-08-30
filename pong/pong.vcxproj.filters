@@ -130,6 +130,12 @@
     <ClInclude Include="relefVS.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="water.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="layer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -162,6 +162,7 @@
     <ClInclude Include="fonVS.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameConfig.h" />
+    <ClInclude Include="layer.h" />
     <ClInclude Include="Loop.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="popPS.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="VS.h" />
+    <ClInclude Include="water.h" />
     <ClInclude Include="WICTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>

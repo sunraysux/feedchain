@@ -32,6 +32,11 @@ void Loop() {
 
 	mouse();
 	mouse2();
+
+	//Shaders::vShader(4);
+	//Shaders::pShader(4);
+	//Draw::NullDrawer(1, 9);
+
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
@@ -41,11 +46,12 @@ void Loop() {
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Textures::TextureToShader(1, 0, vertex);
+	Textures::TextureToShader(10, 0, vertex);
 
 
 
-	Draw::NullDrawer(32768, 9);
+	Draw::NullDrawer(32768*2);
+
 
 
 

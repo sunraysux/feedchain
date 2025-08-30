@@ -557,6 +557,8 @@ namespace Shaders {
 		CreatePS(2, nameToPatchLPCWSTR("popPS.h"));
 		CreateVS(3, nameToPatchLPCWSTR("relefVS.h"));
 		CreatePS(3, nameToPatchLPCWSTR("relefPS.h"));
+		CreatePS(4, nameToPatchLPCWSTR("water.h"));
+		CreateVS(4, nameToPatchLPCWSTR("layer.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -1030,7 +1032,7 @@ namespace Camera
 		XMVECTOR at = XMVectorSet(0, 0, 0, 0);
 		XMVECTOR Up = XMVector3Rotate(defaultUp, currentRotation);
 		XMVECTOR Eye = at - (Forward * camDist);
-		XMMATRIX constellationOffset = XMMatrixTranslation(100, 50, 0);
+		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
 		float mouseY = 0;
 		float mouseX = 0;
 		float camX = 0;
@@ -1044,7 +1046,7 @@ namespace Camera
 		float ndcY = (1.0f - (float)p.y / height) * 2.0f - 1.0f;
 
 		XMMATRIX view = XMMatrixLookAtLH(Camera::state.Eye, Camera::state.at, Camera::state.Up);
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 1000.0f);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 1000000000.0f);
 		XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
 
 		XMVECTOR mouseNDC = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
