@@ -25,7 +25,7 @@ void ProcessCreatures(PopulationManager& pop) {
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
-    for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
+    for (auto& bush : bushes) bush->process(bushes, new_bushes,new_berrys, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
     for (auto& bear : bears) bear->process(bears, new_bears, rabbits, pop);
     for (auto& berry : berrys) berry->process(berrys, pop);

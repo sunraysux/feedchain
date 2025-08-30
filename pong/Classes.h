@@ -9,9 +9,6 @@ public:
         age_limit = 100;
     }
 
-    
-
-
     void move() override {} // Растения не двигаются
 
     void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Растения не едят
@@ -119,7 +116,33 @@ public:
         maturity_age = 100;
         age_limit = 170;
     }
+    float blossoming_age = 50;
+    int berry_count = 0;
+    void blossoming(std::vector<std::shared_ptr<Berry>>& new_berrys) {
+        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
+        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
+            return;
 
+        auto seedling = std::make_shared<Berry>(*this);
+        seedling->age = 0;
+        seedling->dead = false;
+        seedling->maturity_age += Random::Int(-10, 10);
+        seedling->age_limit += Random::Int(-10, 10);
+        float distance = Random::Int(1, 10); // 3–50
+        float angle = Random::Float(0, 3.14 * 2);
+        seedling->x += distance * cos(angle);
+        seedling->y += distance * sin(angle);
+
+        // Обрезка по границам
+        seedling->x = Wrap(seedling->x, base_rangex);
+        seedling->y = Wrap(seedling->y, base_rangey);
+
+        // Проверка минимального расстояния (например, 2.0f)
+        
+        updateChunk();
+        new_berrys.push_back(seedling);
+        berry_count++;
+    }
     void reproduce(std::vector<std::shared_ptr<Bush>>& all_bushes,
         std::vector<std::shared_ptr<Bush>>& new_creatures) {
 
@@ -168,9 +191,14 @@ public:
 
     void process(std::vector<std::shared_ptr<Bush>>& creatures,
         std::vector<std::shared_ptr<Bush>>& new_bushes,
+        std::vector<std::shared_ptr<Berry>>& new_berrys,
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++;
+        if (age > blossoming_age) {
+            blossoming(new_berrys);
+        }
+        if (berry_count == 0) return;
         if (age >= maturity_age && pop.canAddBush(static_cast<int>(new_bushes.size()))) {
             reproduce(creatures, new_bushes);
         }
