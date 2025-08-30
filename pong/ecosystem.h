@@ -101,7 +101,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(9, L"Debug/tree.png");
   //  Textures::CreateDepthForTexture(9);
     Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-   // Textures::CreateDepthForTexture(10);
+    Textures::CreateDepthForTexture(10);
     // Начальные растения
     for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
@@ -279,7 +279,7 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                         float worldWidth = base_rangex * 2.0f;
                         float worldHeight = base_rangey * 2.0f;
-                        instances.emplace_back(c->x, c->y, c->age, ageScale);
+                        instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10),8);
                         // 3×3 сетка (оригинал + 8 копий)
                         //for (int dx = -1; dx <= 1; dx++) {
                         //    for (int dy = -1; dy <= 1; dy++) {

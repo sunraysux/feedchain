@@ -40,7 +40,7 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-
+	Textures::RenderTarget(0, 0);
 
 	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX, (float)CHUNKS_PER_SIDEY, 0, 0);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);

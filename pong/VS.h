@@ -29,31 +29,30 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     VS_OUTPUT output = (VS_OUTPUT)0;
     float x = gConst[iID].x;      // Фиксированная X-координата нижнего левого угла
     float y = gConst[iID].y;      // Фиксированная Y-координата нижнего левого угла
-    float age = gConst[iID].z;     // Ширина (размер по X)
-    float scale = gConst[iID].w;   // Высота (размер по Y)
+    float sz = gConst[iID].z;     // Ширина (размер по X)
+
 
     float base_rangex = 1024.0f;
     float base_rangey = 1024.0f;
     // Вершины квада (два треугольника)
 
-    float3 p =float3( x,y,0);
+    float3 p = float3(x, y, 0);
     float2 uv = frac(p.xy / float2(base_rangex, base_rangey) * 0.5 + 0.5);
 
 
     // высота
-    float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
-    p.z = height;
+    float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
+    p.z = gConst[iID].w;
     float heightScale = height * 6;
     p.z = height * heightScale * heightScale * heightScale;
     //p.z = height * heightScale ;
-    float sz = age / scale;
     float3 quad[6] = {
-    float3(p.x - sz, p.y,p.z ),   // Нижний левый
-    float3(p.x + sz, p.y,p.z ),  // Верхний левый
+    float3(p.x - sz, p.y,p.z),   // Нижний левый
+    float3(p.x + sz, p.y,p.z),  // Верхний левый
     float3(p.x - sz, p.y,p.z + sz),  // Нижний правый
-                           
-                           
-    float3(p.x + sz, p.y,p.z ),  // Нижний правый (повтор)
+
+
+    float3(p.x + sz, p.y,p.z),  // Нижний правый (повтор)
     float3(p.x + sz, p.y,p.z + sz),   // Верхний левый (повтор)
     float3(p.x - sz, p.y,p.z + sz) // Верхний правый
 
