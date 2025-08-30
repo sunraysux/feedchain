@@ -123,15 +123,14 @@ public:
         if ((Random::Float(0, 100)) >= (reproductionChance * 100))
             return;
 
-        auto seedling = std::make_shared<Berry>(*this);
+        auto seedling = std::make_shared<Berry>();
         seedling->age = 0;
         seedling->dead = false;
-        seedling->maturity_age += Random::Int(-10, 10);
-        seedling->age_limit += Random::Int(-10, 10);
-        float distance = Random::Int(1, 10); // 3Ц50
+        seedling->age_limit = 100 + Random::Int(-10, 10);
+        float distance = Random::Int(1, 5); // 3Ц50
         float angle = Random::Float(0, 3.14 * 2);
-        seedling->x += distance * cos(angle);
-        seedling->y += distance * sin(angle);
+        seedling->x = x + distance * cos(angle);
+        seedling->y = y + distance * sin(angle);
 
         // ќбрезка по границам
         seedling->x = Wrap(seedling->x, base_rangex);

@@ -7,7 +7,7 @@ float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
 float SIZERABBITS = 100.0f;
 float SIZEBEARS = 100.0f;
-float SIZEBERRYS = 750.0f;
+float SIZEBERRYS = 70.0f;
 float base_rangey = 512.0f;
 float base_rangex = 1024.0f;
 POINT p;
