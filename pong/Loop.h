@@ -26,31 +26,32 @@ void Loop() {
 	Draw::ClearDepth();
 
 	ProcessCreatures(population);
+	ShowGrow();
 	ShowRacketAndBall();
+    
 	Showpopulations();
 	UpdateAllGrass();
-
+	
 	mouse();
 	mouse2();
 
+
+	//вода
 	//Shaders::vShader(4);
 	//Shaders::pShader(4);
 	//Draw::NullDrawer(1, 9);
 
-	Shaders::vShader(3);
-	Shaders::pShader(3);
 
-
-
-	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX, (float)CHUNKS_PER_SIDEY, 0, 0);
-	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
-	ConstBuf::ConstToVertex(5);
-	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Textures::TextureToShader(10, 0, vertex);
-
-
-
-	Draw::NullDrawer(32768*2);
+	//рельеф
+	//Shaders::vShader(3);
+	//Shaders::pShader(3);
+	//Textures::RenderTarget(0, 0);
+	//ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX, (float)CHUNKS_PER_SIDEY, 0, 0);
+	//ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
+	//ConstBuf::ConstToVertex(5);
+	//ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
+	//Textures::TextureToShader(10, 0, vertex);
+	//Draw::NullDrawer(32768*2);
 
 
 

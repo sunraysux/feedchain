@@ -551,7 +551,7 @@ public:
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
 
-                if (dist2 < 100.0f) {
+                if (dist2 < 200.0f) {
                     auto offspring = std::make_shared<Wolf>();
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);

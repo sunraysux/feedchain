@@ -96,7 +96,7 @@ void InitGame() {
   //  Textures::CreateDepthForTexture(6);
     Textures::LoadTextureFromFile(7, L"Debug/kust.png");
    // Textures::CreateDepthForTexture(7);
-    Textures::LoadTextureFromFile(8, L"Debug/bear.png");
+    Textures::LoadTextureFromFile(8, L"Debug/yastreb.png");
    // Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/tree.png");
   //  Textures::CreateDepthForTexture(9);
@@ -124,14 +124,14 @@ void InitGame() {
    // Начальные кролики
    for (int i = 0; i < 500; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-base_rangey, base_rangey);
-       rabbit->x = Random::Int(-base_rangex, base_rangex);
+       rabbit->y = Random::Int(-100, 100);
+       rabbit->x = Random::Int(-100, 100);
        rabbit->hunger = Random::Int(0, 10);
        rabbit->age = Random::Int(0, 500);
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
-   for (int i = 0; i < 500; i++) {
+   for (int i = 0; i < 50; i++) {
        auto wolf = std::make_shared<Wolf>();
        wolf->y = Random::Int(-base_rangey, base_rangey);
        wolf->x = Random::Int(-base_rangex, base_rangex);
@@ -141,7 +141,7 @@ void InitGame() {
        population.wolf_count++;
    }
 
-   for (int i = 0; i < 500; i++) {
+   for (int i = 0; i < 50; i++) {
        auto bear = std::make_shared<Bear>();
        bear->y = Random::Int(-base_rangey, base_rangey);
        bear->x = Random::Int(-base_rangex, base_rangex);
@@ -258,11 +258,53 @@ auto isVisible = [&](float x, float y) -> bool {
     // Если объект попадает в прямоугольник
     return (x >= minX && x <= maxX && y >= minY && y <= maxY);
     };
+void ShowGrow() {
+    Shaders::vShader(5);
+    Shaders::pShader(0);
+    // Векторы для разных групп травы
+    std::vector<XMFLOAT4> lowGrowthInstances;
+    std::vector<XMFLOAT4> midGrowthInstances;
+    std::vector<XMFLOAT4> highGrowthInstances;
 
+    // Собираем траву по чанкам
+    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+            const Chunk& chunk = chunk_grid[cx][cy];
+            int x1 = cx * CHUNK_SIZE - base_rangex;
+            int y1 = cy * CHUNK_SIZE - base_rangey;
+            int x2 = x1 + CHUNK_SIZE;
+            int y2 = y1 + CHUNK_SIZE;
+            float worldWidth = base_rangex * 2.0f;
+            float worldHeight = base_rangey * 2.0f;
+
+            XMFLOAT4 rect(x1, y1, CHUNK_SIZE, 0);
+            if (chunk.grass.growth < 33) {
+                lowGrowthInstances.push_back(rect);
+            }
+            else if (chunk.grass.growth < 66) {
+                midGrowthInstances.push_back(rect);
+            }
+            else {
+                highGrowthInstances.push_back(rect);
+
+
+
+
+            }
+        }
+
+
+    }
+    // Отрисовываем траву батчами
+    DrawBatchedInstances(6, lowGrowthInstances);
+    DrawBatchedInstances(5, midGrowthInstances);
+    DrawBatchedInstances(4, highGrowthInstances);
+}
 void ShowRacketAndBall() {
-    Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
     Shaders::vShader(0);
     Shaders::pShader(0);
+   
+
     // Универсальная функция для сбора и отрисовки существ
     auto drawCreatures = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
         std::vector<XMFLOAT4> instances;
@@ -277,9 +319,9 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        float worldWidth = base_rangex * 2.0f;
-                        float worldHeight = base_rangey * 2.0f;
-                        instances.emplace_back(c->x, c->y, c->age, ageScale);
+                       // float worldWidth = base_rangex * 2.0f;
+                       // float worldHeight = base_rangey * 2.0f;
+                        instances.emplace_back(c->x , c->y, max(c->age/ ageScale,10),8);
                         // 3×3 сетка (оригинал + 8 копий)
                         //for (int dx = -1; dx <= 1; dx++) {
                         //    for (int dy = -1; dy <= 1; dy++) {

@@ -559,6 +559,7 @@ namespace Shaders {
 		CreatePS(3, nameToPatchLPCWSTR("relefPS.h"));
 		CreatePS(4, nameToPatchLPCWSTR("water.h"));
 		CreateVS(4, nameToPatchLPCWSTR("layer.h"));
+		CreateVS(5, nameToPatchLPCWSTR("2d.h"));
 	}
 
 	void vShader(unsigned int n)

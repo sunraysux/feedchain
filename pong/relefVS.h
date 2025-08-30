@@ -44,7 +44,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(1, 1);
     else offset = float2(0, 1);
 
-    float CHUNK_SIZE = 8.0;
+    float CHUNK_SIZE = 4.0;
 
     // ширина одной сетки (одного "мира") в юнитах
     float worldSizeX = gridX * CHUNK_SIZE;
@@ -72,12 +72,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float4 pos = float4(p, 0, 1);
 
     // высота
-    float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
-    float heightScale = height*6;
-    pos.z += height * heightScale* heightScale* heightScale;
+    float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
+    float heightScale = height * 6;
+    pos.z += height * heightScale * heightScale * heightScale;
     output.wpos = pos.xy; // пробрасываем мировые XY отдельно
     output.pos = mul(pos, mul(view[0], proj[0]));
-    output.uv = uv/2;
+    output.uv = uv / 2;
     output.height = height;
     return output;
 }
