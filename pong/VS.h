@@ -43,8 +43,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // высота
     float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
     p.z = height;
-    float heightScale = 100;
-    p.z = height * heightScale ;
+    float heightScale = height * 6;
+    p.z = height * heightScale * heightScale * heightScale;
+    //p.z = height * heightScale ;
     float sz = age / scale;
     float3 quad[6] = {
     float3(p.x - sz, p.y,p.z ),   // Нижний левый

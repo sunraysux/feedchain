@@ -231,9 +231,9 @@ public:
         gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
-        maturity_age = 1000;
+        maturity_age = 100;
         age_limit = 2000;
-        hunger_limit = 500;
+        hunger_limit = 50;
         hunger = 0;
         birth_time = currentTime;
 

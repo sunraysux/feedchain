@@ -73,8 +73,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     // высота
     float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
-    float heightScale = 100;
-    pos.z += height * heightScale;
+    float heightScale = height*6;
+    pos.z += height * heightScale* heightScale* heightScale;
     output.wpos = pos.xy; // пробрасываем мировые XY отдельно
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.uv = uv/2;

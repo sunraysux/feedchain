@@ -57,7 +57,7 @@ float2 worldPos = input.wpos.xy; // до проекции можно пробросить p.xy из VS
 float n = noise(worldPos * 0.05) * 0.08 - 0.04;
 h = saturate(h + n);
 
-float3 color = heightPalette(h);
+float3 color = heightPalette(h-0.09);
 
 // вариация внутри биома (также от глобальных координат)
 float biomeNoise = noise(worldPos * 0.12);

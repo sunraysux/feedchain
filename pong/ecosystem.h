@@ -85,23 +85,23 @@ void InitGame() {
 
 
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
-    Textures::CreateDepthForTexture(2);
+ //   Textures::CreateDepthForTexture(2);
     Textures::LoadTextureFromFile(3, L"Debug/wolf.png");
-    Textures::CreateDepthForTexture(3);
+  //  Textures::CreateDepthForTexture(3);
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
-    Textures::CreateDepthForTexture(4);
+  //  Textures::CreateDepthForTexture(4);
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
-    Textures::CreateDepthForTexture(5);
+  //  Textures::CreateDepthForTexture(5);
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
-    Textures::CreateDepthForTexture(6);
+  //  Textures::CreateDepthForTexture(6);
     Textures::LoadTextureFromFile(7, L"Debug/kust.png");
-    Textures::CreateDepthForTexture(7);
+   // Textures::CreateDepthForTexture(7);
     Textures::LoadTextureFromFile(8, L"Debug/bear.png");
-    Textures::CreateDepthForTexture(8);
+   // Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/tree.png");
-    Textures::CreateDepthForTexture(9);
+  //  Textures::CreateDepthForTexture(9);
     Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-    Textures::CreateDepthForTexture(10);
+   // Textures::CreateDepthForTexture(10);
     // Начальные растения
     for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
@@ -126,7 +126,7 @@ void InitGame() {
        auto rabbit = std::make_shared<Rabbit>();
        rabbit->y = Random::Int(-base_rangey, base_rangey);
        rabbit->x = Random::Int(-base_rangex, base_rangex);
-       rabbit->hunger = Random::Int(0, 500);
+       rabbit->hunger = Random::Int(0, 10);
        rabbit->age = Random::Int(0, 500);
        rabbits.push_back(rabbit);
        population.rabbit_count++;
