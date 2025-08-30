@@ -147,6 +147,7 @@
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\tree.png" />
     <Image Include="Debug\wolf.png" />
+    <Image Include="Debug\yastreb.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav" />
