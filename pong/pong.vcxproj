@@ -143,6 +143,7 @@
     <Image Include="Debug\grass.jpg" />
     <Image Include="Debug\grass2.jpg" />
     <Image Include="Debug\grass3.jpg" />
+    <Image Include="Debug\i.jpg" />
     <Image Include="Debug\kust.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\tree.png" />
