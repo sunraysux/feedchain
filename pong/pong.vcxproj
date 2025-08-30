@@ -145,6 +145,7 @@
     <Image Include="Debug\grass3.jpg" />
     <Image Include="Debug\kust.png" />
     <Image Include="Debug\plant.png" />
+    <Image Include="Debug\strawberry.png" />
     <Image Include="Debug\tree.png" />
     <Image Include="Debug\wolf.png" />
   </ItemGroup>

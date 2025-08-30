@@ -4,6 +4,7 @@ struct Chunk {
     std::vector<std::weak_ptr<Creature>> wolves;
     std::vector<std::weak_ptr<Creature>> bushes;
     std::vector<std::weak_ptr<Creature>> bears;
+    std::vector<std::weak_ptr<Creature>> berrys;
     Grass grass;
 
     // Поиск ближайшего существа указанного типа
@@ -14,6 +15,7 @@ struct Chunk {
         case type_::tree:   return nearest_mature_creature(trees, x, y, matureOnly);
         case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly);
         case type_::bear: return nearest_mature_creature(bears, x, y, matureOnly);
+        case type_::berry: return nearest_mature_creature(berrys, x, y, matureOnly);
         default: return { -5000.0f, -5000.0f };
         }
     }

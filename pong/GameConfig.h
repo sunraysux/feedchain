@@ -7,6 +7,7 @@ float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
 float SIZERABBITS = 100.0f;
 float SIZEBEARS = 100.0f;
+float SIZEBERRYS = 750.0f;
 float base_rangey = 512.0f;
 float base_rangex = 1024.0f;
 POINT p;
@@ -120,11 +121,13 @@ public:
     int wolf_count = 0;
     int bush_count = 0;
     int bear_count = 0;
+    int berry_count = 0;
     const int wolf_limit = 500;
     const int rabbit_limit = 500;
     const int tree_limit = 500;
     const int bush_limit = 500;
     const int bear_limit = 500;
+    const int berry_limit = 2500;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -144,13 +147,17 @@ public:
     bool canAddBear(int pending = 0) const {
         return bear_count + pending < bear_limit;
     }
+    bool canAddBerry(int pending = 0) const {
+        return berry_count + pending < berry_limit;
+    }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_bears) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_bears, int delta_berrys) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
         bush_count += delta_bushes;
         bear_count += delta_bears;
+        berry_count += delta_berrys;
     }
 };
 

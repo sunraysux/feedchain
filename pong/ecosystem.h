@@ -15,17 +15,20 @@ void ProcessCreatures(PopulationManager& pop) {
     int dead_wolfs = 0;
     int dead_bears = 0;
     int dead_bushes = 0;
+    int dead_berrys = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
     std::vector<std::shared_ptr<Bush>> new_bushes;
     std::vector<std::shared_ptr<Bear>> new_bears;
+    std::vector<std::shared_ptr<Berry>> new_berrys;
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
     for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
     for (auto& bear : bears) bear->process(bears, new_bears, rabbits, pop);
+    for (auto& berry : berrys) berry->process(berrys, pop);
 
 
     auto remove_dead = [](auto& container, int& counter) {
@@ -52,6 +55,7 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(trees, dead_trees);
     remove_dead(bushes, dead_bushes);
     remove_dead(bears, dead_bears);
+    remove_dead(berrys, dead_berrys);
 
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -67,13 +71,15 @@ void ProcessCreatures(PopulationManager& pop) {
         static_cast<int>(new_trees.size()) - dead_trees,
         static_cast<int>(new_wolfs.size()) - dead_wolfs,
         static_cast<int>(new_bushes.size()) - dead_bushes,
-        static_cast<int>(new_bears.size()) - dead_bears
+        static_cast<int>(new_bears.size()) - dead_bears,
+        static_cast<int>(new_berrys.size()) - dead_berrys
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolves, new_wolfs);
     add_new_entities(trees, new_trees);
     add_new_entities(bushes, new_bushes);
     add_new_entities(bears, new_bears);
+    add_new_entities(berrys, new_berrys);
 
 }
 //инициализация игры
@@ -100,6 +106,8 @@ void InitGame() {
     Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/tree.png");
     Textures::CreateDepthForTexture(9);
+    Textures::LoadTextureFromFile(10, L"Debug/strawberry.png");
+    Textures::CreateDepthForTexture(10);
     // Начальные растения
     for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
@@ -300,6 +308,7 @@ void ShowRacketAndBall() {
         };
     
     drawCreatures(7, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
+    drawCreatures(10, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.berrys; }, SIZEBERRYS);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
     drawCreatures(8, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bears; }, SIZEBEARS);
