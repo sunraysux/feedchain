@@ -814,7 +814,7 @@ namespace Depth
 	enum class depthmode { off, on, readonly, writeonly };
 
 	ID3D11DepthStencilState* pDSState[4];
-
+	ID3D11RasterizerState* waterRasterState = nullptr;
 	void Init()
 	{
 		D3D11_DEPTH_STENCIL_DESC dsDesc;
@@ -840,6 +840,16 @@ namespace Depth
 		dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 		dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
+		D3D11_RASTERIZER_DESC waterRasterDesc = {};
+		waterRasterDesc.FillMode = D3D11_FILL_SOLID;
+		waterRasterDesc.CullMode = D3D11_CULL_NONE;
+		waterRasterDesc.DepthBias = 0;          // Основное смещение
+		waterRasterDesc.SlopeScaledDepthBias = 0.0f; // Дополнительное смещение
+		waterRasterDesc.DepthBiasClamp = 0.0f;
+
+		
+		device->CreateRasterizerState(&waterRasterDesc, &waterRasterState);
+
 		// Create depth stencil state
 		dsDesc.StencilEnable = false;
 
@@ -857,13 +867,42 @@ namespace Depth
 		dsDesc.DepthEnable = false;
 		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		device->CreateDepthStencilState(&dsDesc, &pDSState[3]);//write
+
 	}
 
 	void Depth(depthmode mode)
 	{
 		context->OMSetDepthStencilState(pDSState[(int)mode], 1);
 	}
+	void SetWaterRasterizer()
+	{
+		context->RSSetState(waterRasterState);
+	}
 
+	// Функция для сброса растеризатора
+	void ResetRasterizer()
+	{
+		context->RSSetState(nullptr);
+	}
+
+	// Функция для очистки ресурсов
+	void Cleanup()
+	{
+		if (waterRasterState)
+		{
+			waterRasterState->Release();
+			waterRasterState = nullptr;
+		}
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (pDSState[i])
+			{
+				pDSState[i]->Release();
+				pDSState[i] = nullptr;
+			}
+		}
+	}
 
 }
 
@@ -955,6 +994,7 @@ void Dx11Init()
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
+	Textures::Create(11, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 
 }
 
@@ -1105,7 +1145,7 @@ namespace Camera
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(
-			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 10000.0f)
+			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 100000.0f)
 		);
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
