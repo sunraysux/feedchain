@@ -1062,7 +1062,7 @@ namespace Camera
 		bool mouse = false;
 		float camDist = 500.0f;
 		float minDist = 1.0f;
-		float maxDist = 10000;
+		float maxDist = 200000;
 		int widthzoom = width;
 		int heightzoom = height;
 		float fovAngle = XMConvertToRadians(30.0f); // угол обзора в радианах
@@ -1145,7 +1145,7 @@ namespace Camera
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(
-			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 100000.0f)
+			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 10, 10000.0f)
 		);
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);

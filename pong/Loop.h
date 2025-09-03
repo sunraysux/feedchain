@@ -52,7 +52,7 @@ void Loop() {
 	Textures::TextureToShader(10, 0, vertex);
 	Draw::NullDrawer(32768/2);
 
-	Depth::Depth(Depth::depthmode::off);
+	Depth::Depth(Depth::depthmode::readonly);
 	Textures::RenderTarget(0, 0);
 	//Depth::SetWaterRasterizer();
 	Shaders::vShader(4);
@@ -61,5 +61,6 @@ void Loop() {
 	Draw::NullDrawer(1);
 	//Depth::ResetRasterizer();
 	Depth::Depth(Depth::depthmode::on);
+
 	Draw::Present();
 }
