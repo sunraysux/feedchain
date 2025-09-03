@@ -325,7 +325,7 @@ namespace Textures
 			}
 		}
 	}
-	
+
 	void Depth(int i)
 	{
 		auto cTex = Texture[i];
@@ -675,9 +675,9 @@ namespace ConstBuf
 	//b5
 	XMFLOAT4 global[constCount];//update once on start
 
-	int roundUp(int n, int r) 
+	int roundUp(int n, int r)
 	{
-		return ((n + r - 1) / r) * r; 
+		return ((n + r - 1) / r) * r;
 	}
 
 	void Create(ID3D11Buffer*& buf, int size)
@@ -756,7 +756,7 @@ namespace Blend
 	{
 		for (int i = 0; i < 5; i++)
 		{
-			bSDesc.RenderTarget[0].BlendOp = (D3D11_BLEND_OP)(i+1 );
+			bSDesc.RenderTarget[0].BlendOp = (D3D11_BLEND_OP)(i + 1);
 			HRESULT hr = device->CreateBlendState(&bSDesc, &blendState[j][i]);
 		}
 	}
@@ -847,7 +847,7 @@ namespace Depth
 		waterRasterDesc.SlopeScaledDepthBias = 0.0f; // Дополнительное смещение
 		waterRasterDesc.DepthBiasClamp = 0.0f;
 
-		
+
 		device->CreateRasterizerState(&waterRasterDesc, &waterRasterState);
 
 		// Create depth stencil state
@@ -1062,7 +1062,7 @@ namespace Camera
 		bool mouse = false;
 		float camDist = 500.0f;
 		float minDist = 1.0f;
-		float maxDist = 10000;
+		float maxDist = 200000;
 		int widthzoom = width;
 		int heightzoom = height;
 		float fovAngle = XMConvertToRadians(30.0f); // угол обзора в радианах
@@ -1145,7 +1145,7 @@ namespace Camera
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(
-			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 100000.0f)
+			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 10, 10000.0f)
 		);
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
