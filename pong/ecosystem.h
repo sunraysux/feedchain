@@ -94,14 +94,19 @@ void InitGame() {
   //  Textures::CreateDepthForTexture(5);
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
   //  Textures::CreateDepthForTexture(6);
-    Textures::LoadTextureFromFile(7, L"Debug/kust.png");
+    Textures::LoadTextureFromFile(7, L"Debug/smallBush.png");
    // Textures::CreateDepthForTexture(7);
     Textures::LoadTextureFromFile(8, L"Debug/yastreb.png");
    // Textures::CreateDepthForTexture(8);
-    Textures::LoadTextureFromFile(9, L"Debug/tree.png");
+    Textures::LoadTextureFromFile(9, L"Debug/smallTree.png");
   //  Textures::CreateDepthForTexture(9);
     Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
    // Textures::CreateDepthForTexture(10);
+    Textures::LoadTextureFromFile(11, L"Debug/standartTree.png");
+    Textures::LoadTextureFromFile(12, L"Debug/bigTree.png");
+    Textures::LoadTextureFromFile(13, L"Debug/standartBush.png");
+    Textures::LoadTextureFromFile(14, L"Debug/bigBush.png");
+
     // Начальные растения
     for (int i = 0; i < 500; i++) {
         auto tree = std::make_shared<Tree>();
@@ -331,11 +336,48 @@ void ShowRacketAndBall() {
         }
         DrawBatchedInstances(textureIndex, instances);
         };
-    
-    drawCreatures(7, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
+    auto drawPlant = [&](int arr [], auto&& getCreatureList, float ageScale) {
+        std::vector<XMFLOAT4> smallInstances;
+        std::vector<XMFLOAT4> standartInstances;
+        std::vector<XMFLOAT4> bigInstances;
+        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
+                for (const auto& weakPtr : creatureList) {
+                    if (auto c = weakPtr.lock()) {
+                        float t = c->age / ageScale;
+                        float x1 = c->x - t / 1.2f;
+                        float y1 = c->y;
+                        float x2 = c->x + t;
+                        float y2 = c->y + t;
+                        
+                        if (c->age > c->age_limit / 2) {
+                            bigInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        else if (c->age > c->age_limit / 3) {
+                            standartInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        else if (c->age > c->age_limit / 4) {
+                            smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+
+                    }
+                }
+            }
+
+        }
+       
+        
+        DrawBatchedInstances(arr[0], smallInstances);
+        DrawBatchedInstances(arr[1], standartInstances);
+        DrawBatchedInstances(arr[2], bigInstances);
+        };
+    int tree_arr[] = { 9,11,12 };
+    int bush_arr[] = { 7,13,14 };
+    drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
     drawCreatures(8, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bears; }, SIZEBEARS);
-    drawCreatures(9, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.trees; }, SIZETREES);
+    drawPlant(tree_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.trees; }, SIZETREES);
     
 }
