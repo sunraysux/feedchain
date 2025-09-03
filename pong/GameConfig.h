@@ -184,6 +184,9 @@ public:
     bool dead = false;
     bool isDirectionSelect = false;
     float birth_time;
+    int berry_count;
+    int blossoming_age = 0;
+    int berry_limit;
     Creature(type_ t) : type(t) {}
 
 

@@ -25,7 +25,7 @@ void ProcessCreatures(PopulationManager& pop) {
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
     for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
-    for (auto& bear : bears) bear->process(bears, new_bears, rabbits, pop);
+    for (auto& bear : bears) bear->process(bears, new_bears, bushes, pop);
 
 
     auto remove_dead = [](auto& container, int& counter) {
@@ -319,27 +319,16 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                       // float worldWidth = base_rangex * 2.0f;
-                       // float worldHeight = base_rangey * 2.0f;
+                        /*if (c->type == type_::bush) {
+
+                        }*/
                         instances.emplace_back(c->x , c->y, max(c->age/ ageScale,10),8);
-                        // 3×3 сетка (оригинал + 8 копий)
-                        //for (int dx = -1; dx <= 1; dx++) {
-                        //    for (int dy = -1; dy <= 1; dy++) {
-                        //        float px = c->x + dx * worldWidth;
-                        //        float py = c->y + dy * worldHeight;
-                        //
-                        //        // Проверяем видимость центра существа
-                        //        if (isVisible(px, py)) {
-                        //            // Передаём x, y, age, scale
-                        //            instances.emplace_back(px, py, c->age, ageScale);
-                        //        }                          
-                        //    }
-                        //}
-                    }   //
+                     
+                    }   
                 }
             }
-        }
 
+        }
         DrawBatchedInstances(textureIndex, instances);
         };
     

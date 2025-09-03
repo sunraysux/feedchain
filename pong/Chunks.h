@@ -32,7 +32,13 @@ struct Chunk {
             if (auto c = w.lock()) {
                 if (matureOnly && (c->age < c->maturity_age || (currentTime - c->birth_time) < 200.0f))
                     continue;
-
+                if (c->blossoming_age != 0) {
+                    if (c->berry_count == 0) {
+                        return std::make_pair(-5000.0f, -5000.0f);
+                    }
+                }
+                ///
+                ///
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;

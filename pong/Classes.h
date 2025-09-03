@@ -1,79 +1,4 @@
 
-//class Berry : public Creature {
-//public:
-//    Berry() : Creature(type_::berry) {
-//        // Инициализация параметров растения
-//        nutritional_value = 100;
-//        age = 0;
-//        maturity_age = 100;
-//        age_limit = 170;
-//    }
-//
-//    void reproduce(std::vector<std::shared_ptr<Tree>>& all_trees,
-//        std::vector<std::shared_ptr<Tree>>& new_creatures) {
-//
-//        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
-//        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
-//            return;
-//
-//        int seeds = Random::Int(1, 5);
-//
-//        for (int s = 0; s < seeds; s++) {
-//            auto seedling = std::make_shared<Tree>(*this);
-//            seedling->age = 0;
-//            seedling->dead = false;
-//            seedling->maturity_age += Random::Int(-10, 10);
-//            seedling->age_limit += Random::Int(-10, 10);
-//            float distance = Random::Int(10, 100); // 3–50
-//            float angle = Random::Float(0, 3.14 * 2);
-//            seedling->x += distance * cos(angle);
-//            seedling->y += distance * sin(angle);
-//
-//            // Обрезка по границам
-//            seedling->x = Wrap(seedling->x, base_rangex);
-//            seedling->y = Wrap(seedling->y, base_rangey);
-//
-//            // Проверка минимального расстояния (например, 2.0f)
-//            bool tooClose = false;
-//
-//            // Проверка плотности (например, не более 10 растений в радиусе 5)
-//            int nearbyCount = 0;
-//            int xc = coord_to_chunkx(seedling->x);
-//            int yc = coord_to_chunky(seedling->y);
-//            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 50) continue;
-//            updateChunk();
-//            new_creatures.push_back(seedling);
-//        }
-//    }
-//
-//
-//    void move() override {} // Растения не двигаются
-//
-//    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Растения не едят
-//
-//    bool shouldDie() const override {
-//        return dead || age > age_limit;
-//    }
-//
-//    void process(std::vector<std::shared_ptr<Tree>>& creatures,
-//        std::vector<std::shared_ptr<Tree>>& new_trees,
-//        PopulationManager& pop) {
-//        if (shouldDie()) return;
-//        age++;
-//        if (age >= maturity_age && pop.canAddTree(static_cast<int>(new_trees.size()))) {
-//            reproduce(creatures, new_trees);
-//        }
-//    }
-//protected:
-//    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-//        return chunk.trees;
-//    }
-//
-//    void addToChunk(Chunk& chunk) override {
-//        chunk.trees.push_back(weak_from_this());
-//    }
-//};
-
 class Tree : public Creature {
 public:
     Tree() : Creature(type_::tree) {
@@ -157,11 +82,21 @@ public:
         age = 0;
         maturity_age = 100;
         age_limit = 170;
+        berry_count = 0;
+        blossoming_age = 80;
+        berry_limit = 5;
     }
+    
+  
 
+    void blossoming() {
+        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
+        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
+            return;
+        berry_count++;
+    }
     void reproduce(std::vector<std::shared_ptr<Bush>>& all_bushes,
         std::vector<std::shared_ptr<Bush>>& new_creatures) {
-
         float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
         if ((Random::Float(0, 100)) >= (reproductionChance * 100))
             return;
@@ -210,7 +145,10 @@ public:
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++;
-        if (age >= maturity_age && pop.canAddBush(static_cast<int>(new_bushes.size()))) {
+        if (age >= blossoming_age && berry_count < berry_limit) {
+            blossoming();
+        }
+        if(age >= maturity_age && pop.canAddBush(static_cast<int>(new_bushes.size())) && berry_count>0) {
             reproduce(creatures, new_bushes);
         }
     }
@@ -689,12 +627,12 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 3, false);
-            float rabbitX = targetRabbit.first;
-            float rabbitY = targetRabbit.second;
-            if (rabbitX != -5000.0f) {
-                float dx = torusDelta(x, rabbitX, base_rangex);
-                float dy = torusDelta(y, rabbitY, base_rangey);
+            std::pair<float, float> targetBush = searchNearestCreature(x, y, type_::bush, 3, false);
+            float BushX = targetBush.first;
+            float BushY = targetBush.second;
+            if (BushX != -5000.0f) {
+                float dx = torusDelta(x, BushX, base_rangex);
+                float dy = torusDelta(y, BushY, base_rangey);
                 float d = std::sqrt(dx * dx + dy * dy);
                 if (d > 1e-6f) {
                     nextPositionX = (dx / d) * move_range;
@@ -807,13 +745,13 @@ public:
         }
     }
 
-    void eat(std::vector<std::shared_ptr<Rabbit>>& rabbits) {
+    void eat(std::vector<std::shared_ptr<Bush>>& bushes) {
         if (hunger <= 10 || dead) return;
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
-        for (auto& w : chunk_grid[base_cx][base_cy].rabbits) {
+        for (auto& w : chunk_grid[base_cx][base_cy].bushes) {
             if (auto partner = w.lock()) {
-                if (partner->dead) continue;
+                if (partner->dead||partner->berry_count==0) continue;
 
                 // расстояние с учётом тора
                 float dx = torusDelta(x, partner->x, base_rangex);
@@ -822,7 +760,7 @@ public:
 
                 if (dist2 < eating_range) {
                     hunger -= partner->nutritional_value;
-                    partner->dead = true;
+                    partner->berry_count--;
                 }
             }
         }
@@ -834,7 +772,7 @@ public:
 
     void process(std::vector<std::shared_ptr<Bear>>& bears,
         std::vector<std::shared_ptr<Bear>>& new_bears,
-        std::vector<std::shared_ptr<Rabbit>>& rabbits,
+        std::vector<std::shared_ptr<Bush>>& bushes,
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
@@ -842,7 +780,7 @@ public:
             birth_time = 0.0f;
         move_range = Random::Int(1, 5);
         move();
-        eat(rabbits);
+        eat(bushes);
         if (!pop.canAddBear(static_cast<int>(new_bears.size()))) return;
         reproduce(bears, new_bears);
     }
