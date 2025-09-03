@@ -6,7 +6,7 @@ public:
         nutritional_value = 100;
         age = 0;
         maturity_age = 100;
-        age_limit = 170;
+        age_limit = 500;
     }
 
     void reproduce(std::vector<std::shared_ptr<Tree>>& all_trees,
