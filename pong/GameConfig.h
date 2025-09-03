@@ -6,12 +6,13 @@ float SIZEWOLFS = 100.0f;
 float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
 float SIZERABBITS = 100.0f;
-float SIZEBEARS = 100.0f;
+float SIZEAGLES = 100.0f;
+float SIZERATS = 100.0f;
 float base_rangey = 1024.0f;
 float base_rangex = 1024.0f;
 POINT p;
 enum class gender_ { male, female };
-enum class type_ { tree, rabbit, wolf, grass,bush, bear,berry };
+enum class type_ { tree, rabbit, wolf, grass,bush, eagle,berry,rat };
 
 float TimeTic;
 
@@ -119,12 +120,14 @@ public:
     int tree_count = 0;
     int wolf_count = 0;
     int bush_count = 0;
-    int bear_count = 0;
+    int eagle_count = 0;
+    int rat_count = 0;
     const int wolf_limit = 500;
     const int rabbit_limit = 500;
     const int tree_limit = 500;
     const int bush_limit = 500;
-    const int bear_limit = 500;
+    const int eagle_limit = 500;
+    const int rat_limit = 500;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -141,16 +144,20 @@ public:
         return bush_count + pending < bush_limit;
     }
 
-    bool canAddBear(int pending = 0) const {
-        return bear_count + pending < bear_limit;
+    bool canAddEagle(int pending = 0) const {
+        return eagle_count + pending < eagle_limit;
+    }
+    bool canAddRats(int pending = 0) const {
+        return rat_count + pending < rat_limit;
     }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_bears) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
         bush_count += delta_bushes;
-        bear_count += delta_bears;
+        eagle_count += delta_eagles;
+        rat_count += delta_rats;
     }
 };
 
