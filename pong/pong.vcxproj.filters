@@ -38,9 +38,6 @@
     <Image Include="Debug\plant.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Debug\tree.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Debug\grass.jpg">
       <Filter>Resource Files</Filter>
     </Image>
@@ -57,6 +54,39 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\bear.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\bigBush.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\eagleFemale.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\i.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\bigTree.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\rat.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\smallBush.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\smallTree.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\standartBush.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\standartTree.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\eagleMale.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\infectRat.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -135,6 +165,9 @@
     </ClInclude>
     <ClInclude Include="layer.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="2d.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

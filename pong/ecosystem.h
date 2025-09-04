@@ -114,6 +114,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(14, L"Debug/bigBush.png");
     Textures::LoadTextureFromFile(15, L"Debug/rat.png");
     Textures::LoadTextureFromFile(16, L"Debug/eagleFemale.png");
+    Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
 
     // Начальные растения
     for (int i = 0; i < 500; i++) {
@@ -423,12 +424,47 @@ void ShowRacketAndBall() {
         DrawBatchedInstances(arr[1], femaleInstances);
         
         };
+    auto drawVirusCheack = [&](int arr[], auto&& getCreatureList, float ageScale) {
+        std::vector<XMFLOAT4> infectInstances;
+        std::vector<XMFLOAT4> noinfectInstances;
+
+        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
+                for (const auto& weakPtr : creatureList) {
+                    if (auto c = weakPtr.lock()) {
+                        float t = c->age / ageScale;
+                        float x1 = c->x - t / 1.2f;
+                        float y1 = c->y;
+                        float x2 = c->x + t;
+                        float y2 = c->y + t;
+
+                        if (c->infect == true ) {
+                            infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        else if (c->infect == false) {
+                            noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+
+
+                    }
+                }
+            }
+
+        }
+
+
+        DrawBatchedInstances(arr[0], infectInstances);
+        DrawBatchedInstances(arr[1], noinfectInstances);
+
+        };
 
     int tree_arr[] = { 9,11,12 };
     int bush_arr[] = { 7,13,14 };
     int eagle_arr[] = {8,16};
+    int rat_arr[] = {17,15};
     drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
-    drawCreatures(15, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
+    drawVirusCheack(rat_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
     drawAnimals(eagle_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.eagles; }, SIZEAGLES);

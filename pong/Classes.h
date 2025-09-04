@@ -586,12 +586,14 @@ public:
         hunger_limit = 1000;
         hunger = 0;
     }
-
+    
+    
     bool isDirectionSelect = false;
     int step = 0;
     float nextPositionX = 0;
     float nextPositionY = 0;
     float birth_time = 0.0f;
+    bool isUsedInfection = false;
 
     void move() override {
         //разная скорость
@@ -689,6 +691,15 @@ public:
 
         updateChunk();
     }
+    void infection() {
+        if (Random::Int(1, 1000) == 1) {
+            infect = true;
+        }
+    }
+    void usedInfection() {
+        age_limit *= 0.8;
+        isUsedInfection = true;
+    }
 
     void reproduce(std::vector<std::shared_ptr<Rat>>& rats,
         std::vector<std::shared_ptr<Rat>>& new_rats) {
@@ -716,6 +727,9 @@ public:
                     offspring->birth_time = currentTime;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
+                    if (infect || partner->infect == true) {
+                        offspring->infect = (rand() % 2 == 0) ? true : false;
+                    }
                     // Обновляем cooldown родителей
                     birth_time = currentTime;
                     partner->birth_time = currentTime;
@@ -775,6 +789,12 @@ public:
         std::vector<std::shared_ptr<Bush>>& bushes,
         PopulationManager& pop) {
         if (shouldDie()) return;
+        if (!infect) {
+            infection();
+        }
+        if (infect && !isUsedInfection) {
+            usedInfection();
+        }
         age++; hunger++;
         if (birth_time != 0.0f && currentTime - birth_time > 2000.0f)
             birth_time = 0.0f;

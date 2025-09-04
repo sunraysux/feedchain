@@ -194,6 +194,7 @@ public:
     int berry_count;
     int blossoming_age = 0;
     int berry_limit;
+    bool infect = false;
     Creature(type_ t) : type(t) {}
 
 
