@@ -142,6 +142,7 @@
     <Image Include="Debug\bear.png" />
     <Image Include="Debug\bigBush.png" />
     <Image Include="Debug\eagleFemale.png" />
+    <Image Include="Debug\eagleMale.png" />
     <Image Include="Debug\grass.jpg" />
     <Image Include="Debug\grass2.jpg" />
     <Image Include="Debug\grass3.jpg" />
@@ -156,7 +157,6 @@
     <Image Include="Debug\standartBush.png" />
     <Image Include="Debug\standartTree.png" />
     <Image Include="Debug\wolf.png" />
-    <Image Include="Debug\eagleMale.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav" />
