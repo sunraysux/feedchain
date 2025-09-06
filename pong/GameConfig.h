@@ -10,6 +10,7 @@ float SIZEAGLES = 100.0f;
 float SIZERATS = 100.0f;
 float base_rangey = 1024.0f;
 float base_rangex = 1024.0f;
+float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
 POINT p;
 enum class gender_ { male, female };
 enum class type_ { tree, rabbit, wolf, grass,bush, eagle,berry,rat };
@@ -232,7 +233,6 @@ public:
         }
     }
 
-    virtual void move() = 0;
     virtual bool shouldDie() const = 0;
 
 protected:

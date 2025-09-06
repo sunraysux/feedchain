@@ -25,7 +25,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float4 color = tex.Sample(samplerState, input.uv);
 
     // если фон чЄрный Ч отбросить пиксель
-    if (color.r < 0.01 && color.g < 0.01 && color.b < 0.01)
+    if (color.r < 0.0001 && color.g < 0.0001 && color.b < 0.0001)
         discard;
 
     return color;

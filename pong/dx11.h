@@ -145,6 +145,7 @@ namespace Textures
 		XMFLOAT2 size;
 		bool mipMaps;
 		bool depth;
+		std::vector<float> cpuData;
 
 	} textureDesc;
 
@@ -251,6 +252,45 @@ namespace Textures
 		hr = device->CreateShaderResourceView(tex.pDepth, &srvDesc, &tex.DepthResView);
 		if (FAILED(hr)) throw std::runtime_error("Failed to create depth SRV");
 	}
+
+	void ReadTextureToCPU(int index) {
+		if (index < 0 || index >= max_tex) return;
+
+		auto& tex = Texture[index];
+		if (!tex.pTexture) return;
+
+		// Создаем staging resource
+		D3D11_TEXTURE2D_DESC desc;
+		tex.pTexture->GetDesc(&desc);
+
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		desc.Usage = D3D11_USAGE_STAGING;
+		desc.BindFlags = 0;
+		desc.MiscFlags = 0;
+
+		ID3D11Texture2D* stagingTex = nullptr;
+		device->CreateTexture2D(&desc, nullptr, &stagingTex);
+		context->CopyResource(stagingTex, tex.pTexture);
+
+		// Маппим данные
+		D3D11_MAPPED_SUBRESOURCE mapped;
+		context->Map(stagingTex, 0, D3D11_MAP_READ, 0, &mapped);
+
+		// Преобразуем данные в float
+		tex.cpuData.resize(desc.Width * desc.Height);
+		const unsigned char* data = static_cast<const unsigned char*>(mapped.pData);
+
+		for (UINT y = 0; y < desc.Height; y++) {
+			for (UINT x = 0; x < desc.Width; x++) {
+				const unsigned char* pixel = data + y * mapped.RowPitch + x * 4;
+				tex.cpuData[y * desc.Width + x] = pixel[0] / 255.0f; // R канал
+			}
+		}
+
+		context->Unmap(stagingTex, 0);
+		stagingTex->Release();
+	}
+
 	void CreateTex(int i)
 	{
 		auto cTex = Texture[i];

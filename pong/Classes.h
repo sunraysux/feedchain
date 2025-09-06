@@ -22,7 +22,7 @@ public:
             auto seedling = std::make_shared<Tree>(*this);
             seedling->age = 0;
             seedling->dead = false;
-            seedling->maturity_age+= Random::Int(-10, 10);
+            seedling->maturity_age += Random::Int(-10, 10);
             seedling->age_limit += Random::Int(-10, 10);
             float distance = Random::Int(10, 100); // 3Ц50
             float angle = Random::Float(0, 3.14 * 2);
@@ -35,19 +35,25 @@ public:
 
             // ѕроверка минимального рассто€ни€ (например, 2.0f)
             bool tooClose = false;
+            auto& heightMap = Textures::Texture[10];
+            float u = fmodf((seedling->x / base_rangex) * 0.5f + 0.5f, 1.0f) / 4.0f;
+            float v = fmodf((seedling->y / base_rangey) * 0.5f + 0.5f, 1.0f) / 4.0f;
 
+            UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
+            UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+
+            float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+            if (height < waterLevel) continue;
             // ѕроверка плотности (например, не более 10 растений в радиусе 5)
             int nearbyCount = 0;
-            int xc=coord_to_chunkx(seedling->x);
-            int yc=coord_to_chunky(seedling->y);
-            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 50) continue;
+            int xc = coord_to_chunkx(seedling->x);
+            int yc = coord_to_chunky(seedling->y);
+            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 0) continue;
             updateChunk();
             new_creatures.push_back(seedling);
         }
     }
 
-
-    void move() override {} // –астени€ не двигаютс€
 
     void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // –астени€ не ед€т
 
@@ -132,7 +138,6 @@ public:
     }
 
 
-    void move() override {} // –астени€ не двигаютс€
 
     void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // –астени€ не ед€т
 
@@ -182,7 +187,8 @@ public:
         move_range = 2;
     }
 
-    void move() override {
+    void move(std::vector<std::shared_ptr<Rabbit>>& new_rabbits,
+        PopulationManager& pop)  {
         const float avoidance_radius = 5.0f;
         const float avoidanceStrength = 0.5f;
 
@@ -212,8 +218,8 @@ public:
         }
 
         //  ¬ыбор цели дл€ размножени€ 
-        if (isMaturity && (!isDirectionSelect || step <= 0)) {
-            auto target = searchNearestCreature(x, y, type_::rabbit, 3, true);
+        if (isMaturity && (!isDirectionSelect || step <= 0)&&pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
+            auto target = searchNearestCreature(x, y, type_::rabbit, 10, true, gender);
             if (target.first != -5000.0f) {
                 float dx = torusDelta(x, target.first, base_rangex);
                 float dy = torusDelta(y, target.second, base_rangey);
@@ -341,7 +347,7 @@ public:
         if (shouldDie()) return;
         age++; hunger++;
         move_range = Random::Int(1, 5);
-        move();
+        move(new_rabbits,pop);
         eat();
         if (pop.canAddRabbit(static_cast<int>(new_rabbits.size())))
             reproduce(rabbits, new_rabbits);
@@ -373,12 +379,13 @@ public:
     float nextPositionY = 0;
     float birth_time = 0.0f;
 
-    void move() override {
+    void move(std::vector<std::shared_ptr<Wolf>>& new_wolfs,
+        PopulationManager& pop)  {
         //разна€ скорость
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 500;
-        bool isMaturity = age >= maturity_age && birth_time == 0.0f;
+        bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
@@ -407,7 +414,7 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 3, false);
+            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 10, false, gender);
             float rabbitX = targetRabbit.first;
             float rabbitY = targetRabbit.second;
             if (rabbitX != -5000.0f) {
@@ -423,8 +430,8 @@ public:
                 }
             }
         }
-        else if (isMaturity) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 3, true);
+        else if (isMaturity&&pop.canAddWolf(static_cast<int>(new_wolfs.size()))) {
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 10, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
@@ -556,10 +563,8 @@ public:
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
-        if (birth_time != 0.0f && currentTime - birth_time > 2000.0f)
-            birth_time = 0.0f;
         move_range = Random::Int(1, 15);
-        move();
+        move(new_wolves,pop);
         eat(rabbits);
         if (!pop.canAddWolf(static_cast<int>(new_wolves.size()))) return;
         reproduce(wolves, new_wolves);
@@ -595,7 +600,8 @@ public:
     float birth_time = 0.0f;
     bool isUsedInfection = false;
 
-    void move() override {
+    void move(std::vector<std::shared_ptr<Rat>>& new_rats,
+        PopulationManager& pop)  {
         //разна€ скорость
         const float avoidance_radius = 5.0f;
 
@@ -629,7 +635,7 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetBush = searchNearestCreature(x, y, type_::bush, 3, false);
+            std::pair<float, float> targetBush = searchNearestCreature(x, y, type_::bush, 3, false,gender);
             float BushX = targetBush.first;
             float BushY = targetBush.second;
             if (BushX != -5000.0f) {
@@ -645,8 +651,8 @@ public:
                 }
             }
         }
-        else if (isMaturity) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::rat, 3, true);
+        else if (isMaturity&& pop.canAddRats(static_cast<int>(new_rats.size()))) {
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::rat, 10, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
@@ -799,7 +805,7 @@ public:
         if (birth_time != 0.0f && currentTime - birth_time > 2000.0f)
             birth_time = 0.0f;
         move_range = Random::Int(1, 5);
-        move();
+        move(new_rats,pop);
         eat(bushes);
         if (!pop.canAddRats(static_cast<int>(new_rats.size()))) return;
         reproduce(rats, new_rats);
@@ -833,7 +839,8 @@ public:
     float nextPositionY = 0;
     float birth_time = 0.0f;
 
-    void move() override {
+    void  move(std::vector<std::shared_ptr<Eagle>>& new_eagles,
+        PopulationManager& pop) {
         //разна€ скорость
         const float avoidance_radius = 5.0f;
 
@@ -867,7 +874,7 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRat = searchNearestCreature(x, y, type_::rat, 3, false);
+            std::pair<float, float> targetRat = searchNearestCreature(x, y, type_::rat, 10, false, gender);
             float RatX = targetRat.first;
             float RatY = targetRat.second;
             if (RatX != -5000.0f) {
@@ -883,8 +890,8 @@ public:
                 }
             }
         }
-        else if (isMaturity) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::eagle, 3, true);
+        else if (isMaturity && pop.canAddEagle(static_cast<int>(new_eagles.size()))) {
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::eagle, 10, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
@@ -1019,7 +1026,7 @@ public:
         if (birth_time != 0.0f && currentTime - birth_time > 2000.0f)
             birth_time = 0.0f;
         move_range = Random::Int(1, 5);
-        move();
+        move(new_eagles, pop);
         eat(rats);
         if (!pop.canAddEagle(static_cast<int>(new_eagles.size()))) return;
         reproduce(eagles, new_eagles);

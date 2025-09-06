@@ -8,14 +8,14 @@ struct Chunk {
     Grass grass;
 
     // Поиск ближайшего существа указанного типа
-    std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly) const {
+    std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly,gender_ gender) const {
         switch (creatureType) {
-        case type_::rabbit: return nearest_mature_creature(rabbits, x, y, matureOnly);
-        case type_::wolf:   return nearest_mature_creature(wolves, x, y, matureOnly);
-        case type_::tree:   return nearest_mature_creature(trees, x, y, matureOnly);
-        case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly);
-        case type_::eagle: return nearest_mature_creature(eagles, x, y, matureOnly);
-        case type_::rat: return nearest_mature_creature(rats, x, y, matureOnly);
+        case type_::rabbit: return nearest_mature_creature(rabbits, x, y, matureOnly,gender);
+        case type_::wolf:   return nearest_mature_creature(wolves, x, y, matureOnly, gender);
+        case type_::tree:   return nearest_mature_creature(trees, x, y, matureOnly, gender);
+        case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly, gender);
+        case type_::eagle: return nearest_mature_creature(eagles, x, y, matureOnly, gender);
+        case type_::rat: return nearest_mature_creature(rats, x, y, matureOnly, gender);
         default: return { -5000.0f, -5000.0f };
         }
     }
@@ -24,22 +24,28 @@ struct Chunk {
     std::pair<float, float> nearest_mature_creature(
         const std::vector<std::weak_ptr<T>>& creatures,
         float x, float y,
-        bool matureOnly
+        bool matureOnly,
+        gender_ gender
     ) const {
         float best_dx = 0, best_dy = 0;
-        float best_dist2 = 1e9f;
+        float best_dist2 = 100;
         bool found = false;
 
         for (auto& w : creatures) {
             if (auto c = w.lock()) {
-                if (matureOnly && (c->age < c->maturity_age || (currentTime - c->birth_time) < 200.0f))
+                if (matureOnly &&
+                    (c->age < c->maturity_age ||
+                        gender == c->gender ||
+                        (currentTime - c->birth_time) < 200.0f))
                     continue;
+                                        
                 if (c->blossoming_age != 0) {
                     if (c->berry_count == 0) {
                         return std::make_pair(-5000.0f, -5000.0f);
                     }
                 }
                 ///
+
                 ///
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
@@ -146,7 +152,8 @@ std::pair<float, float> searchNearestCreature(
     float x, float y,
     type_ creatureType,
     int max_chunk_radius,
-    bool matureOnly
+    bool matureOnly,
+    gender_ gender
 ) {
     int center_cx = coord_to_chunkx(x);
     int center_cy = coord_to_chunky(y);
@@ -156,7 +163,7 @@ std::pair<float, float> searchNearestCreature(
     bool found = false;
 
     auto checkChunk = [&](const Chunk& chunk) {
-        auto p = chunk.nearest_creature(creatureType, x, y, matureOnly);
+        auto p = chunk.nearest_creature(creatureType, x, y, matureOnly,gender);
         float dx = p.first;
         float dy = p.second;
 
@@ -187,6 +194,13 @@ std::pair<float, float> searchNearestCreature(
             int cy = coord_to_chunky(dotY);
 
             checkChunk(chunk_grid[cx][cy]);
+            if (found) {
+                float targetX = Wrap(x + best_dx, base_rangex);
+                float targetY = Wrap(y + best_dy, base_rangey);
+                return { targetX, targetY };
+            }
+
+
         }
     }
 

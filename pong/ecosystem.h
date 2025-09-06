@@ -107,6 +107,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(9, L"Debug/smallTree.png");
   //  Textures::CreateDepthForTexture(9);
     Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
+    Textures::ReadTextureToCPU(10);
    // Textures::CreateDepthForTexture(10);
     Textures::LoadTextureFromFile(11, L"Debug/standartTree.png");
     Textures::LoadTextureFromFile(12, L"Debug/bigTree.png");
@@ -164,7 +165,7 @@ void InitGame() {
        eagles.push_back(eagle);
        population.eagle_count++;
    }
-   for (int i = 0; i < 50; i++) {
+   for (int i = 0; i < 500; i++) {
        auto rat = std::make_shared<Rat>();
        rat->y = Random::Int(-base_rangey, base_rangey);
        rat->x = Random::Int(-base_rangex, base_rangex);

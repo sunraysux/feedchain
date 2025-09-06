@@ -57,7 +57,7 @@ void Loop() {
 	//Depth::SetWaterRasterizer();
 	Shaders::vShader(4);
 	Shaders::pShader(4);
-
+	waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.05;
 	Draw::NullDrawer(1);
 	//Depth::ResetRasterizer();
 	Depth::Depth(Depth::depthmode::on);
