@@ -68,7 +68,7 @@ inline float WrapY(float y)
     while (y > base_rangey) y -= size;
     return y;
 }
-const int CHUNK_SIZE = 16; // Размер чанка
+const int CHUNK_SIZE = 32; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  

@@ -7,6 +7,12 @@ cbuffer frameBuffer : register(b4)
     float4 aspect;
 };
 
+cbuffer global : register(b5)
+{
+    float4 gConst[32];
+};
+
+
 cbuffer camera : register(b3)
 {
     float4x4 world[2];
@@ -38,9 +44,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Масштабируем квад чтобы покрыть всю область рельефа
     float scale = 1024.0; // такой же как base_rangex
     float2 worldPos = positions[vID] * scale;
-
+    float x = gConst[0].x;
     // Высота воды
-    float waterWorldHeight = 0.6 + cos(time.x * 0.3) * 0.002;
+    float waterWorldHeight = x;
     float heightScale = waterWorldHeight * 6;
     float waterZ = waterWorldHeight * heightScale * heightScale * heightScale;
 
