@@ -584,6 +584,7 @@ protected:
 class Rat : public Creature {
 public:
     Rat() : Creature(type_::rat) {
+        nutritional_value = 100;
         gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
