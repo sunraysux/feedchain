@@ -45,9 +45,21 @@ float4 PS(VS_OUTPUT input) : SV_Target
     else if (input.wpos.x < -0.98) {
         return float4(0, 1, 0, 1);
         }
-    else {
+    else  if (input.wpos.x < -0.97) {
 
         return float4(0, 0, 1, 1);
+        }
+    else  if (input.wpos.x < -0.96) {
+
+        return float4(0, 1, 1, 1);
+        }
+    else  if (input.wpos.x < -0.95) {
+
+        return float4(1, 0, 1, 1);
+        }
+    else {
+
+        return float4(1, 1, 0, 1);
         }
 
 }

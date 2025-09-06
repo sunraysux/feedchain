@@ -129,15 +129,15 @@ void InitGame() {
     }
     for (int i = 0; i < 10; i++) {
         auto bush = std::make_shared<Bush>();
-        bush-> y = Random::Int(-base_rangey, base_rangey);
-        bush-> x = Random::Int(-base_rangex, base_rangex);
+        bush-> y = Random::Int(-100, 100);
+        bush-> x = Random::Int(-100, 100);
         bush->age = Random::Int(0, 500);
         bush->updateChunk();
         bushes.push_back(bush);
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 10; i++) {
+   for (int i = 0; i < 100; i++) {
        auto rabbit = std::make_shared<Rabbit>();
        rabbit->y = Random::Int(-100, 100);
        rabbit->x = Random::Int(-100, 100);
@@ -148,8 +148,8 @@ void InitGame() {
    }
    for (int i = 0; i < 10; i++) {
        auto wolf = std::make_shared<Wolf>();
-       wolf->y = Random::Int(-base_rangey, base_rangey);
-       wolf->x = Random::Int(-base_rangex, base_rangex);
+       wolf->y = Random::Int(-100, 100);
+       wolf->x = Random::Int(-100, 100);
        wolf->hunger = Random::Int(0, 500);
        wolf->age = Random::Int(0, 500);
        wolves.push_back(wolf);
@@ -158,17 +158,17 @@ void InitGame() {
 
    for (int i = 0; i < 10; i++) {
        auto eagle = std::make_shared<Eagle>();
-       eagle->y = Random::Int(-base_rangey, base_rangey);
-       eagle->x = Random::Int(-base_rangex, base_rangex);
+       eagle->y = Random::Int(-100, 100);
+       eagle->x = Random::Int(-100, 100);
        eagle->hunger = Random::Int(0, 500);
        eagle->age = Random::Int(0, 500);
        eagles.push_back(eagle);
        population.eagle_count++;
    }
-   for (int i = 0; i < 10; i++) {
+   for (int i = 0; i < 100; i++) {
        auto rat = std::make_shared<Rat>();
-       rat->y = Random::Int(-base_rangey, base_rangey);
-       rat->x = Random::Int(-base_rangex, base_rangex);
+       rat->y = Random::Int(-100, 100);
+       rat->x = Random::Int(-100, 100);
        rat->hunger = Random::Int(0, 500);
        rat->age = Random::Int(0, 500);
        rats.push_back(rat);
@@ -230,6 +230,14 @@ void Showpopulations() {
         static_cast<float>(population.bush_count) * 2 / population.bush_limit,                                 //
         2.0f                                                                                                 //
     );
+    float ratRatio = min(                                                                                  //
+        static_cast<float>(population.rat_count) * 2 / population.rat_limit,                                 //
+        2.0f                                                                                                 //
+    );
+    float eagleRatio = min(                                                                                  //
+        static_cast<float>(population.eagle_count) * 2 / population.eagle_limit,                                 //
+        2.0f                                                                                                 //
+    );
 
     ConstBuf::global[0] = XMFLOAT4(                                                                          //
         rabbitRatio,                                                                                         //
@@ -237,6 +245,13 @@ void Showpopulations() {
         wolfRatio,
         bushRatio
         
+    );
+    ConstBuf::global[1] = XMFLOAT4(                                                                          //
+        ratRatio,                                                                                         //
+        eagleRatio,
+        0,
+        0
+
     );
 
     ConstBuf::Update(5, ConstBuf::global);
