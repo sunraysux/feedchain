@@ -33,11 +33,14 @@ struct Chunk {
 
         for (auto& w : creatures) {
             if (auto c = w.lock()) {
-                if (matureOnly &&
-                    (c->age < c->maturity_age ||
+                if (matureOnly) {
+                    // Проверки только для поиска партнера
+                    if (c->age < c->maturity_age ||
                         gender == c->gender ||
-                        (currentTime - c->birth_time) < 200.0f))
-                    continue;
+                        (currentTime - c->birth_time) < 200.0f) {
+                        continue;
+                    }
+                }
                                         
                 if (c->blossoming_age != 0) {
                     if (c->berry_count == 0) {

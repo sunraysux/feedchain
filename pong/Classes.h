@@ -197,25 +197,25 @@ public:
 
         //  избегание соседей 
         float ax = 0.0f, ay = 0.0f;
-        int nearbyCount = 0;
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-                int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
-                nearbyCount += std::get<0>(t);
-                ax += std::get<1>(t);
-                ay += std::get<2>(t);
-            }
-        }
-
-        if (nearbyCount > 0) {
-            ax /= nearbyCount;
-            ay /= nearbyCount;
-            float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
-            ay = (ay / len) * avoidanceStrength; }
-        }
+       // int nearbyCount = 0;
+       // for (int i = -1; i <= 1; ++i) {
+       //     for (int j = -1; j <= 1; ++j) {
+       //         int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+       //         int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+       //         auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
+       //         nearbyCount += std::get<0>(t);
+       //         ax += std::get<1>(t);
+       //         ay += std::get<2>(t);
+       //     }
+       // }
+       //
+       // if (nearbyCount > 0) {
+       //     ax /= nearbyCount;
+       //     ay /= nearbyCount;
+       //     float len = std::sqrt(ax * ax + ay * ay);
+       //     if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
+       //     ay = (ay / len) * avoidanceStrength; }
+       // }
 
         //  Выбор цели для размножения 
         if (isMaturity && (!isDirectionSelect || step <= 0)&&pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
@@ -389,32 +389,32 @@ public:
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
-        int Wcount = 0;
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-                int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].wolves, x, y, avoidance_radius);
-                int count = std::get<0>(result);
-                float dx = std::get<1>(result);
-                float dy = std::get<2>(result);
-                Wcount += count;
-                ax += dx;
-                ay += dy;
-            }
-        }
-        if (Wcount > 0) {
-            ax /= Wcount;
-            ay /= Wcount;
-            float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax /= len; ay /= len; }
-        }
+       // int Wcount = 0;
+       // for (int i = -1; i <= 1; ++i) {
+       //     for (int j = -1; j <= 1; ++j) {
+       //         int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+       //         int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+       //         auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].wolves, x, y, avoidance_radius);
+       //         int count = std::get<0>(result);
+       //         float dx = std::get<1>(result);
+       //         float dy = std::get<2>(result);
+       //         Wcount += count;
+       //         ax += dx;
+       //         ay += dy;
+       //     }
+       // }
+       // if (Wcount > 0) {
+       //     ax /= Wcount;
+       //     ay /= Wcount;
+       //     float len = std::sqrt(ax * ax + ay * ay);
+       //     if (len > 1e-6f) { ax /= len; ay /= len; }
+       // }
 
         bool needNewDir = (!isDirectionSelect || step <= 0);
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 10, false, gender);
+            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 5, false, gender);
             float rabbitX = targetRabbit.first;
             float rabbitY = targetRabbit.second;
             if (rabbitX != -5000.0f) {
@@ -431,7 +431,7 @@ public:
             }
         }
         else if (isMaturity&&pop.canAddWolf(static_cast<int>(new_wolfs.size()))) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 10, true, gender);
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 5, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
@@ -548,6 +548,7 @@ public:
                 if (dist2 < eating_range) {
                     hunger -= partner->nutritional_value;
                     partner->dead = true;
+                    break;
                 }
             }
         }
@@ -610,32 +611,32 @@ public:
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
-        int Rcount = 0;
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-                int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rats, x, y, avoidance_radius);
-                int count = std::get<0>(result);
-                float dx = std::get<1>(result);
-                float dy = std::get<2>(result);
-                Rcount += count;
-                ax += dx;
-                ay += dy;
-            }
-        }
-        if (Rcount > 0) {
-            ax /= Rcount;
-            ay /= Rcount;
-            float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax /= len; ay /= len; }
-        }
-
+       // int Rcount = 0;
+       // for (int i = -1; i <= 1; ++i) {
+       //     for (int j = -1; j <= 1; ++j) {
+       //         int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+       //         int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+       //         auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rats, x, y, avoidance_radius);
+       //         int count = std::get<0>(result);
+       //         float dx = std::get<1>(result);
+       //         float dy = std::get<2>(result);
+       //         Rcount += count;
+       //         ax += dx;
+       //         ay += dy;
+       //     }
+       // }
+       // if (Rcount > 0) {
+       //     ax /= Rcount;
+       //     ay /= Rcount;
+       //     float len = std::sqrt(ax * ax + ay * ay);
+       //     if (len > 1e-6f) { ax /= len; ay /= len; }
+       // }
+       //
         bool needNewDir = (!isDirectionSelect || step <= 0);
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetBush = searchNearestCreature(x, y, type_::bush, 3, false,gender);
+            std::pair<float, float> targetBush = searchNearestCreature(x, y, type_::bush, 5, false,gender);
             float BushX = targetBush.first;
             float BushY = targetBush.second;
             if (BushX != -5000.0f) {
@@ -652,7 +653,7 @@ public:
             }
         }
         else if (isMaturity&& pop.canAddRats(static_cast<int>(new_rats.size()))) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::rat, 10, true, gender);
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::rat, 5, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
@@ -698,7 +699,7 @@ public:
         updateChunk();
     }
     void infection() {
-        if (Random::Int(1, 1000) == 1) {
+        if (Random::Int(1, 100000) == 1) {
             infect = true;
         }
     }
@@ -787,7 +788,7 @@ public:
     }
 
     bool shouldDie() const override {
-        return dead || age > age_limit || hunger > hunger_limit;
+        return dead  || hunger > hunger_limit;
     }
 
     void process(std::vector<std::shared_ptr<Rat>>& rats,
@@ -849,32 +850,32 @@ public:
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
-        int Wcount = 0;
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-                int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].eagles, x, y, avoidance_radius);
-                int count = std::get<0>(result);
-                float dx = std::get<1>(result);
-                float dy = std::get<2>(result);
-                Wcount += count;
-                ax += dx;
-                ay += dy;
-            }
-        }
-        if (Wcount > 0) {
-            ax /= Wcount;
-            ay /= Wcount;
-            float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax /= len; ay /= len; }
-        }
+        //int Wcount = 0;
+        //for (int i = -1; i <= 1; ++i) {
+        //    for (int j = -1; j <= 1; ++j) {
+        //        int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+        //        int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+        //        auto result = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].eagles, x, y, avoidance_radius);
+        //        int count = std::get<0>(result);
+        //        float dx = std::get<1>(result);
+        //        float dy = std::get<2>(result);
+        //        Wcount += count;
+        //        ax += dx;
+        //        ay += dy;
+        //    }
+        //}
+        //if (Wcount > 0) {
+        //    ax /= Wcount;
+        //    ay /= Wcount;
+        //    float len = std::sqrt(ax * ax + ay * ay);
+        //    if (len > 1e-6f) { ax /= len; ay /= len; }
+        //}
 
         bool needNewDir = (!isDirectionSelect || step <= 0);
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRat = searchNearestCreature(x, y, type_::rat, 10, false, gender);
+            std::pair<float, float> targetRat = searchNearestCreature(x, y, type_::rat, 5, false, gender);
             float RatX = targetRat.first;
             float RatY = targetRat.second;
             if (RatX != -5000.0f) {
@@ -891,7 +892,7 @@ public:
             }
         }
         else if (isMaturity && pop.canAddEagle(static_cast<int>(new_eagles.size()))) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::eagle, 10, true, gender);
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::eagle, 5, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
