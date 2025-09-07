@@ -118,7 +118,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
 
     // Начальные растения
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < 200; i++) {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
@@ -127,11 +127,11 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < 200; i++) {
         auto bush = std::make_shared<Bush>();
         bush-> y = Random::Int(-100, 100);
         bush-> x = Random::Int(-100, 100);
-        bush->age = Random::Int(0, 500);
+        bush->age = Random::Int(0, 1000);
         bush->updateChunk();
         bushes.push_back(bush);
         population.bush_count++;
@@ -156,7 +156,7 @@ void InitGame() {
        population.wolf_count++;
    }
 
-   for (int i = 0; i < 0; i++) {
+   for (int i = 0; i < 200; i++) {
        auto eagle = std::make_shared<Eagle>();
        eagle->y = Random::Int(-100, 100);
        eagle->x = Random::Int(-100, 100);
@@ -165,12 +165,12 @@ void InitGame() {
        eagles.push_back(eagle);
        population.eagle_count++;
    }
-   for (int i = 0; i < 0; i++) {
+   for (int i = 0; i < 200; i++) {
        auto rat = std::make_shared<Rat>();
        rat->y = Random::Int(-100, 100);
        rat->x = Random::Int(-100, 100);
-       rat->hunger = Random::Int(0, 500);
-       rat->age = Random::Int(0, 500);
+       rat->hunger = Random::Int(0, 1);
+       rat->age = Random::Int(0, 1);
        rats.push_back(rat);
        population.rat_count++;
    }
