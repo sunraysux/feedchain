@@ -137,16 +137,16 @@ void InitGame() {
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 20; i++) {
+   for (int i = 0; i < 200; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-1000, 1000);
-       rabbit->x = Random::Int(-1000, 1000);
+       rabbit->y = Random::Int(-100, 100);
+       rabbit->x = Random::Int(-100, 100);
        rabbit->hunger = Random::Int(0, 10);
        rabbit->age = 0;
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
-   for (int i = 0; i < 2; i++) {
+   for (int i = 0; i < 200; i++) {
        auto wolf = std::make_shared<Wolf>();
        wolf->y = Random::Int(-100, 100);
        wolf->x = Random::Int(-100, 100);

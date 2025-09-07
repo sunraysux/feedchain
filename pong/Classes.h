@@ -364,7 +364,7 @@ protected:
 class Wolf : public Creature {
 public:
     Wolf() : Creature(type_::wolf) {
-        gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+        gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
         maturity_age = 2000;
@@ -414,7 +414,7 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 5, false, gender);
+            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 10, false, gender);
             float rabbitX = targetRabbit.first;
             float rabbitY = targetRabbit.second;
             if (rabbitX != -5000.0f) {
@@ -431,7 +431,7 @@ public:
             }
         }
         else if (isMaturity&&pop.canAddWolf(static_cast<int>(new_wolfs.size()))) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 100, true, gender);
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 10, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {
