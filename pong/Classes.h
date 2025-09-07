@@ -171,7 +171,7 @@ class Rabbit : public Creature {
 public:
     Rabbit() : Creature(type_::rabbit) {
         nutritional_value = 100;
-        gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
+        gender = (Random::Int(0,1)==0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
         maturity_age = 100;
@@ -219,7 +219,7 @@ public:
 
         //  Выбор цели для размножения 
         if (isMaturity && (!isDirectionSelect || step <= 0)&&pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
-            auto target = searchNearestCreature(x, y, type_::rabbit, 10, true, gender);
+            auto target = searchNearestCreature(x, y, type_::rabbit, 100, true, gender);
             if (target.first != -5000.0f) {
                 float dx = torusDelta(x, target.first, base_rangex);
                 float dy = torusDelta(y, target.second, base_rangey);
@@ -431,7 +431,7 @@ public:
             }
         }
         else if (isMaturity&&pop.canAddWolf(static_cast<int>(new_wolfs.size()))) {
-            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 5, true, gender);
+            std::pair<float, float> target = searchNearestCreature(x, y, type_::wolf, 100, true, gender);
             float targetX = target.first;
             float targetY = target.second;
             if (targetX != -5000.0f) {

@@ -28,12 +28,13 @@ struct Chunk {
         gender_ gender
     ) const {
         float best_dx = 0, best_dy = 0;
-        float best_dist2 = 100;
+        float best_dist2 = 100000000;
         bool found = false;
 
         for (auto& w : creatures) {
             if (auto c = w.lock()) {
                 if (matureOnly) {
+
                     // Проверки только для поиска партнера
                     if (c->age < c->maturity_age ||
                         gender == c->gender ||

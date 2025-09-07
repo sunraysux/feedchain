@@ -118,7 +118,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
 
     // Начальные растения
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
@@ -127,7 +127,7 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 0; i++) {
         auto bush = std::make_shared<Bush>();
         bush-> y = Random::Int(-100, 100);
         bush-> x = Random::Int(-100, 100);
@@ -137,16 +137,16 @@ void InitGame() {
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 100; i++) {
+   for (int i = 0; i < 20; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-100, 100);
-       rabbit->x = Random::Int(-100, 100);
+       rabbit->y = Random::Int(-1000, 1000);
+       rabbit->x = Random::Int(-1000, 1000);
        rabbit->hunger = Random::Int(0, 10);
-       rabbit->age = Random::Int(0, 500);
+       rabbit->age = 0;
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
-   for (int i = 0; i < 10; i++) {
+   for (int i = 0; i < 2; i++) {
        auto wolf = std::make_shared<Wolf>();
        wolf->y = Random::Int(-100, 100);
        wolf->x = Random::Int(-100, 100);
@@ -156,7 +156,7 @@ void InitGame() {
        population.wolf_count++;
    }
 
-   for (int i = 0; i < 10; i++) {
+   for (int i = 0; i < 0; i++) {
        auto eagle = std::make_shared<Eagle>();
        eagle->y = Random::Int(-100, 100);
        eagle->x = Random::Int(-100, 100);
@@ -165,7 +165,7 @@ void InitGame() {
        eagles.push_back(eagle);
        population.eagle_count++;
    }
-   for (int i = 0; i < 100; i++) {
+   for (int i = 0; i < 0; i++) {
        auto rat = std::make_shared<Rat>();
        rat->y = Random::Int(-100, 100);
        rat->x = Random::Int(-100, 100);
