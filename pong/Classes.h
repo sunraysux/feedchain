@@ -170,7 +170,7 @@ protected:
 class Rabbit : public Creature {
 public:
     Rabbit() : Creature(type_::rabbit) {
-        nutritional_value = 100;
+        nutritional_value = 1000;
         gender = (Random::Int(0,1)==0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
@@ -197,25 +197,25 @@ public:
 
         //  избегание соседей 
         float ax = 0.0f, ay = 0.0f;
-       // int nearbyCount = 0;
-       // for (int i = -1; i <= 1; ++i) {
-       //     for (int j = -1; j <= 1; ++j) {
-       //         int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-       //         int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-       //         auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
-       //         nearbyCount += std::get<0>(t);
-       //         ax += std::get<1>(t);
-       //         ay += std::get<2>(t);
-       //     }
-       // }
-       //
-       // if (nearbyCount > 0) {
-       //     ax /= nearbyCount;
-       //     ay /= nearbyCount;
-       //     float len = std::sqrt(ax * ax + ay * ay);
-       //     if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
-       //     ay = (ay / len) * avoidanceStrength; }
-       // }
+        int nearbyCount = 0;
+        for (int i = -1; i <= 1; ++i) {
+            for (int j = -1; j <= 1; ++j) {
+                int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+                int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+                auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
+                nearbyCount += std::get<0>(t);
+                ax += std::get<1>(t);
+                ay += std::get<2>(t);
+            }
+        }
+       
+        if (nearbyCount > 0) {
+            ax /= nearbyCount;
+            ay /= nearbyCount;
+            float len = std::sqrt(ax * ax + ay * ay);
+            if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
+            ay = (ay / len) * avoidanceStrength; }
+        }
 
         //  ¬ыбор цели дл€ размножени€ 
         if (isMaturity && (!isDirectionSelect || step <= 0)&&pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
@@ -365,7 +365,7 @@ class Wolf : public Creature {
 public:
     Wolf() : Creature(type_::wolf) {
         gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
-        eating_range = 2;
+        eating_range = 10;
         age = 0;
         maturity_age = 2000;
         age_limit = 4000;
