@@ -245,7 +245,7 @@ void mouse()
             bush->y = Wrap(Camera::state.mouseY, base_rangey);
             bush->x = Wrap(Camera::state.mouseX, base_rangex);
             bush->age = 0;
-
+            bush->updateChunk();
             new_bushes.push_back(bush);
             population.bush_count++;
             break;
@@ -443,7 +443,9 @@ void ShowRacketAndBall() {
                         /*if (c->type == type_::bush) {
 
                         }*/
-                        instances.emplace_back(c->x , c->y, max(c->age/ ageScale,10),8);
+                        if (isVisible(c->x, c->y)) {
+                            instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
                      
                     }   
                 }
@@ -466,17 +468,17 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        
-                        if (c->age > c->age_limit / 2) {
-                            bigInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        if (isVisible(c->x, c->y)) {
+                            if (c->age > c->age_limit / 2) {
+                                bigInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
+                            else if (c->age > c->age_limit / 3) {
+                                standartInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
+                            else if (c->age > c->age_limit / 4) {
+                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
                         }
-                        else if (c->age > c->age_limit / 3) {
-                            standartInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
-                        }
-                        else if (c->age > c->age_limit / 4) {
-                            smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
-                        }
-
                     }
                 }
             }
@@ -502,14 +504,14 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-
-                        if (c->gender == gender_::male) {
-                            maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        if (isVisible(c->x, c->y)) {
+                            if (c->gender == gender_::male) {
+                                maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
+                            else if (c->gender == gender_::female) {
+                                femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
                         }
-                        else if (c->gender == gender_::female) {
-                            femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
-                        }
-                        
 
                     }
                 }
@@ -536,15 +538,15 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
+                        if (isVisible(c->x, c->y)) {
+                            if (c->infect == true) {
+                                infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
+                            else if (c->infect == false) {
+                                noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            }
 
-                        if (c->infect == true ) {
-                            infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
                         }
-                        else if (c->infect == false) {
-                            noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
-                        }
-
-
                     }
                 }
             }

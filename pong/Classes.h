@@ -589,7 +589,7 @@ public:
         eating_range = 2;
         age = 0;
         maturity_age = 100;
-        age_limit = 2000;
+        age_limit = 200;
         hunger_limit = 50;
         hunger = 0;
         birth_time = currentTime;

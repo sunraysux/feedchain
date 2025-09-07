@@ -27,21 +27,6 @@ void Loop() {
 
 	ProcessCreatures(population);
 	ShowGrow();
-	ShowRacketAndBall();
-
-	Showpopulations();
-	UpdateAllGrass();
-
-	mouse();
-	mouse2();
-
-	Textures::TextureToShader(10, 0, pixel);
-	//вода
-
-
-
-
-	//рельеф
 	//Shaders::vShader(3);
 	//Shaders::pShader(3);
 	//Textures::RenderTarget(0, 0);
@@ -51,6 +36,21 @@ void Loop() {
 	//ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
 	//Textures::TextureToShader(10, 0, vertex);
 	//Draw::NullDrawer(32768 / 2);
+	ShowRacketAndBall();
+
+	Showpopulations();
+	UpdateAllGrass();
+
+	mouse();
+	mouse2();
+
+	Textures::TextureToShader(10, 0, pixel);
+
+
+
+
+	//рельеф
+
 
 	Depth::Depth(Depth::depthmode::readonly);
 	Textures::RenderTarget(0, 0);
