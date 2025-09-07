@@ -13,19 +13,22 @@ void ProcessCreatures(PopulationManager& pop) {
     int dead_rabbits = 0;
     int dead_trees = 0;
     int dead_wolfs = 0;
-    int dead_bears = 0;
+    int dead_eagles = 0;
     int dead_bushes = 0;
+    int dead_rats = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
     std::vector<std::shared_ptr<Bush>> new_bushes;
-    std::vector<std::shared_ptr<Bear>> new_bears;
+    std::vector<std::shared_ptr<Eagle>> new_eagles;
+    std::vector<std::shared_ptr<Rat>> new_rats;
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
     for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
-    for (auto& bear : bears) bear->process(bears, new_bears, rabbits, pop);
+    for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
+    for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
 
 
     auto remove_dead = [](auto& container, int& counter) {
@@ -51,7 +54,8 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(wolves, dead_wolfs);
     remove_dead(trees, dead_trees);
     remove_dead(bushes, dead_bushes);
-    remove_dead(bears, dead_bears);
+    remove_dead(eagles, dead_eagles);
+    remove_dead(rats, dead_rats);
 
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -67,13 +71,15 @@ void ProcessCreatures(PopulationManager& pop) {
         static_cast<int>(new_trees.size()) - dead_trees,
         static_cast<int>(new_wolfs.size()) - dead_wolfs,
         static_cast<int>(new_bushes.size()) - dead_bushes,
-        static_cast<int>(new_bears.size()) - dead_bears
+        static_cast<int>(new_eagles.size()) - dead_eagles,
+        static_cast<int>(new_rats.size()) - dead_rats
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolves, new_wolfs);
     add_new_entities(trees, new_trees);
     add_new_entities(bushes, new_bushes);
-    add_new_entities(bears, new_bears);
+    add_new_entities(eagles, new_eagles);
+    add_new_entities(rats, new_rats);
 
 }
 //инициализация игры
@@ -85,23 +91,34 @@ void InitGame() {
 
 
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
-    Textures::CreateDepthForTexture(2);
+ //   Textures::CreateDepthForTexture(2);
     Textures::LoadTextureFromFile(3, L"Debug/wolf.png");
-    Textures::CreateDepthForTexture(3);
+  //  Textures::CreateDepthForTexture(3);
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
-    Textures::CreateDepthForTexture(4);
+  //  Textures::CreateDepthForTexture(4);
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
-    Textures::CreateDepthForTexture(5);
+  //  Textures::CreateDepthForTexture(5);
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
-    Textures::CreateDepthForTexture(6);
-    Textures::LoadTextureFromFile(7, L"Debug/kust.png");
-    Textures::CreateDepthForTexture(7);
-    Textures::LoadTextureFromFile(8, L"Debug/bear.png");
-    Textures::CreateDepthForTexture(8);
-    Textures::LoadTextureFromFile(9, L"Debug/tree.png");
-    Textures::CreateDepthForTexture(9);
+  //  Textures::CreateDepthForTexture(6);
+    Textures::LoadTextureFromFile(7, L"Debug/smallBush.png");
+   // Textures::CreateDepthForTexture(7);
+    Textures::LoadTextureFromFile(8, L"Debug/eagleMale.png");
+   // Textures::CreateDepthForTexture(8);
+    Textures::LoadTextureFromFile(9, L"Debug/smallTree.png");
+  //  Textures::CreateDepthForTexture(9);
+    Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
+    Textures::ReadTextureToCPU(10);
+   // Textures::CreateDepthForTexture(10);
+    Textures::LoadTextureFromFile(11, L"Debug/standartTree.png");
+    Textures::LoadTextureFromFile(12, L"Debug/bigTree.png");
+    Textures::LoadTextureFromFile(13, L"Debug/standartBush.png");
+    Textures::LoadTextureFromFile(14, L"Debug/bigBush.png");
+    Textures::LoadTextureFromFile(15, L"Debug/rat.png");
+    Textures::LoadTextureFromFile(16, L"Debug/eagleFemale.png");
+    Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
+
     // Начальные растения
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
@@ -110,43 +127,52 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 0; i++) {
         auto bush = std::make_shared<Bush>();
-        bush-> y = Random::Int(-base_rangey, base_rangey);
-        bush-> x = Random::Int(-base_rangex, base_rangex);
+        bush-> y = Random::Int(-100, 100);
+        bush-> x = Random::Int(-100, 100);
         bush->age = Random::Int(0, 500);
         bush->updateChunk();
         bushes.push_back(bush);
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 500; i++) {
+   for (int i = 0; i < 3; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-base_rangey, base_rangey);
-       rabbit->x = Random::Int(-base_rangex, base_rangex);
-       rabbit->hunger = Random::Int(0, 500);
+       rabbit->y = Random::Int(-1000, 1000);
+       rabbit->x = Random::Int(-1000, 1000);
+       rabbit->hunger = Random::Int(0, 10);
        rabbit->age = Random::Int(0, 500);
        rabbits.push_back(rabbit);
        population.rabbit_count++;
    }
-   for (int i = 0; i < 500; i++) {
+   for (int i = 0; i < 0; i++) {
        auto wolf = std::make_shared<Wolf>();
-       wolf->y = Random::Int(-base_rangey, base_rangey);
-       wolf->x = Random::Int(-base_rangex, base_rangex);
+       wolf->y = Random::Int(-100, 100);
+       wolf->x = Random::Int(-100, 100);
        wolf->hunger = Random::Int(0, 500);
        wolf->age = Random::Int(0, 500);
        wolves.push_back(wolf);
        population.wolf_count++;
    }
 
-   for (int i = 0; i < 500; i++) {
-       auto bear = std::make_shared<Bear>();
-       bear->y = Random::Int(-base_rangey, base_rangey);
-       bear->x = Random::Int(-base_rangex, base_rangex);
-       bear->hunger = Random::Int(0, 500);
-       bear->age = Random::Int(0, 500);
-       bears.push_back(bear);
-       population.bear_count++;
+   for (int i = 0; i < 0; i++) {
+       auto eagle = std::make_shared<Eagle>();
+       eagle->y = Random::Int(-100, 100);
+       eagle->x = Random::Int(-100, 100);
+       eagle->hunger = Random::Int(0, 500);
+       eagle->age = Random::Int(0, 500);
+       eagles.push_back(eagle);
+       population.eagle_count++;
+   }
+   for (int i = 0; i < 0; i++) {
+       auto rat = std::make_shared<Rat>();
+       rat->y = Random::Int(-100, 100);
+       rat->x = Random::Int(-100, 100);
+       rat->hunger = Random::Int(0, 500);
+       rat->age = Random::Int(0, 500);
+       rats.push_back(rat);
+       population.rat_count++;
    }
 }
 void mouse()
@@ -204,6 +230,14 @@ void Showpopulations() {
         static_cast<float>(population.bush_count) * 2 / population.bush_limit,                                 //
         2.0f                                                                                                 //
     );
+    float ratRatio = min(                                                                                  //
+        static_cast<float>(population.rat_count) * 2 / population.rat_limit,                                 //
+        2.0f                                                                                                 //
+    );
+    float eagleRatio = min(                                                                                  //
+        static_cast<float>(population.eagle_count) * 2 / population.eagle_limit,                                 //
+        2.0f                                                                                                 //
+    );
 
     ConstBuf::global[0] = XMFLOAT4(                                                                          //
         rabbitRatio,                                                                                         //
@@ -211,6 +245,13 @@ void Showpopulations() {
         wolfRatio,
         bushRatio
         
+    );
+    ConstBuf::global[1] = XMFLOAT4(                                                                          //
+        ratRatio,                                                                                         //
+        eagleRatio,
+        0,
+        0
+
     );
 
     ConstBuf::Update(5, ConstBuf::global);
@@ -221,7 +262,7 @@ void Showpopulations() {
 int BATCH_SIZE = 4000;
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
-    Textures::TextureToShader(1, 0, vertex);
+    Textures::TextureToShader(10, 0, vertex);
     context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
     for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
         size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
@@ -256,11 +297,53 @@ auto isVisible = [&](float x, float y) -> bool {
     // Если объект попадает в прямоугольник
     return (x >= minX && x <= maxX && y >= minY && y <= maxY);
     };
+void ShowGrow() {
+    Shaders::vShader(5);
+    Shaders::pShader(0);
+    // Векторы для разных групп травы
+    std::vector<XMFLOAT4> lowGrowthInstances;
+    std::vector<XMFLOAT4> midGrowthInstances;
+    std::vector<XMFLOAT4> highGrowthInstances;
 
+    // Собираем траву по чанкам
+    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+            const Chunk& chunk = chunk_grid[cx][cy];
+            int x1 = cx * CHUNK_SIZE - base_rangex;
+            int y1 = cy * CHUNK_SIZE - base_rangey;
+            int x2 = x1 + CHUNK_SIZE;
+            int y2 = y1 + CHUNK_SIZE;
+            float worldWidth = base_rangex * 2.0f;
+            float worldHeight = base_rangey * 2.0f;
+
+            XMFLOAT4 rect(x1, y1, CHUNK_SIZE, 0);
+            if (chunk.grass.growth < 33) {
+                lowGrowthInstances.push_back(rect);
+            }
+            else if (chunk.grass.growth < 66) {
+                midGrowthInstances.push_back(rect);
+            }
+            else {
+                highGrowthInstances.push_back(rect);
+
+
+
+
+            }
+        }
+
+
+    }
+    // Отрисовываем траву батчами
+    DrawBatchedInstances(6, lowGrowthInstances);
+    DrawBatchedInstances(5, midGrowthInstances);
+    DrawBatchedInstances(4, highGrowthInstances);
+}
 void ShowRacketAndBall() {
-    Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
     Shaders::vShader(0);
     Shaders::pShader(0);
+   
+
     // Универсальная функция для сбора и отрисовки существ
     auto drawCreatures = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
         std::vector<XMFLOAT4> instances;
@@ -275,34 +358,132 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        float worldWidth = base_rangex * 2.0f;
-                        float worldHeight = base_rangey * 2.0f;
+                        /*if (c->type == type_::bush) {
 
-                        // 3×3 сетка (оригинал + 8 копий)
-                        for (int dx = -1; dx <= 1; dx++) {
-                            for (int dy = -1; dy <= 1; dy++) {
-                                float px = c->x + dx * worldWidth;
-                                float py = c->y + dy * worldHeight;
+                        }*/
+                        instances.emplace_back(c->x , c->y, max(c->age/ ageScale,10),8);
+                     
+                    }   
+                }
+            }
 
-                                // Проверяем видимость центра существа
-                                if (isVisible(px, py)) {
-                                    // Передаём x, y, age, scale
-                                    instances.emplace_back(px, py, c->age, ageScale);
-                                }                          
-                            }
+        }
+        DrawBatchedInstances(textureIndex, instances);
+        };
+    auto drawPlant = [&](int arr [], auto&& getCreatureList, float ageScale) {
+        std::vector<XMFLOAT4> smallInstances;
+        std::vector<XMFLOAT4> standartInstances;
+        std::vector<XMFLOAT4> bigInstances;
+        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
+                for (const auto& weakPtr : creatureList) {
+                    if (auto c = weakPtr.lock()) {
+                        float t = c->age / ageScale;
+                        float x1 = c->x - t / 1.2f;
+                        float y1 = c->y;
+                        float x2 = c->x + t;
+                        float y2 = c->y + t;
+                        
+                        if (c->age > c->age_limit / 2) {
+                            bigInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
                         }
+                        else if (c->age > c->age_limit / 3) {
+                            standartInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        else if (c->age > c->age_limit / 4) {
+                            smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+
                     }
                 }
             }
+
+        }
+       
+        
+        DrawBatchedInstances(arr[0], smallInstances);
+        DrawBatchedInstances(arr[1], standartInstances);
+        DrawBatchedInstances(arr[2], bigInstances);
+        };
+    auto drawAnimals = [&](int arr[], auto&& getCreatureList, float ageScale) {
+        std::vector<XMFLOAT4> maleInstances;
+        std::vector<XMFLOAT4> femaleInstances;
+        
+        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
+                for (const auto& weakPtr : creatureList) {
+                    if (auto c = weakPtr.lock()) {
+                        float t = c->age / ageScale;
+                        float x1 = c->x - t / 1.2f;
+                        float y1 = c->y;
+                        float x2 = c->x + t;
+                        float y2 = c->y + t;
+
+                        if (c->gender == gender_::male) {
+                            maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        else if (c->gender == gender_::female) {
+                            femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        
+
+                    }
+                }
+            }
+
         }
 
-        DrawBatchedInstances(textureIndex, instances);
+
+        DrawBatchedInstances(arr[0], maleInstances);
+        DrawBatchedInstances(arr[1], femaleInstances);
+        
         };
-    
-    drawCreatures(7, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
+    auto drawVirusCheack = [&](int arr[], auto&& getCreatureList, float ageScale) {
+        std::vector<XMFLOAT4> infectInstances;
+        std::vector<XMFLOAT4> noinfectInstances;
+
+        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
+                for (const auto& weakPtr : creatureList) {
+                    if (auto c = weakPtr.lock()) {
+                        float t = c->age / ageScale;
+                        float x1 = c->x - t / 1.2f;
+                        float y1 = c->y;
+                        float x2 = c->x + t;
+                        float y2 = c->y + t;
+
+                        if (c->infect == true ) {
+                            infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+                        else if (c->infect == false) {
+                            noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                        }
+
+
+                    }
+                }
+            }
+
+        }
+
+
+        DrawBatchedInstances(arr[0], infectInstances);
+        DrawBatchedInstances(arr[1], noinfectInstances);
+
+        };
+
+    int tree_arr[] = { 9,11,12 };
+    int bush_arr[] = { 7,13,14 };
+    int eagle_arr[] = {8,16};
+    int rat_arr[] = {17,15};
+    drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
+    drawVirusCheack(rat_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
-    drawCreatures(8, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bears; }, SIZEBEARS);
-    drawCreatures(9, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.trees; }, SIZETREES);
+    drawAnimals(eagle_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.eagles; }, SIZEAGLES);
+    drawPlant(tree_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.trees; }, SIZETREES);
     
 }

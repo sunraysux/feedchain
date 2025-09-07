@@ -37,7 +37,7 @@ struct Chunk {
                 float dy = torusDelta(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
 
-                if (dist2 > 0.0f && dist2 < best_dist2) {
+                if (dist2 > 0.0f && dist2 < 9999999999) {
                     best_dx = dx;
                     best_dy = dy;
                     best_dist2 = dist2;
