@@ -600,6 +600,8 @@ namespace Shaders {
 		CreatePS(4, nameToPatchLPCWSTR("water.h"));
 		CreateVS(4, nameToPatchLPCWSTR("layer.h"));
 		CreateVS(5, nameToPatchLPCWSTR("2d.h"));
+		CreatePS(6, nameToPatchLPCWSTR("mousePS.h"));
+		CreateVS(6, nameToPatchLPCWSTR("mouseVS.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -1123,18 +1125,39 @@ namespace Camera
 	void screenmouse() {
 		POINT p;
 		GetCursorPos(&p);
+
+		// Переводим в нормализованные координаты [-1,1]
 		float ndcX = ((float)p.x / width) * 2.0f - 1.0f;
 		float ndcY = (1.0f - (float)p.y / height) * 2.0f - 1.0f;
 
+		// Матрицы камеры
 		XMMATRIX view = XMMatrixLookAtLH(Camera::state.Eye, Camera::state.at, Camera::state.Up);
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 1000000000.0f);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 100000.0f);
 		XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
 
-		XMVECTOR mouseNDC = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
-		XMVECTOR worldPos = XMVector3TransformCoord(mouseNDC, invViewProj);
+		// --- строим луч ---
+		// точка на ближней плоскости (z=0 в NDC)
+		XMVECTOR nearPoint = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
+		// точка на дальней плоскости (z=1 в NDC)
+		XMVECTOR farPoint = XMVectorSet(ndcX, ndcY, 1.0f, 1.0f);
 
-		state.mouseX = XMVectorGetX(worldPos);
-		state.mouseY = XMVectorGetY(worldPos);
+		nearPoint = XMVector3TransformCoord(nearPoint, invViewProj);
+		farPoint = XMVector3TransformCoord(farPoint, invViewProj);
+
+		XMVECTOR rayOrigin = nearPoint;
+		XMVECTOR rayDir = XMVector3Normalize(farPoint - nearPoint);
+
+		// --- пересечение с плоскостью Z=0 ---
+		float rayOriginZ = XMVectorGetZ(rayOrigin);
+		float rayDirZ = XMVectorGetZ(rayDir);
+
+		if (fabs(rayDirZ) > 1e-6f) {
+			float t = -rayOriginZ / rayDirZ; // параметр пересечения
+			XMVECTOR hit = rayOrigin + rayDir * t;
+
+			state.mouseX = XMVectorGetX(hit);
+			state.mouseY = XMVectorGetY(hit);
+		}
 	}
 
 	void HandleMouseWheel(int delta)

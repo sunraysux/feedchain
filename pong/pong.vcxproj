@@ -176,6 +176,8 @@
     <ClInclude Include="layer.h" />
     <ClInclude Include="Loop.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="mousePS.h" />
+    <ClInclude Include="mouseVS.h" />
     <ClInclude Include="popPS.h" />
     <ClInclude Include="popVS.h" />
     <ClInclude Include="PS.h" />

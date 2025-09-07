@@ -123,11 +123,11 @@ public:
     int bush_count = 0;
     int eagle_count = 0;
     int rat_count = 0;
-    const int wolf_limit = 500;
+    const int wolf_limit = 100;
     const int rabbit_limit = 500;
     const int tree_limit = 500;
     const int bush_limit = 500;
-    const int eagle_limit = 500;
+    const int eagle_limit = 100;
     const int rat_limit = 500;
 
     bool canAddWolf(int pending = 0) const {
