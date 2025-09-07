@@ -16,16 +16,19 @@ void ProcessCreatures(PopulationManager& pop) {
     int dead_eagles = 0;
     int dead_bushes = 0;
     int dead_rats = 0;
+    int dead_berrys = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
     std::vector<std::shared_ptr<Bush>> new_bushes;
     std::vector<std::shared_ptr<Eagle>> new_eagles;
     std::vector<std::shared_ptr<Rat>> new_rats;
+    std::vector<std::shared_ptr<Berry>> new_berrys;
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
-    for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
+    for (auto& berry : berrys) berry->process(berrys, pop);
+    for (auto& bush : bushes) bush->process(bushes, new_bushes, new_berrys, berrys, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
     for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
     for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
@@ -56,6 +59,8 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(bushes, dead_bushes);
     remove_dead(eagles, dead_eagles);
     remove_dead(rats, dead_rats);
+    remove_dead(berrys, dead_berrys);
+
 
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -72,7 +77,8 @@ void ProcessCreatures(PopulationManager& pop) {
         static_cast<int>(new_wolfs.size()) - dead_wolfs,
         static_cast<int>(new_bushes.size()) - dead_bushes,
         static_cast<int>(new_eagles.size()) - dead_eagles,
-        static_cast<int>(new_rats.size()) - dead_rats
+        static_cast<int>(new_rats.size()) - dead_rats,
+        static_cast<int>(new_berrys.size()) - dead_berrys
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolves, new_wolfs);
@@ -80,7 +86,7 @@ void ProcessCreatures(PopulationManager& pop) {
     add_new_entities(bushes, new_bushes);
     add_new_entities(eagles, new_eagles);
     add_new_entities(rats, new_rats);
-
+    add_new_entities(berrys, new_berrys);
 }
 //инициализация игры
 void InitGame() {
@@ -116,6 +122,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(15, L"Debug/rat.png");
     Textures::LoadTextureFromFile(16, L"Debug/eagleFemale.png");
     Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
+    Textures::LoadTextureFromFile(18, L"Debug/berry.png");
 
     // Начальные растения
     for (int i = 0; i < 0; i++) {
@@ -562,6 +569,7 @@ void ShowRacketAndBall() {
     int eagle_arr[] = {8,16};
     int rat_arr[] = {17,15};
     drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
+    drawCreatures(18, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.berrys; }, SIZEBERRYS);
     drawVirusCheack(rat_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);

@@ -8,6 +8,7 @@ float SIZEBUSHES = 10.0f;
 float SIZERABBITS = 100.0f;
 float SIZEAGLES = 100.0f;
 float SIZERATS = 100.0f;
+float SIZEBERRYS = 20.0f;
 float base_rangey = 1024.0f;
 float base_rangex = 1024.0f;
 float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
@@ -123,12 +124,14 @@ public:
     int bush_count = 0;
     int eagle_count = 0;
     int rat_count = 0;
+    int berry_count = 0;
     const int wolf_limit = 100;
     const int rabbit_limit = 500;
     const int tree_limit = 500;
     const int bush_limit = 500;
     const int eagle_limit = 100;
     const int rat_limit = 500;
+    const int berry_limit = 2500;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -151,14 +154,18 @@ public:
     bool canAddRats(int pending = 0) const {
         return rat_count + pending < rat_limit;
     }
+    bool canAddBerry(int pending = 0) const {
+        return berry_count + pending < berry_limit;
+    }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_berrys) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
         bush_count += delta_bushes;
         eagle_count += delta_eagles;
         rat_count += delta_rats;
+        berry_count += delta_berrys;
     }
 };
 

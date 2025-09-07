@@ -1,8 +1,38 @@
+п»їclass Berry : public Creature {
+public:
+    Berry() : Creature(type_::berry) {
+        // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї ГЇГ Г°Г Г¬ГҐГІГ°Г®Гў Г°Г Г±ГІГҐГ­ГЁГї
+        nutritional_value = 50;
+        age = 0;
+        maturity_age = 100;
+        age_limit = 100;
+    }
+
+    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // ГђГ Г±ГІГҐГ­ГЁГї Г­ГҐ ГҐГ¤ГїГІ
+
+    bool shouldDie() const override {
+        return dead || age > age_limit;
+    }
+
+    void process(std::vector<std::shared_ptr<Berry>>& creatures,
+        PopulationManager& pop) {
+        if (shouldDie()) return;
+        age++;
+    }
+protected:
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
+        return chunk.berrys;
+    }
+
+    void addToChunk(Chunk& chunk) override {
+        chunk.berrys.push_back(weak_from_this());
+    }
+};
 
 class Tree : public Creature {
 public:
     Tree() : Creature(type_::tree) {
-        // Инициализация параметров растения
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ СЂР°СЃС‚РµРЅРёСЏ
         nutritional_value = 100;
         age = 0;
         maturity_age = 100;
@@ -24,16 +54,16 @@ public:
             seedling->dead = false;
             seedling->maturity_age += Random::Int(-10, 10);
             seedling->age_limit += Random::Int(-10, 10);
-            float distance = Random::Int(10, 100); // 3–50
+            float distance = Random::Int(10, 100); // 3вЂ“50
             float angle = Random::Float(0, 3.14 * 2);
             seedling->x += distance * cos(angle);
             seedling->y += distance * sin(angle);
 
-            // Обрезка по границам
+            // РћР±СЂРµР·РєР° РїРѕ РіСЂР°РЅРёС†Р°Рј
             seedling->x = Wrap(seedling->x, base_rangex);
             seedling->y = Wrap(seedling->y, base_rangey);
 
-            // Проверка минимального расстояния (например, 2.0f)
+            // РџСЂРѕРІРµСЂРєР° РјРёРЅРёРјР°Р»СЊРЅРѕРіРѕ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ (РЅР°РїСЂРёРјРµСЂ, 2.0f)
             bool tooClose = false;
             auto& heightMap = Textures::Texture[10];
             float u = fmodf((seedling->x / base_rangex) * 0.5f + 0.5f, 1.0f) / 4.0f;
@@ -44,7 +74,7 @@ public:
 
             float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
             if (height < waterLevel) continue;
-            // Проверка плотности (например, не более 10 растений в радиусе 5)
+            // РџСЂРѕРІРµСЂРєР° РїР»РѕС‚РЅРѕСЃС‚Рё (РЅР°РїСЂРёРјРµСЂ, РЅРµ Р±РѕР»РµРµ 10 СЂР°СЃС‚РµРЅРёР№ РІ СЂР°РґРёСѓСЃРµ 5)
             int nearbyCount = 0;
             int xc = coord_to_chunkx(seedling->x);
             int yc = coord_to_chunky(seedling->y);
@@ -55,7 +85,7 @@ public:
     }
 
 
-    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Растения не едят
+    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Р Р°СЃС‚РµРЅРёСЏ РЅРµ РµРґСЏС‚
 
     bool shouldDie() const override {
         return dead || age > age_limit;
@@ -83,7 +113,7 @@ protected:
 class Bush : public Creature {
 public:
     Bush() : Creature(type_::bush) {
-        // Инициализация параметров растения
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ СЂР°СЃС‚РµРЅРёСЏ
         nutritional_value = 100;
         age = 0;
         maturity_age = 100;
@@ -95,11 +125,51 @@ public:
     
   
 
-    void blossoming() {
+    const int countBerrys(std::vector<std::shared_ptr<Berry>>& all_berrys) {
+        int count = 0;
+        float t = age / SIZEBUSHES;
+        float x1 = x - t / 1.2f;
+        float y1 = y;
+        float x2 = x + t;
+        float y2 = y + t;
+        for (auto& w : all_berrys) {
+            if (x1<w->x && x2>w->x && w->y > y1 && w->y < y2) count++;
+        }
+        return count;
+    };
+    void blossoming(std::vector<std::shared_ptr<Berry>>& new_berrys,
+        std::vector<std::shared_ptr<Berry>>& all_berrys) {
+
+        berry_count = countBerrys(all_berrys);
+        if (berry_count >= 5) return;
         float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
         if ((Random::Float(0, 100)) >= (reproductionChance * 100))
             return;
-        berry_count++;
+        float t = age / SIZEBUSHES;
+        float x1 = x - t / 1.2f;
+        float y1 = y;
+        float x2 = x + t;
+        float y2 = y + t;
+        auto seedling = std::make_shared<Berry>();
+        seedling->age = 0;
+        seedling->dead = false;
+        seedling->age_limit = 100 + Random::Int(-10, 10);
+        float radiusX = (x2 - x1) / 2.0f;
+        float radiusY = (y2 - y1) / 2.0f;
+        float angle = Random::Float(0, 3.14f * 2);
+        seedling->x = x + radiusX * cos(angle) * Random::Float(0, 1);
+        seedling->y = y + radiusY * sin(angle) * Random::Float(0, 1);
+
+
+        // ГЋГЎГ°ГҐГ§ГЄГ  ГЇГ® ГЈГ°Г Г­ГЁГ¶Г Г¬
+        seedling->x = Wrap(seedling->x, base_rangex);
+        seedling->y = Wrap(seedling->y, base_rangey);
+
+        // ГЏГ°Г®ГўГҐГ°ГЄГ  Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГЈГ® Г°Г Г±Г±ГІГ®ГїГ­ГЁГї (Г­Г ГЇГ°ГЁГ¬ГҐГ°, 2.0f)
+
+        updateChunk();
+        new_berrys.push_back(seedling);
+
     }
     void reproduce(std::vector<std::shared_ptr<Bush>>& all_bushes,
         std::vector<std::shared_ptr<Bush>>& new_creatures) {
@@ -115,19 +185,19 @@ public:
             seedling->dead = false;
             seedling->maturity_age += Random::Int(-10, 10);
             seedling->age_limit += Random::Int(-10, 10);
-            float distance = Random::Int(10, 100); // 3–50
+            float distance = Random::Int(10, 100); // 3вЂ“50
             float angle = Random::Float(0, 3.14 * 2);
             seedling->x += distance * cos(angle);
             seedling->y += distance * sin(angle);
 
-            // Обрезка по границам
+            // РћР±СЂРµР·РєР° РїРѕ РіСЂР°РЅРёС†Р°Рј
             seedling->x = Wrap(seedling->x, base_rangex);
             seedling->y = Wrap(seedling->y, base_rangey);
 
-            // Проверка минимального расстояния (например, 2.0f)
+            // РџСЂРѕРІРµСЂРєР° РјРёРЅРёРјР°Р»СЊРЅРѕРіРѕ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ (РЅР°РїСЂРёРјРµСЂ, 2.0f)
             bool tooClose = false;
 
-            // Проверка плотности (например, не более 10 растений в радиусе 5)
+            // РџСЂРѕРІРµСЂРєР° РїР»РѕС‚РЅРѕСЃС‚Рё (РЅР°РїСЂРёРјРµСЂ, РЅРµ Р±РѕР»РµРµ 10 СЂР°СЃС‚РµРЅРёР№ РІ СЂР°РґРёСѓСЃРµ 5)
             int nearbyCount = 0;
             int xc = coord_to_chunkx(seedling->x);
             int yc = coord_to_chunky(seedling->y);
@@ -139,7 +209,7 @@ public:
 
 
 
-    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Растения не едят
+    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // Р Р°СЃС‚РµРЅРёСЏ РЅРµ РµРґСЏС‚
 
     bool shouldDie() const override {
         return dead || age > age_limit;
@@ -147,13 +217,16 @@ public:
 
     void process(std::vector<std::shared_ptr<Bush>>& creatures,
         std::vector<std::shared_ptr<Bush>>& new_bushes,
+        std::vector<std::shared_ptr<Berry>>& new_berrys,
+        std::vector<std::shared_ptr<Berry>>& all_berrys,
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++;
-        if (age >= blossoming_age && berry_count < berry_limit) {
-            blossoming();
+        if (age > blossoming_age) {
+            blossoming(new_berrys, all_berrys);
         }
-        if(age >= maturity_age && pop.canAddBush(static_cast<int>(new_bushes.size())) && berry_count>0) {
+        if (berry_count == 0) return;
+        if (age >= maturity_age && pop.canAddBush(static_cast<int>(new_bushes.size()))) {
             reproduce(creatures, new_bushes);
         }
     }
@@ -195,7 +268,7 @@ public:
         bool isHunger = hunger > 100;
         bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
-        //  избегание соседей 
+        //  РёР·Р±РµРіР°РЅРёРµ СЃРѕСЃРµРґРµР№ 
         float ax = 0.0f, ay = 0.0f;
         int nearbyCount = 0;
         for (int i = -1; i <= 1; ++i) {
@@ -217,7 +290,7 @@ public:
             ay = (ay / len) * avoidanceStrength; }
         }
 
-        //  Выбор цели для размножения 
+        //  Р’С‹Р±РѕСЂ С†РµР»Рё РґР»СЏ СЂР°Р·РјРЅРѕР¶РµРЅРёСЏ 
         if (isMaturity && (!isDirectionSelect || step <= 0)&&pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
             auto target = searchNearestCreature(x, y, type_::rabbit, 10, true, gender);
             if (target.first != -5000.0f) {
@@ -234,7 +307,7 @@ public:
             }
         }
 
-        //  Случайное движение если нет цели 
+        //  РЎР»СѓС‡Р°Р№РЅРѕРµ РґРІРёР¶РµРЅРёРµ РµСЃР»Рё РЅРµС‚ С†РµР»Рё 
         if (!isDirectionSelect || step <= 0) {
             do {
                 nextPositionX = Random::Int(-move_range, move_range);
@@ -247,7 +320,7 @@ public:
             --step;
         }
 
-        //  Комбинируем цель и слабое избегание 
+        //  РљРѕРјР±РёРЅРёСЂСѓРµРј С†РµР»СЊ Рё СЃР»Р°Р±РѕРµ РёР·Р±РµРіР°РЅРёРµ 
         float moveX = nextPositionX + ax;
         float moveY = nextPositionY + ay;
         float mlen = std::sqrt(moveX * moveX + moveY * moveY);
@@ -276,7 +349,7 @@ public:
                 if (partner->gender == gender) continue;
                 if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -288,11 +361,11 @@ public:
                     offspring->birth_time = currentTime;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
-                    // Обновляем cooldown родителей
+                    // РћР±РЅРѕРІР»СЏРµРј cooldown СЂРѕРґРёС‚РµР»РµР№
                     birth_time = currentTime;
                     partner->birth_time = currentTime;
 
-                    // разнесение, чтобы не слипались
+                    // СЂР°Р·РЅРµСЃРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ СЃР»РёРїР°Р»РёСЃСЊ
                     const float nudge = 5.0f;
                     float nd = std::sqrt(dx * dx + dy * dy);
                     do {
@@ -381,13 +454,13 @@ public:
 
     void move(std::vector<std::shared_ptr<Wolf>>& new_wolfs,
         PopulationManager& pop)  {
-        //разная скорость
+        //СЂР°Р·РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 500;
         bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
-        // --- избегаем других волков
+        // --- РёР·Р±РµРіР°РµРј РґСЂСѓРіРёС… РІРѕР»РєРѕРІ
         float ax = 0, ay = 0;
        // int Wcount = 0;
        // for (int i = -1; i <= 1; ++i) {
@@ -412,7 +485,7 @@ public:
 
         bool needNewDir = (!isDirectionSelect || step <= 0);
 
-        // --- выбираем цель
+        // --- РІС‹Р±РёСЂР°РµРј С†РµР»СЊ
         if (isHunger) {
             std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 10, false, gender);
             float rabbitX = targetRabbit.first;
@@ -460,7 +533,7 @@ public:
             --step;
         }
 
-        // --- комбинируем цель и отталкивание
+        // --- РєРѕРјР±РёРЅРёСЂСѓРµРј С†РµР»СЊ Рё РѕС‚С‚Р°Р»РєРёРІР°РЅРёРµ
         const float avoidanceWeight = 0.1f;
         float moveX = nextPositionX + ax * (move_range * avoidanceWeight);
         float moveY = nextPositionY + ay * (move_range * avoidanceWeight);
@@ -491,7 +564,7 @@ public:
                 if (partner->gender == gender) continue;
                 if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -503,11 +576,11 @@ public:
                     offspring->birth_time = currentTime;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
-                    // Обновляем cooldown родителей
+                    // РћР±РЅРѕРІР»СЏРµРј cooldown СЂРѕРґРёС‚РµР»РµР№
                     birth_time = currentTime;
                     partner->birth_time = currentTime;
 
-                    // разнесение, чтобы не слипались
+                    // СЂР°Р·РЅРµСЃРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ СЃР»РёРїР°Р»РёСЃСЊ
                     const float nudge = 5.0f;
                     float nd = std::sqrt(dx * dx + dy * dy);
                     do {
@@ -540,7 +613,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner->dead) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -611,13 +684,13 @@ public:
 
     void move(std::vector<std::shared_ptr<Rat>>& new_rats,
         PopulationManager& pop)  {
-        //разная скорость
+        //СЂР°Р·РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 10;
         bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
-        // --- избегаем других волков
+        // --- РёР·Р±РµРіР°РµРј РґСЂСѓРіРёС… РІРѕР»РєРѕРІ
         float ax = 0, ay = 0;
        // int Rcount = 0;
        // for (int i = -1; i <= 1; ++i) {
@@ -642,7 +715,7 @@ public:
        //
         bool needNewDir = (!isDirectionSelect || step <= 0);
 
-        // --- выбираем цель
+        // --- РІС‹Р±РёСЂР°РµРј С†РµР»СЊ
         if (isHunger) {
             std::pair<float, float> targetBush = searchNearestCreature(x, y, type_::bush, 10, false,gender);
             float BushX = targetBush.first;
@@ -690,7 +763,7 @@ public:
             --step;
         }
 
-        // --- комбинируем цель и отталкивание
+        // --- РєРѕРјР±РёРЅРёСЂСѓРµРј С†РµР»СЊ Рё РѕС‚С‚Р°Р»РєРёРІР°РЅРёРµ
         const float avoidanceWeight = 0.1f;
         float moveX = nextPositionX + ax * (move_range * avoidanceWeight);
         float moveY = nextPositionY + ay * (move_range * avoidanceWeight);
@@ -730,7 +803,7 @@ public:
                 if (partner->gender == gender) continue;
                 if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -745,11 +818,11 @@ public:
                     if (infect || partner->infect == true) {
                         offspring->infect = (rand() % 2 == 0) ? true : false;
                     }
-                    // Обновляем cooldown родителей
+                    // РћР±РЅРѕРІР»СЏРµРј cooldown СЂРѕРґРёС‚РµР»РµР№
                     birth_time = currentTime;
                     partner->birth_time = currentTime;
 
-                    // разнесение, чтобы не слипались
+                    // СЂР°Р·РЅРµСЃРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ СЃР»РёРїР°Р»РёСЃСЊ
                     const float nudge = 5.0f;
                     float nd = std::sqrt(dx * dx + dy * dy);
                     do {
@@ -792,7 +865,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner->dead || partner->berry_count == 0) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -858,13 +931,13 @@ public:
 
     void move(std::vector<std::shared_ptr<Eagle>>& new_eagles,
         PopulationManager& pop) {
-        //разная скорость
+        //СЂР°Р·РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 500;
         bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
-        // --- избегаем других волков
+        // --- РёР·Р±РµРіР°РµРј РґСЂСѓРіРёС… РІРѕР»РєРѕРІ
         float ax = 0, ay = 0;
         // int Wcount = 0;
         // for (int i = -1; i <= 1; ++i) {
@@ -889,7 +962,7 @@ public:
 
         bool needNewDir = (!isDirectionSelect || step <= 0);
 
-        // --- выбираем цель
+        // --- РІС‹Р±РёСЂР°РµРј С†РµР»СЊ
         if (isHunger) {
             std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rat, 10, false, gender);
             float rabbitX = targetRabbit.first;
@@ -937,7 +1010,7 @@ public:
             --step;
         }
 
-        // --- комбинируем цель и отталкивание
+        // --- РєРѕРјР±РёРЅРёСЂСѓРµРј С†РµР»СЊ Рё РѕС‚С‚Р°Р»РєРёРІР°РЅРёРµ
         const float avoidanceWeight = 0.1f;
         float moveX = nextPositionX + ax * (move_range * avoidanceWeight);
         float moveY = nextPositionY + ay * (move_range * avoidanceWeight);
@@ -968,7 +1041,7 @@ public:
                 if (partner->gender == gender) continue;
                 if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -980,11 +1053,11 @@ public:
                     offspring->birth_time = currentTime;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
-                    // Обновляем cooldown родителей
+                    // РћР±РЅРѕРІР»СЏРµРј cooldown СЂРѕРґРёС‚РµР»РµР№
                     birth_time = currentTime;
                     partner->birth_time = currentTime;
 
-                    // разнесение, чтобы не слипались
+                    // СЂР°Р·РЅРµСЃРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ СЃР»РёРїР°Р»РёСЃСЊ
                     const float nudge = 5.0f;
                     float nd = std::sqrt(dx * dx + dy * dy);
                     do {
@@ -1017,7 +1090,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner->dead) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -1059,7 +1132,7 @@ protected:
 };
 
 
-// Глобальный контейнер существ
+// Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ РєРѕРЅС‚РµР№РЅРµСЂ СЃСѓС‰РµСЃС‚РІ
 
 
 std::vector<std::shared_ptr<Rabbit>> rabbits;
@@ -1068,4 +1141,5 @@ std::vector<std::shared_ptr<Wolf>> wolves;
 std::vector<std::shared_ptr<Bush>> bushes;
 std::vector<std::shared_ptr<Eagle>> eagles;
 std::vector<std::shared_ptr<Rat>> rats;
+std::vector<std::shared_ptr<Berry>> berrys;
 
