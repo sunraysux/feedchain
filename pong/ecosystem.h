@@ -252,7 +252,8 @@ void mouse()
             bush->y = Wrap(Camera::state.mouseY, base_rangey);
             bush->x = Wrap(Camera::state.mouseX, base_rangex);
             bush->age = 0;
-
+            bush->id = bush_id + 1;
+            bush_id += 1;
             new_bushes.push_back(bush);
             population.bush_count++;
             break;

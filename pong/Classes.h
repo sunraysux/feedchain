@@ -142,6 +142,7 @@ public:
             auto seedling = std::make_shared<Berry>();
             seedling->age = 0;
             seedling->dead = false;
+            seedling->berry_id = id;
             seedling->age_limit = 100 + Random::Int(-10, 10);
             float radiusX = (x2 - x1) / 2.0f;
             float radiusY = (y2 - y1) / 2.0f;
@@ -170,6 +171,7 @@ public:
 
         for (int s = 0; s < seeds; s++) {
             auto seedling = std::make_shared<Bush>(*this);
+            seedling->id = bush_id + s;
             seedling->age = 0;
             seedling->dead = false;
             seedling->maturity_age += Random::Int(-10, 10);
@@ -194,6 +196,7 @@ public:
             updateChunk();
             new_creatures.push_back(seedling);
         }
+        bush_id += seeds;
     }
 
 
