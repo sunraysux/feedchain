@@ -30,7 +30,7 @@ void ProcessCreatures(PopulationManager& pop) {
     for (auto& berry : berrys) berry->process(berrys, pop);
     for (auto& bush : bushes) bush->process(bushes, new_bushes, new_berrys, berrys, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
-    for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
+    for (auto& rat : rats) rat->process(rats, new_rats, berrys, pop);
     for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
 
 
