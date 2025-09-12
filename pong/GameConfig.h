@@ -148,7 +148,7 @@ public:
     bool canAddEagle(int pending = 0) const {
         return eagle_count + pending < eagle_limit;
     }
-    bool canAddRats(int pending = 0) const {
+    bool canAddRat(int pending = 0) const {
         return rat_count + pending < rat_limit;
     }
 

@@ -37,13 +37,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Вершины квада (два треугольника)
 
     float3 p =float3( x,y,0);
-    float2 uv = frac(p.xy / float2(base_rangex, base_rangey) * 0.5 + 0.5);
-
+    float2 uv = (p.xy + float2(base_rangex, base_rangey)) / float2(2.0f * base_rangex, 2.0f * base_rangey);
 
     // высота
     float height = heightMap.SampleLevel(sampLinear, uv/4, 0).r;
     p.z = gConst[iID].w;
-    float heightScale = height * 6;
+    float heightScale = height * 7;
     p.z = height * heightScale * heightScale * heightScale;
     //p.z = height * heightScale ;
     float3 quad[6] = {

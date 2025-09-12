@@ -9,16 +9,16 @@ struct VS_OUTPUT
 // ==== палитра по высоте ====
 float3 heightPalette(float h)
 {
-    float3 low = float3(0.05, 0.25, 0.05);   // трава (зелёный)
-    float3 mid = float3(0.45, 0.35, 0.2);    // камень (коричневатый)
+    float3 low = float3(0.45, 0.35, 0.2);   // трава (зелёный)
+    float3 mid = float3(0.05, 0.25, 0.05);    // камень (коричневатый)
     float3 high = float3(0.9, 0.9, 0.95);     // снег (почти белый)
 
     float3 c;
 
     if (h < 0.4)
-        c = lerp(low, mid, smoothstep(0.2, 0.4, h));
+        c = lerp(low, mid, smoothstep(0.4, 0.6, h));
     else
-        c = lerp(mid, high, smoothstep(0.4, 0.9, h));
+        c = lerp(mid, high, smoothstep(0.6, 0.9, h));
 
     return c;
 }

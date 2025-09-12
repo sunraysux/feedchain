@@ -1101,44 +1101,87 @@ namespace Camera
 {
 	struct State
 	{
-		bool mouse = false;
+		// Основные параметры камеры
+		XMVECTOR target = XMVectorSet(0, 0, 0, 0);
 		float camDist = 500.0f;
-		float minDist = 1.0f;
-		float maxDist = 200000;
-		int widthzoom = width;
-		int heightzoom = height;
-		float fovAngle = XMConvertToRadians(30.0f); // угол обзора в радианах
-		XMVECTOR relativeMovement = XMVectorSet(1, 0, 0, 0);
-		XMVECTOR currentRotation = XMQuaternionIdentity();
-		XMVECTOR Forward = XMVectorSet(5, 10, 5, 0); // вперед вдоль Y
-		XMVECTOR defaultUp = XMVectorSet(0, 0, 1, 0); // верх по Z
-		XMVECTOR at = XMVectorSet(0, 0, 0, 0);
-		XMVECTOR Up = XMVector3Rotate(defaultUp, currentRotation);
-		XMVECTOR Eye = at - (Forward * camDist);
-		XMMATRIX constellationOffset = XMMatrixTranslation(0, 0, 0);
-		float mouseY = 0;
+		float minDist = 50.0f;
+		float maxDist = 20000.0f;
+		float rotationX = XM_PI / 3.0f;
+		float rotationY = XM_PI / 2.0f;
+		float moveSpeed = 10.0f;
+		float rotationSpeed = 0.001f;
+		XMVECTOR upDirection = XMVectorSet(0, 0, 1, 0);
+
+		// Параметры проекции
+		float fovAngle = XMConvertToRadians(30.0f);
+		XMMATRIX viewMatrix;
+		XMMATRIX projMatrix;
+		// Для вычисления позиции мыши в мировых координатах
 		float mouseX = 0;
+		float mouseY = 0;
+		float width;
+		float height;
+		// Для перемещения через WASD
+		XMVECTOR positionOffset = XMVectorSet(0, 0, 0, 0);
+
+		// Для обратной совместимости со старым кодом
+		XMVECTOR Forward = XMVectorSet(0, 0, 0, 0);
+		XMVECTOR Eye = XMVectorSet(0, 0, 0, 0);
+		XMVECTOR at = XMVectorSet(0, 0, 0, 0);
+		XMVECTOR defaultUp = XMVectorSet(0, 0, 1, 0);
+		XMMATRIX constellationOffset = XMMatrixIdentity();
 		float camX = 0;
 		float camY = 0;
-	} static state;
+		bool mouse = false;
 
-	void screenmouse() {
+	} static state;
+	void HW()
+	{
+		state.width = window.width;
+		state.height = window.height;
+	}
+	void HandleMouseWheel(int delta)
+	{
+		state.camDist -= delta * 0.5f;
+		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
+	}
+
+	void HandleMouseMovement(int dx, int dy, bool rotateMode)
+	{
+		if (rotateMode)
+		{
+			state.rotationY += dx * state.rotationSpeed;
+			state.rotationX += dy * state.rotationSpeed;
+			state.rotationX = clamp(state.rotationX, 0.1f, XM_PIDIV2 - 0.1f);
+		}
+		else
+		{
+			XMVECTOR finalTarget = state.target + state.positionOffset;
+			float x = state.camDist * sinf(state.rotationX) * cosf(state.rotationY);
+			float y = state.camDist * sinf(state.rotationX) * sinf(state.rotationY);
+			float z = state.camDist * cosf(state.rotationX);
+			XMVECTOR eye = finalTarget + XMVectorSet(x, y, z, 0);
+
+			XMVECTOR forward = XMVector3Normalize(finalTarget - eye);
+			XMVECTOR right = XMVector3Normalize(XMVector3Cross(state.upDirection, forward));
+
+			state.positionOffset += right * (float)dx * state.moveSpeed;
+			state.positionOffset += forward * (float)dy * state.moveSpeed;
+		}
+	}
+
+	void screenmouse(XMVECTOR eye, XMVECTOR target, XMVECTOR up, XMMATRIX view, XMMATRIX proj)
+	{
 		POINT p;
 		GetCursorPos(&p);
+		ScreenToClient(hWnd, &p);
 
-		// Переводим в нормализованные координаты [-1,1]
-		float ndcX = ((float)p.x / width) * 2.0f - 1.0f;
-		float ndcY = (1.0f - (float)p.y / height) * 2.0f - 1.0f;
+		float ndcX = ((float)p.x / state.width) * 2.0f - 1.0f;
+		float ndcY = 1.0f - ((float)p.y / state.height) * 2.0f;
 
-		// Матрицы камеры
-		XMMATRIX view = XMMatrixLookAtLH(Camera::state.Eye, Camera::state.at, Camera::state.Up);
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 100000.0f);
 		XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
 
-		// --- строим луч ---
-		// точка на ближней плоскости (z=0 в NDC)
 		XMVECTOR nearPoint = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
-		// точка на дальней плоскости (z=1 в NDC)
 		XMVECTOR farPoint = XMVectorSet(ndcX, ndcY, 1.0f, 1.0f);
 
 		nearPoint = XMVector3TransformCoord(nearPoint, invViewProj);
@@ -1147,71 +1190,151 @@ namespace Camera
 		XMVECTOR rayOrigin = nearPoint;
 		XMVECTOR rayDir = XMVector3Normalize(farPoint - nearPoint);
 
-		// --- пересечение с плоскостью Z=0 ---
+		float t = 0.0f;
+		const float maxT = 10000.0f;
+		const int maxSteps = 50;
+		float stepSize = maxT / maxSteps;
+
+		for (int i = 0; i < maxSteps; ++i)
+		{
+			XMVECTOR point = rayOrigin + rayDir * t;
+			float pointX = XMVectorGetX(point);
+			float pointY = XMVectorGetY(point);
+			float pointZ = XMVectorGetZ(point);
+
+			// Получаем высоту из карты высот
+			auto& heightMap = Textures::Texture[10];
+			float normalizedX = (pointX + base_rangex) / (2.0f * base_rangex);
+			float normalizedY = (pointY + base_rangey) / (2.0f * base_rangey);
+			float u = normalizedX / 4.0f;
+			float v = normalizedY / 4.0f;
+
+			UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
+			UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+
+			float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+
+			if (pointZ <= height)
+			{
+				// Уточняем позицию с помощью билинейной интерполяции
+				float tPrev = t - stepSize;
+				XMVECTOR prevPoint = rayOrigin + rayDir * tPrev;
+				float prevZ = XMVectorGetZ(prevPoint);
+
+				// Интерполяция между предыдущей и текущей точкой
+				float alpha = (height - prevZ) / (pointZ - prevZ);
+				XMVECTOR hitPoint = prevPoint + (point - prevPoint) * alpha;
+
+				state.mouseX = XMVectorGetX(hitPoint);
+				state.mouseY = XMVectorGetY(hitPoint);
+				return;
+			}
+
+			t += stepSize;
+			if (t > maxT) break;
+		}
+
+		// Резервный вариант: пересечение с плоскостью Z=0
 		float rayOriginZ = XMVectorGetZ(rayOrigin);
 		float rayDirZ = XMVectorGetZ(rayDir);
 
 		if (fabs(rayDirZ) > 1e-6f) {
-			float t = -rayOriginZ / rayDirZ; // параметр пересечения
+			float t = -rayOriginZ / rayDirZ;
 			XMVECTOR hit = rayOrigin + rayDir * t;
-
 			state.mouseX = XMVectorGetX(hit);
 			state.mouseY = XMVectorGetY(hit);
 		}
 	}
 
-	void HandleMouseWheel(int delta)
+	void Update()
 	{
-		state.camDist -= delta * 0.5f;
-		state.camDist = clamp(state.camDist, state.minDist, state.maxDist);
 
-		// Пересчитываем позицию камеры
-		state.Eye = state.at - (state.Forward * state.camDist);
-	}
+		XMVECTOR finalTarget = state.target + state.positionOffset;
+		float x = state.camDist * sinf(state.rotationX) * cosf(state.rotationY);
+		float y = state.camDist * sinf(state.rotationX) * sinf(state.rotationY);
+		float z = state.camDist * cosf(state.rotationX);
+		XMVECTOR eye = finalTarget + XMVectorSet(x, y, z, 0);
 
-	void Camera()
-	{
-		HandleMouseWheel(0);
-		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-		ConstBuf::camera.proj[0] = XMMatrixTranspose(
-			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 1000.0f)
-		);
+		XMVECTOR forward = XMVector3Normalize(finalTarget - eye);
+		XMVECTOR right = XMVector3Normalize(XMVector3Cross(state.upDirection, forward));
+
+		if (GetAsyncKeyState('W') & 0x8000) state.positionOffset += forward * state.moveSpeed;
+		if (GetAsyncKeyState('S') & 0x8000) state.positionOffset -= forward * state.moveSpeed;
+		if (GetAsyncKeyState('A') & 0x8000) state.positionOffset -= right * state.moveSpeed;
+		if (GetAsyncKeyState('D') & 0x8000) state.positionOffset += right * state.moveSpeed;
+
+		float offsetX = XMVectorGetX(state.positionOffset);
+		float offsetY = XMVectorGetY(state.positionOffset);
+		offsetX = WrapX(offsetX);
+		offsetY = WrapY(offsetY);
+		state.positionOffset = XMVectorSet(offsetX, offsetY, 0, 0);
+
+		finalTarget = state.target + state.positionOffset;
+		x = state.camDist * sinf(state.rotationX) * cosf(state.rotationY);
+		y = state.camDist * sinf(state.rotationX) * sinf(state.rotationY);
+		z = state.camDist * cosf(state.rotationX);
+		eye = finalTarget + XMVectorSet(x, y, z, 0);
+
+		auto& heightMap = Textures::Texture[10];
+		float camX = XMVectorGetX(eye);
+		float camY = XMVectorGetY(eye);
+
+		float normalizedX = (camX + base_rangex) / (2.0f * base_rangex);
+		float normalizedY = (camY + base_rangey) / (2.0f * base_rangey);
+		float u = normalizedX / 4.0f;
+		float v = normalizedY / 4.0f;
+
+		UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
+		UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+
+		float groundHeight = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+		float heightScale = groundHeight * 7;
+		groundHeight = groundHeight * heightScale * heightScale * heightScale;
+
+		const float minHeightAboveGround = 10.0f;
+		float currentHeight = XMVectorGetZ(eye);
+
+		if (currentHeight < groundHeight + minHeightAboveGround)
+		{
+			XMVECTOR horizontalDir = XMVector3Normalize(XMVectorSet(
+				XMVectorGetX(eye - finalTarget),
+				XMVectorGetY(eye - finalTarget),
+				0, 0
+			));
+
+			float horizontalDist = state.camDist * sinf(state.rotationX);
+			XMVECTOR newEye = finalTarget + horizontalDir * horizontalDist;
+			newEye = XMVectorSetZ(newEye, groundHeight + minHeightAboveGround);
+
+			eye = newEye;
+
+			XMVECTOR newCamDir = eye - finalTarget;
+			state.camDist = XMVectorGetX(XMVector3Length(newCamDir));
+
+			state.rotationX = acosf(XMVectorGetZ(newCamDir) / state.camDist);
+			state.rotationY = atan2f(XMVectorGetY(newCamDir), XMVectorGetX(newCamDir));
+		}
+
+		state.Eye = eye;
+		state.at = finalTarget;
+		state.Forward = XMVector3Normalize(finalTarget - eye);
+		state.camX = XMVectorGetX(finalTarget);
+		state.camY = XMVectorGetY(finalTarget);
+
+		state.constellationOffset = XMMatrixTranslationFromVector(state.positionOffset);
+
+		XMMATRIX view = XMMatrixLookAtLH(eye, finalTarget, state.upDirection);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 10, 10000.0f);
+		state.viewMatrix = view;
+		state.projMatrix = proj;
+
+		ConstBuf::camera.view[0] = XMMatrixTranspose(view);
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(proj);
+
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
 		ConstBuf::ConstToPixel(3);
-	}
 
-	void update()
-	{
-		if (GetAsyncKeyState('W') & 0x8000) state.constellationOffset *= XMMatrixTranslation(0, 1, 0);
-		if (GetAsyncKeyState('S') & 0x8000) state.constellationOffset *= XMMatrixTranslation(0, -1, 0);
-		if (GetAsyncKeyState('A') & 0x8000) state.constellationOffset *= XMMatrixTranslation(1, 0, 0);
-		if (GetAsyncKeyState('D') & 0x8000) state.constellationOffset *= XMMatrixTranslation(-1, 0, 0);
-
-		float offsetX = state.constellationOffset.r[3].m128_f32[0];
-		float offsetY = state.constellationOffset.r[3].m128_f32[1];
-
-		// Итоговая позиция камеры
-		float x = WrapX(offsetX * 10);
-		float y = WrapY(offsetY * 10);
-		Camera::state.at = XMVectorSet(x, y, 0, 0);
-		Camera::state.Eye = XMVectorSet(x, y - state.camDist, state.camDist * 0.5f, 0); // смещаем по Y и Z для 3D
-
-		// Вектор направления камеры
-		Camera::state.Forward = XMVector3Normalize(state.at - state.Eye);
-
-		// Вверх всегда по Z
-		Camera::state.Up = state.defaultUp;
-
-		state.camX = XMVectorGetX(Camera::state.at);
-		state.camY = XMVectorGetY(Camera::state.at);
-
-		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
-		ConstBuf::camera.proj[0] = XMMatrixTranspose(
-			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 10, 10000.0f)
-		);
-		ConstBuf::UpdateCamera();
-		ConstBuf::ConstToVertex(3);
-		ConstBuf::ConstToPixel(3);
+		screenmouse(eye, finalTarget, state.upDirection, view, proj);
 	}
 }

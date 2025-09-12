@@ -26,35 +26,55 @@ struct VS_OUTPUT
     float2 uv : TEXCOORD0;
     float height : TEXCOORD1;
     float3 wpos : TEXCOORD2;
+    float3 normal : TEXCOORD3;
 };
 
 
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float2 positions[6] = {
-        float2(-1, -1),  // нижний левый
-        float2(1, -1),   // нижний правый  
-        float2(-1, 1),   // верхний левый
-        float2(1, -1),   // нижний правый (повтор)
-        float2(1, 1),    // верхний правый
-        float2(-1, 1)    // верхний левый (повтор)
+    // Вершины куба без дна (5 граней ? 6 вершин = 30 вершин)
+    float3 positions[30] = {
+        // Верхняя грань (z = 1)
+        float3(-1, -1, 1), float3(1, -1, 1), float3(-1, 1, 1),
+        float3(1, -1, 1), float3(1, 1, 1), float3(-1, 1, 1),
+
+        // Передняя грань (y = -1)
+        float3(-1, -1, 0), float3(1, -1, 0), float3(-1, -1, 1),
+        float3(1, -1, 0), float3(1, -1, 1), float3(-1, -1, 1),
+
+        // Задняя грань (y = 1)
+        float3(-1, 1, 0), float3(1, 1, 0), float3(-1, 1, 1),
+        float3(1, 1, 0), float3(1, 1, 1), float3(-1, 1, 1),
+
+        // Левая грань (x = -1)
+        float3(-1, -1, 0), float3(-1, 1, 0), float3(-1, -1, 1),
+        float3(-1, 1, 0), float3(-1, 1, 1), float3(-1, -1, 1),
+
+        // Правая грань (x = 1)
+        float3(1, -1, 0), float3(1, 1, 0), float3(1, -1, 1),
+        float3(1, 1, 0), float3(1, 1, 1), float3(1, -1, 1)
     };
 
-    // Масштабируем квад чтобы покрыть всю область рельефа
-    float scale = 1024.0; // такой же как base_rangex
-    float2 worldPos = positions[vID] * scale;
-    float x = gConst[0].x;
-    // Высота воды
-    float waterWorldHeight = x;
-    float heightScale = waterWorldHeight * 6;
+    // Нормали для каждой грани
+    float3 normals[5] = {
+        float3(0, 0, 1),    // Верх
+        float3(0, -1, 0),   // Перед
+        float3(0, 1, 0),    // Зад
+        float3(-1, 0, 0),   // Лево
+        float3(1, 0, 0)     // Право
+    };
+
+    float scale = 1024.0;
+    float waterWorldHeight = gConst[0].x;
+    float heightScale = waterWorldHeight * 7;
     float waterZ = waterWorldHeight * heightScale * heightScale * heightScale;
-
-    float4 pos = float4(worldPos, waterZ, 1.0);
-
-    output.wpos = pos.xyz;
-    output.pos = mul(pos, mul(view[0], proj[0]));
-    output.uv = positions[vID] * 0.5 + 0.5; // UV от [0,0] до [1,1]
+    // Масштабируем и позиционируем вершины
+    float3 vertexPos = positions[vID];
+    float3 worldPos = float3(vertexPos.xy * scale, vertexPos.z * waterZ);
+    output.wpos = worldPos;
+    output.pos = mul(float4(worldPos, 1.0), mul(view[0], proj[0]));
+    output.uv = vertexPos.xy * 0.5 + 0.5;
     output.height = waterWorldHeight;
 
     return output;

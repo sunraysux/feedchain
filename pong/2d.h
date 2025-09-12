@@ -41,22 +41,16 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
 
     // высота
-    float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    p.z = gConst[iID].w;
-    float heightScale = height * 6;
-    p.z += height * heightScale * heightScale * heightScale;
+
     //p.z = height * heightScale ;
     float3 quad[6] = {
-    float3(p.x - sz, p.y,p.z),   // Нижний левый
-    float3(p.x , p.y,p.z),  // Верхний левый
-    float3(p.x - sz, p.y + sz,p.z),  // Нижний правый
+        float3(x, y, 0),              // Нижний левый
+        float3(x + sz, y, 0),         // Нижний правый  
+        float3(x, y + sz, 0),         // Верхний левый
 
-
-    float3(p.x, p.y,p.z),  // Нижний правый (повтор)
-    float3(p.x , p.y + sz,p.z),   // Верхний левый (повтор)
-    float3(p.x - sz, p.y + sz,p.z) // Верхний правый
-
-
+        float3(x + sz, y, 0),         // Нижний правый (повтор)
+        float3(x + sz, y + sz, 0),    // Верхний правый
+        float3(x, y + sz, 0)          // Верхний левый (повтор)
     };
     float2 uvCoords[6] = {
         float2(0, 1), // Нижний левый
@@ -71,9 +65,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
 
     // высота
-    uv = frac(p.xy / float2(base_rangex, base_rangey) * 0.5 + 0.5);
-    height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    heightScale = height * 6;
+    uv = (p.xy + float2(base_rangex, base_rangey)) / float2(2.0f * base_rangex, 2.0f * base_rangey);
+    float height =heightMap.SampleLevel(sampLinear, float2(uv.x / 4,uv.y/4) , 0).r;
+    float heightScale = height * 7;
     p.z = height * heightScale * heightScale * heightScale;
     //p.z = height;
     float4 viewPos = mul(float4(p, 1.0f), view[0]);

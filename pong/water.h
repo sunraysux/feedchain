@@ -19,7 +19,7 @@ struct VS_OUTPUT
 float4 PS(VS_OUTPUT input) : SV_Target
 {
     float scale = 1024.0;
-    float2 uv = frac(input.wpos.xy / scale * 0.5 + 0.5);
+float2 uv = (input.wpos.xy + float2(scale, scale)) / (2.0 * scale);
     float terrainHeight = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
 
     float depth = input.height-terrainHeight ;
@@ -35,7 +35,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float3 waterColor = lerp(float3(0.0, 0.5, 0.9), float3(0.0, 0.2, 0.6), depthFactor);
     waterColor += ripple * 0.1; // Добавляем анимацию
 
-    float alpha = saturate(depth * 3.0) * 0.7;
+    float alpha = saturate(depth * 5.0) * 0.9;
 
     return float4(waterColor, alpha);
 }

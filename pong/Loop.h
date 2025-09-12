@@ -7,7 +7,7 @@
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::front);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
 	Shaders::vShader(1);
 	Shaders::pShader(1);
 	ConstBuf::ConstToVertex(4);
@@ -19,7 +19,7 @@
 
 void Loop() {
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
-	Camera::update();
+	Camera::Update();
 	frameConst();
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 0,0,0,0 });
@@ -33,7 +33,7 @@ void Loop() {
 	UpdateAllGrass();
 
 	mouse();
-	mouse2();
+	//mouse2();
 
 	Textures::TextureToShader(10, 0, pixel);
 	//вода
@@ -50,10 +50,10 @@ void Loop() {
 	//ConstBuf::ConstToVertex(5);
 	//ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
 	//Textures::TextureToShader(10, 0, vertex);
-	//Draw::NullDrawer(32768 / 2);
-
-	Depth::Depth(Depth::depthmode::readonly);
-	Textures::RenderTarget(0, 0);
+	//Draw::NullDrawer(32768 / 8);
+	//
+	//Depth::Depth(Depth::depthmode::readonly);
+	//Textures::RenderTarget(0, 0);
 	//Depth::SetWaterRasterizer();
 
 	Shaders::vShader(4);
@@ -62,9 +62,9 @@ void Loop() {
 	ConstBuf::global[0] = XMFLOAT4(waterLevel, 0, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Draw::NullDrawer(1);
+	Draw::NullDrawer(5);
 	//Depth::ResetRasterizer();
 	Depth::Depth(Depth::depthmode::on);
-	waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.05;
+	waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.1) * 0.05 + 0.1* cos(timer::frameBeginTime * .001 * 0.1);
 	Draw::Present();
 }

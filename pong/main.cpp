@@ -5,7 +5,7 @@ const float PI = 3.1415926535897;
 #include "windows.h"
 #include "timer.h"
 #include "vector"
-
+#include  "windowsx.h"
 HINSTANCE hInst;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 DWORD currentTime;
@@ -23,7 +23,8 @@ HWND hWnd;
 #include "dx11.h"
 #include "Classes.h"
 #include "ecosystem.h"
-
+static int prevMouseX = 0;
+static int prevMouseY = 0;
 
 
 
@@ -79,9 +80,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg = { 0 };
 
     timer::StartCounter();
-    
+    Camera::HW();
     terraloop();
-    Camera::Camera();
+    //Camera::Camera();
     // Main message loop:
     while (msg.message != WM_QUIT)
     {
@@ -147,11 +148,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 0;
         }
         break;
-
     case WM_MOUSEWHEEL:
     {
-        float zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-        Camera::HandleMouseWheel(zDelta);
+        Camera::HandleMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam));
+        break;
+    }
+    case WM_MOUSEMOVE:
+    {
+        int currentX = GET_X_LPARAM(lParam);
+        int currentY = GET_Y_LPARAM(lParam);
+
+        if (wParam & MK_RBUTTON) // Правая кнопка - вращение
+        {
+            int dx = currentX - prevMouseX;
+            int dy = currentY - prevMouseY;
+            Camera::HandleMouseMovement(dx, dy, true);
+        }
+        else if (wParam & MK_MBUTTON) // Средняя кнопка - панорамирование
+        {
+            int dx = currentX - prevMouseX;
+            int dy = currentY - prevMouseY;
+            Camera::HandleMouseMovement(dx, dy, false);
+        }
+
+        // Обновляем предыдущую позицию
+        prevMouseX = currentX;
+        prevMouseY = currentY;
         break;
     }
     case WM_COMMAND:

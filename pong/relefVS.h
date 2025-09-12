@@ -66,14 +66,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     p.y = (p.y / worldSizeY - 0.5) * (2.0 * base_rangey);
 
 
-    // uv заворачиваем (тайлим)
-    float2 uv = frac(p / float2(base_rangex, base_rangey) * 0.5 + 0.5);
-
+    float2 uv = (p.xy + float2(base_rangex, base_rangey)) / float2(2.0f * base_rangex, 2.0f * base_rangey);
     float4 pos = float4(p, 0, 1);
 
     // высота
     float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    float heightScale = height * 6;
+    float heightScale = height * 7;
     pos.z += height * heightScale * heightScale * heightScale;
     output.wpos = pos.xy; // пробрасываем мировые XY отдельно
     output.pos = mul(pos, mul(view[0], proj[0]));

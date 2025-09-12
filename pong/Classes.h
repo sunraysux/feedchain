@@ -36,8 +36,10 @@ public:
             // ѕроверка минимального рассто€ни€ (например, 2.0f)
             bool tooClose = false;
             auto& heightMap = Textures::Texture[10];
-            float u = fmodf((seedling->x / base_rangex) * 0.5f + 0.5f, 1.0f) / 4.0f;
-            float v = fmodf((seedling->y / base_rangey) * 0.5f + 0.5f, 1.0f) / 4.0f;
+            float normalizedX = (seedling->x + base_rangex) / (2.0f * base_rangex); // [0, 1]
+            float normalizedY = (seedling->y + base_rangey) / (2.0f * base_rangey); // [0, 1]
+            float u = normalizedX / 4.0f;  
+            float v = normalizedY / 4.0f;
 
             UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
             UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
@@ -660,7 +662,7 @@ public:
                 }
             }
         }
-        else if (isMaturity&& pop.canAddRats(static_cast<int>(new_rats.size()))) {
+        else if (isMaturity&& pop.canAddRat(static_cast<int>(new_rats.size()))) {
             std::pair<float, float> target = searchNearestCreature(x, y, type_::rat, 10, true, gender);
             float targetX = target.first;
             float targetY = target.second;
@@ -824,7 +826,7 @@ public:
         move_range = Random::Int(1, 5);
         move(new_rats,pop);
         eat(bushes);
-        if (!pop.canAddRats(static_cast<int>(new_rats.size()))) return;
+        if (!pop.canAddRat(static_cast<int>(new_rats.size()))) return;
         reproduce(rats, new_rats);
     }
 
