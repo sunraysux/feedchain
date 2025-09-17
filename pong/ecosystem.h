@@ -122,7 +122,7 @@ void InitGame() {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
-        tree->age = Random::Int(0, 1000);
+        tree->age = 0;
         tree->updateChunk();
         trees.push_back(tree);
         population.tree_count++;
@@ -495,13 +495,13 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                         if (isVisible(c->x, c->y)) {
                             if (c->age > c->age_limit / 2) {
-                                bigInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                                bigInstances.emplace_back(c->x, c->y, c->age / ageScale, 8);
                             }
                             else if (c->age > c->age_limit / 3) {
-                                standartInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                                standartInstances.emplace_back(c->x, c->y, c->age / ageScale, 8);
                             }
-                            else if (c->age > c->age_limit / 4) {
-                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            else  {
+                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 5), 8);
                             }
                         }
                     }
