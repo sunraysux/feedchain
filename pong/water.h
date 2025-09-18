@@ -23,7 +23,7 @@ float2 uv = (input.wpos.xy + float2(scale, scale)) / (2.0 * scale);
     float terrainHeight = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
 
     float depth = input.height-terrainHeight ;
-    if (depth < 0) discard;
+   // if (depth < 0) discard;
 
     // Анимация ряби
     float2 movingUV = input.wpos.xy / 50.0 + time.x * 0.2;

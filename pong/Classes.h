@@ -1,4 +1,5 @@
 
+
 class Tree : public Creature {
 public:
     Tree() : Creature(type_::tree) {

@@ -34,6 +34,8 @@ inline float Wrap(float x, float range) {
     return x;
 }
 
+
+
 inline float WrapXcam(float x)
 {
     x *= 2;
@@ -247,5 +249,7 @@ inline float torusDelta(float from, float to, float size) {
     float d = to - from;
     return Wrap(d, size);
 }
+
+
 
 

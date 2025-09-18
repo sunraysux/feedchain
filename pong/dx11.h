@@ -1081,6 +1081,16 @@ namespace Draw
 		context->DrawInstanced(quadCount * 36, instances, 0, 0);
 	}
 
+	void Cursor()
+	{
+		ConstBuf::Update(5, ConstBuf::global);
+		ConstBuf::ConstToVertex(5);
+		ConstBuf::Update(1, ConstBuf::drawerP);
+		ConstBuf::ConstToPixel(1);
+
+		context->Draw(6, 0);
+	}
+
 	void Present()
 	{
 		Textures::UnbindAll();
@@ -1119,6 +1129,8 @@ namespace Camera
 		// Для вычисления позиции мыши в мировых координатах
 		float mouseX = 0;
 		float mouseY = 0;
+		float mousendcY = 0;
+		float mousendcX = 0;
 		float width;
 		float height;
 		// Для перемещения через WASD
@@ -1165,9 +1177,25 @@ namespace Camera
 			XMVECTOR forward = XMVector3Normalize(finalTarget - eye);
 			XMVECTOR right = XMVector3Normalize(XMVector3Cross(state.upDirection, forward));
 
-			state.positionOffset += right * (float)dx * state.moveSpeed;
+			state.positionOffset -= right * (float)dx * state.moveSpeed;
 			state.positionOffset += forward * (float)dy * state.moveSpeed;
 		}
+	}
+
+	float GetHeightAt(float worldX, float worldY)
+	{
+		auto& heightMap = Textures::Texture[10];
+		float normalizedX = (worldX + base_rangex) / (2.0f * base_rangex);
+		float normalizedY = (worldY + base_rangey) / (2.0f * base_rangey);
+		float u = normalizedX / 4.0f;
+		float v = normalizedY / 4.0f;
+
+		UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
+		UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+
+		float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+		float heightScale = height * 7;
+		return height * heightScale * heightScale * heightScale;
 	}
 
 	void screenmouse(XMVECTOR eye, XMVECTOR target, XMVECTOR up, XMMATRIX view, XMMATRIX proj)
@@ -1178,6 +1206,8 @@ namespace Camera
 
 		float ndcX = ((float)p.x / state.width) * 2.0f - 1.0f;
 		float ndcY = 1.0f - ((float)p.y / state.height) * 2.0f;
+		state.mousendcX = ndcX;
+		state.mousendcY = ndcY;
 
 		XMMATRIX invViewProj = XMMatrixInverse(nullptr, view * proj);
 
@@ -1190,10 +1220,10 @@ namespace Camera
 		XMVECTOR rayOrigin = nearPoint;
 		XMVECTOR rayDir = XMVector3Normalize(farPoint - nearPoint);
 
-		float t = 0.0f;
 		const float maxT = 10000.0f;
-		const int maxSteps = 50;
+		const int maxSteps = 100;
 		float stepSize = maxT / maxSteps;
+		float t = 0.0f;
 
 		for (int i = 0; i < maxSteps; ++i)
 		{
@@ -1202,29 +1232,30 @@ namespace Camera
 			float pointY = XMVectorGetY(point);
 			float pointZ = XMVectorGetZ(point);
 
-			// Получаем высоту из карты высот
-			auto& heightMap = Textures::Texture[10];
-			float normalizedX = (pointX + base_rangex) / (2.0f * base_rangex);
-			float normalizedY = (pointY + base_rangey) / (2.0f * base_rangey);
-			float u = normalizedX / 4.0f;
-			float v = normalizedY / 4.0f;
-
-			UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-			UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
-
-			float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+			float height = GetHeightAt(pointX, pointY);
 
 			if (pointZ <= height)
 			{
-				// Уточняем позицию с помощью билинейной интерполяции
-				float tPrev = t - stepSize;
-				XMVECTOR prevPoint = rayOrigin + rayDir * tPrev;
-				float prevZ = XMVectorGetZ(prevPoint);
+				// Уточнение позиции с помощью бинарного поиска
+				float low = t - stepSize;
+				float high = t;
+				for (int j = 0; j < 10; j++)
+				{
+					float mid = (low + high) * 0.5f;
+					XMVECTOR midPoint = rayOrigin + rayDir * mid;
+					float midX = XMVectorGetX(midPoint);
+					float midY = XMVectorGetY(midPoint);
+					float midZ = XMVectorGetZ(midPoint);
+					float midHeight = GetHeightAt(midX, midY);
 
-				// Интерполяция между предыдущей и текущей точкой
-				float alpha = (height - prevZ) / (pointZ - prevZ);
-				XMVECTOR hitPoint = prevPoint + (point - prevPoint) * alpha;
+					if (midZ <= midHeight)
+						high = mid;
+					else
+						low = mid;
+				}
 
+				t = (low + high) * 0.5f;
+				XMVECTOR hitPoint = rayOrigin + rayDir * t;
 				state.mouseX = XMVectorGetX(hitPoint);
 				state.mouseY = XMVectorGetY(hitPoint);
 				return;
@@ -1238,14 +1269,15 @@ namespace Camera
 		float rayOriginZ = XMVectorGetZ(rayOrigin);
 		float rayDirZ = XMVectorGetZ(rayDir);
 
-		if (fabs(rayDirZ) > 1e-6f) {
+		if (fabs(rayDirZ) > 1e-6f)
+		{
 			float t = -rayOriginZ / rayDirZ;
 			XMVECTOR hit = rayOrigin + rayDir * t;
 			state.mouseX = XMVectorGetX(hit);
 			state.mouseY = XMVectorGetY(hit);
 		}
 	}
-
+	
 	void Update()
 	{
 
@@ -1255,7 +1287,13 @@ namespace Camera
 		float z = state.camDist * cosf(state.rotationX);
 		XMVECTOR eye = finalTarget + XMVectorSet(x, y, z, 0);
 
-		XMVECTOR forward = XMVector3Normalize(finalTarget - eye);
+		XMVECTOR toCamera = finalTarget - eye;
+		XMVECTOR horizontalDir = XMVector3Normalize(XMVectorSet(
+			XMVectorGetX(toCamera),
+			XMVectorGetY(toCamera),
+			0, 0
+		));
+		XMVECTOR forward = horizontalDir;
 		XMVECTOR right = XMVector3Normalize(XMVector3Cross(state.upDirection, forward));
 
 		if (GetAsyncKeyState('W') & 0x8000) state.positionOffset += forward * state.moveSpeed;
@@ -1279,18 +1317,8 @@ namespace Camera
 		float camX = XMVectorGetX(eye);
 		float camY = XMVectorGetY(eye);
 
-		float normalizedX = (camX + base_rangex) / (2.0f * base_rangex);
-		float normalizedY = (camY + base_rangey) / (2.0f * base_rangey);
-		float u = normalizedX / 4.0f;
-		float v = normalizedY / 4.0f;
 
-		UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-		UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
-
-		float groundHeight = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
-		float heightScale = groundHeight * 7;
-		groundHeight = groundHeight * heightScale * heightScale * heightScale;
-
+		float groundHeight = GetHeightAt(camX, camY);
 		const float minHeightAboveGround = 10.0f;
 		float currentHeight = XMVectorGetZ(eye);
 

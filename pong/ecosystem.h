@@ -1,6 +1,7 @@
 ﻿
 //основной процесс
 
+
 void UpdateAllGrass() {
     for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
         for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
@@ -187,12 +188,46 @@ void HandleCreatureSelection() {
     if (GetAsyncKeyState('6') & 0x8000) currentType = type_::rat;
 }
 
+void drawCursor()
+{
+    ID3D11ShaderResourceView* texture = nullptr;
+    switch (currentType) {
+    case type_::wolf:
+        texture = Textures::Texture[3].TextureResView;
+        break;
+    case type_::rabbit:
+        texture = Textures::Texture[2].TextureResView;
+        break;
+    case type_::tree:
+        texture = Textures::Texture[9].TextureResView;
+        break;
+    case type_::bush:
+        texture = Textures::Texture[7].TextureResView;
+        break;
+    case type_::eagle:
+        texture = Textures::Texture[8].TextureResView;
+        break;
+    case type_::rat:
+        texture = Textures::Texture[15].TextureResView;
+        break;
+    }
+
+    if (texture) {
+        context->PSSetShaderResources(0, 1, &texture);
+    }
+    Shaders::vShader(6);
+    Shaders::pShader(6);
+
+    ConstBuf::global[0] = XMFLOAT4(Camera::state.mousendcX, Camera::state.mousendcY, 0.0f, 1.0f);
+    Draw::Cursor();
+}
+
 void mouse()
 {
     HandleCreatureSelection(); // обновляем текущий выбор
+    drawCursor(); // отрисовываем курсор с текстурой выбранного животного
 
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-//        Camera::screenmouse();
         std::vector<std::shared_ptr<Wolf>> new_wolfs;
         std::vector<std::shared_ptr<Rabbit>> new_rabbits;
         std::vector<std::shared_ptr<Tree>> new_trees;
@@ -211,8 +246,7 @@ void mouse()
 
         switch (currentType) {
         case type_::wolf: {
-            if (population.canAddWolf(static_cast<int>(new_rabbits.size())))
-            {
+            if (population.canAddWolf(static_cast<int>(new_wolfs.size()))) {
                 auto wolf = std::make_shared<Wolf>();
                 wolf->y = Wrap(Camera::state.mouseY, base_rangey);
                 wolf->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -220,13 +254,11 @@ void mouse()
                 wolf->age = 0;
                 new_wolfs.push_back(wolf);
                 population.wolf_count++;
-                
             }
             break;
         }
         case type_::rabbit: {
-            if (population.canAddRabbit(static_cast<int>(new_rabbits.size())))
-            {
+            if (population.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
                 auto rabbit = std::make_shared<Rabbit>();
                 rabbit->y = Wrap(Camera::state.mouseY, base_rangey);
                 rabbit->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -234,13 +266,11 @@ void mouse()
                 rabbit->age = 0;
                 new_rabbits.push_back(rabbit);
                 population.rabbit_count++;
-                
             }
             break;
         }
         case type_::tree: {
-            if (population.canAddTree(static_cast<int>(new_rabbits.size())))
-            {
+            if (population.canAddTree(static_cast<int>(new_trees.size()))) {
                 auto tree = std::make_shared<Tree>();
                 tree->y = Wrap(Camera::state.mouseY, base_rangey);
                 tree->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -248,27 +278,22 @@ void mouse()
                 tree->updateChunk();
                 new_trees.push_back(tree);
                 population.tree_count++;
-                
             }
             break;
         }
         case type_::bush: {
-            if (population.canAddBush(static_cast<int>(new_rabbits.size())))
-            {
+            if (population.canAddBush(static_cast<int>(new_bushes.size()))) {
                 auto bush = std::make_shared<Bush>();
                 bush->y = Wrap(Camera::state.mouseY, base_rangey);
                 bush->x = Wrap(Camera::state.mouseX, base_rangex);
                 bush->age = 0;
-
                 new_bushes.push_back(bush);
                 population.bush_count++;
-                
             }
             break;
         }
         case type_::eagle: {
-            if (population.canAddEagle(static_cast<int>(new_rabbits.size())))
-            {
+            if (population.canAddEagle(static_cast<int>(new_eagles.size()))) {
                 auto eagle = std::make_shared<Eagle>();
                 eagle->y = Wrap(Camera::state.mouseY, base_rangey);
                 eagle->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -276,13 +301,11 @@ void mouse()
                 eagle->age = 0;
                 new_eagles.push_back(eagle);
                 population.eagle_count++;
-                
             }
             break;
         }
         case type_::rat: {
-            if (population.canAddRat(static_cast<int>(new_rabbits.size())))
-            {
+            if (population.canAddRat(static_cast<int>(new_rats.size()))) {
                 auto rat = std::make_shared<Rat>();
                 rat->y = Wrap(Camera::state.mouseY, base_rangey);
                 rat->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -290,11 +313,11 @@ void mouse()
                 rat->age = 0;
                 new_rats.push_back(rat);
                 population.rat_count++;
-                
             }
             break;
         }
         }
+
         add_new_entities(rabbits, new_rabbits);
         add_new_entities(wolves, new_wolfs);
         add_new_entities(trees, new_trees);
@@ -303,7 +326,6 @@ void mouse()
         add_new_entities(rats, new_rats);
     }
 }
-
 //void mouse2()
 //{
 //    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
@@ -470,7 +492,7 @@ void ShowRacketAndBall() {
 
                         }*/
                         if (isVisible(c->x, c->y)) {
-                            instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                            instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                         }
                     }   
                 }
@@ -495,13 +517,13 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                         if (isVisible(c->x, c->y)) {
                             if (c->age > c->age_limit / 2) {
-                                bigInstances.emplace_back(c->x, c->y, c->age / ageScale, 8);
+                                bigInstances.emplace_back(c->x, c->y, c->age / ageScale, 0);
                             }
                             else if (c->age > c->age_limit / 3) {
-                                standartInstances.emplace_back(c->x, c->y, c->age / ageScale, 8);
+                                standartInstances.emplace_back(c->x, c->y, c->age / ageScale, 0);
                             }
                             else  {
-                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 5), 8);
+                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 5), 0);
                             }
                         }
                     }
@@ -531,10 +553,10 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                         if (isVisible(c->x, c->y)) {
                             if (c->gender == gender_::male) {
-                                maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                                maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
                             else if (c->gender == gender_::female) {
-                                femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                                femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
 
                         }
@@ -565,10 +587,10 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                         if (isVisible(c->x, c->y)) {
                             if (c->infect == true) {
-                                infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                                infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
                             else if (c->infect == false) {
-                                noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 8);
+                                noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
                         }
 
