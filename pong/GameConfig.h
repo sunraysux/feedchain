@@ -20,7 +20,7 @@ float base_rangex = 1024.0f;
 float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
 POINT p;
 enum class gender_ { male, female };
-enum class type_ { tree, rabbit, wolf, grass,bush, eagle,berry,rat };
+enum class type_ { tree, rabbit, wolf, grass,bush, eagle,berry,rat,lightning };
 
 float TimeTic;
 

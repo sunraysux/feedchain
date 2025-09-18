@@ -150,7 +150,52 @@ struct Chunk {
 
     }
 };
+// Функция для проверки и уничтожения существ в радиусе от курсора
+void kill_creatures_in_radius(float center_x, float center_y, float radius) {
+    // Определяем, какие чанки попадают в радиус
+    int center_cx = coord_to_chunkx(center_x);
+    int center_cy = coord_to_chunky(center_y);
 
+    // Вычисляем количество чанков, которые нужно проверить
+    int chunk_radius = static_cast<int>(ceil(radius / CHUNK_SIZE)) + 1;
+
+    // Проходим по всем чанкам в области
+    for (int dx = -chunk_radius; dx <= chunk_radius; ++dx) {
+        for (int dy = -chunk_radius; dy <= chunk_radius; ++dy) {
+            // Вычисляем координаты чанка с учетом тороидальности
+            int cx = (center_cx + dx + CHUNKS_PER_SIDEX) % CHUNKS_PER_SIDEX;
+            int cy = (center_cy + dy + CHUNKS_PER_SIDEY) % CHUNKS_PER_SIDEY;
+
+            // Получаем ссылку на чанк
+            Chunk& chunk = chunk_grid[cx][cy];
+
+            // Проверяем все типы существ в чанке
+            auto check_creatures = [&](auto& creatures) {
+                for (auto& weak_creature : creatures) {
+                    if (auto creature = weak_creature.lock()) {
+                        // Проверяем расстояние до курсора с учетом тороидальности
+                        float dx = torusDelta(center_x, creature->x, base_rangex);
+                        float dy = torusDelta(center_y, creature->y, base_rangey);
+                        float distance_sq = dx * dx + dy * dy;
+
+                        // Если существо в радиусе, помечаем его как мертвое
+                        if (distance_sq <= radius * radius) {
+                            creature->dead = true;
+                        }
+                    }
+                }
+                };
+
+            // Проверяем все типы существ
+            check_creatures(chunk.trees);
+            check_creatures(chunk.rabbits);
+            check_creatures(chunk.wolves);
+            check_creatures(chunk.bushes);
+            check_creatures(chunk.eagles);
+            check_creatures(chunk.rats);
+        }
+    }
+}
 // возвращает абсолютные координаты ближайшего существа или (-5000,-5000) если не найдено
 std::pair<float, float> searchNearestCreature(
     float x, float y,

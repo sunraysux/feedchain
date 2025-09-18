@@ -150,6 +150,7 @@
     <Image Include="Debug\i.jpg" />
     <Image Include="Debug\infectRat.png" />
     <Image Include="Debug\kust.png" />
+    <Image Include="Debug\lightning.png" />
     <Image Include="Debug\menu.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\bigTree.png" />

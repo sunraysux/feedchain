@@ -130,7 +130,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(15, L"Debug/rat.png");
     Textures::LoadTextureFromFile(16, L"Debug/eagleFemale.png");
     Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
-
+    Textures::LoadTextureFromFile(18, L"Debug/lightning.png");
     // Начальные растения
     for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
@@ -199,6 +199,7 @@ void HandleCreatureSelection() {
     if (GetAsyncKeyState('4') & 0x8000) currentType = type_::bush;
     if (GetAsyncKeyState('5') & 0x8000) currentType = type_::eagle;
     if (GetAsyncKeyState('6') & 0x8000) currentType = type_::rat;
+    if (GetAsyncKeyState('7') & 0x8000) currentType = type_::lightning;
 }
 
 void drawCursor()
@@ -206,7 +207,7 @@ void drawCursor()
     ID3D11ShaderResourceView* texture = nullptr;
     switch (gameState) {
     case gameState_::game:
-
+        ShowCursor(false);
         switch (currentType) {
         case type_::wolf:
             texture = Textures::Texture[3].TextureResView;
@@ -226,6 +227,11 @@ void drawCursor()
         case type_::rat:
             texture = Textures::Texture[15].TextureResView;
             break;
+        case type_::lightning:
+            texture = Textures::Texture[18].TextureResView;
+            break;
+
+
         }
 
         if (texture) {
@@ -236,6 +242,7 @@ void drawCursor()
 
         ConstBuf::global[0] = XMFLOAT4(Camera::state.mousendcX, Camera::state.mousendcY, 0.0f, 1.0f);
         Draw::Cursor();
+        break;
     case gameState_::MainMenu:
         ShowCursor(true);
     }
@@ -335,6 +342,10 @@ void mouse()
             }
             break;
         }
+        case type_::lightning: {
+            kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 100.0f);
+            break;
+        }
         }
 
         add_new_entities(rabbits, new_rabbits);
@@ -344,6 +355,11 @@ void mouse()
         add_new_entities(eagles, new_eagles);
         add_new_entities(rats, new_rats);
     }
+    //if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+    //    currentType = type_::lightning;
+    //    kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 100.0f);
+    //
+    //}
 }
 //void mouse2()
 //{

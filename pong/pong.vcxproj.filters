@@ -101,6 +101,9 @@
     <Image Include="Debug\menu.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\lightning.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
