@@ -143,12 +143,14 @@
     <Image Include="Debug\bigBush.png" />
     <Image Include="Debug\eagleFemale.png" />
     <Image Include="Debug\eagleMale.png" />
+    <Image Include="Debug\exit.png" />
     <Image Include="Debug\grass.jpg" />
     <Image Include="Debug\grass2.jpg" />
     <Image Include="Debug\grass3.jpg" />
     <Image Include="Debug\i.jpg" />
     <Image Include="Debug\infectRat.png" />
     <Image Include="Debug\kust.png" />
+    <Image Include="Debug\menu.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\bigTree.png" />
     <Image Include="Debug\rat.png" />
@@ -156,6 +158,7 @@
     <Image Include="Debug\smallTree.png" />
     <Image Include="Debug\standartBush.png" />
     <Image Include="Debug\standartTree.png" />
+    <Image Include="Debug\start.png" />
     <Image Include="Debug\wolf.png" />
   </ItemGroup>
   <ItemGroup>
