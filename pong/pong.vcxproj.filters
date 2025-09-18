@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{03778d75-e5fc-49a2-a499-bbbbd6d0d6a5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -106,12 +109,6 @@
     <ClInclude Include="Loop.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="PS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -124,12 +121,6 @@
     <ClInclude Include="ecosystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fonVS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fonPS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="MainWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -138,12 +129,6 @@
     </ClInclude>
     <ClInclude Include="WICTextureLoader.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="popVS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="popPS.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Classes.h">
       <Filter>Header Files</Filter>
@@ -154,20 +139,50 @@
     <ClInclude Include="Chunks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="relefPS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="relefVS.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="water.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="2d.h">
+      <Filter>shaders</Filter>
     </ClInclude>
     <ClInclude Include="layer.h">
-      <Filter>Source Files</Filter>
+      <Filter>shaders</Filter>
     </ClInclude>
-    <ClInclude Include="2d.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="mousePS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="mouseVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="popPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="popVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="PS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="relefPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="relefVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="VS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="water.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="fonPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="fonVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="menuVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="menuPS.h">
+      <Filter>shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

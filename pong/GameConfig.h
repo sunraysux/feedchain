@@ -1,7 +1,14 @@
 ﻿#include <algorithm>
 #include <random> 
 #include <memory>
+enum class gameState_ {
+    MainMenu, game
+};
 
+gameState_  gameState = gameState_::MainMenu;
+
+
+//#include "ecosystem.h"
 float SIZEWOLFS = 100.0f;
 float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
@@ -249,7 +256,4 @@ inline float torusDelta(float from, float to, float size) {
     float d = to - from;
     return Wrap(d, size);
 }
-
-
-
 

@@ -71,10 +71,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
     //InitWindow();  
-    ShowCursor(false);
     Dx11Init();
-    InitGame();//здесь инициализируем переменные игры
-    ShowCursor(TRUE);
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DX11MINIMAL));
 
     MSG msg = { 0 };
@@ -101,7 +98,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             currentTime = timer::GetCounter();
             
             timer::frameBeginTime = timer::GetCounter();
-            Loop();
+            drawWorld();
             //mainLoop();
             
             

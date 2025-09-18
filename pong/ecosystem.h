@@ -1,7 +1,20 @@
 ﻿
 //основной процесс
 
-
+void checkButtons() {
+    if (( -0.3 < Camera::state.mousendcY && Camera::state.mousendcY < -0.1) &&
+        (-0.1 < Camera::state.mousendcX && Camera::state.mousendcX < 0.1)&&
+        GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+    {
+        ExitProcess(0);
+    }
+    if ((0 < Camera::state.mousendcY && Camera::state.mousendcY < 0.2) &&
+        (-0.1 < Camera::state.mousendcX && Camera::state.mousendcX < 0.1) &&
+        GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+    {
+        gameState = gameState_::game;
+    }
+}
 void UpdateAllGrass() {
     for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
         for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
@@ -107,8 +120,8 @@ void InitGame() {
    // Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/smallTree.png");
   //  Textures::CreateDepthForTexture(9);
-    Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-    Textures::ReadTextureToCPU(10);
+   // Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
+   // Textures::ReadTextureToCPU(10);
    // Textures::CreateDepthForTexture(10);
     Textures::LoadTextureFromFile(11, L"Debug/standartTree.png");
     Textures::LoadTextureFromFile(12, L"Debug/bigTree.png");
@@ -191,35 +204,41 @@ void HandleCreatureSelection() {
 void drawCursor()
 {
     ID3D11ShaderResourceView* texture = nullptr;
-    switch (currentType) {
-    case type_::wolf:
-        texture = Textures::Texture[3].TextureResView;
-        break;
-    case type_::rabbit:
-        texture = Textures::Texture[2].TextureResView;
-        break;
-    case type_::tree:
-        texture = Textures::Texture[9].TextureResView;
-        break;
-    case type_::bush:
-        texture = Textures::Texture[7].TextureResView;
-        break;
-    case type_::eagle:
-        texture = Textures::Texture[8].TextureResView;
-        break;
-    case type_::rat:
-        texture = Textures::Texture[15].TextureResView;
-        break;
-    }
+    switch (gameState) {
+    case gameState_::game:
 
-    if (texture) {
-        context->PSSetShaderResources(0, 1, &texture);
-    }
-    Shaders::vShader(6);
-    Shaders::pShader(6);
+        switch (currentType) {
+        case type_::wolf:
+            texture = Textures::Texture[3].TextureResView;
+            break;
+        case type_::rabbit:
+            texture = Textures::Texture[2].TextureResView;
+            break;
+        case type_::tree:
+            texture = Textures::Texture[9].TextureResView;
+            break;
+        case type_::bush:
+            texture = Textures::Texture[7].TextureResView;
+            break;
+        case type_::eagle:
+            texture = Textures::Texture[8].TextureResView;
+            break;
+        case type_::rat:
+            texture = Textures::Texture[15].TextureResView;
+            break;
+        }
 
-    ConstBuf::global[0] = XMFLOAT4(Camera::state.mousendcX, Camera::state.mousendcY, 0.0f, 1.0f);
-    Draw::Cursor();
+        if (texture) {
+            context->PSSetShaderResources(0, 1, &texture);
+        }
+        Shaders::vShader(6);
+        Shaders::pShader(6);
+
+        ConstBuf::global[0] = XMFLOAT4(Camera::state.mousendcX, Camera::state.mousendcY, 0.0f, 1.0f);
+        Draw::Cursor();
+    case gameState_::MainMenu:
+        ShowCursor(true);
+    }
 }
 
 void mouse()
@@ -618,3 +637,4 @@ void ShowRacketAndBall() {
     drawPlant(tree_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.trees; }, SIZETREES);
     
 }
+

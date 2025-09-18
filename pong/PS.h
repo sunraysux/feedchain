@@ -27,7 +27,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     // если фон чЄрный Ч отбросить пиксель
     if (color.r < 0.0001 && color.g < 0.0001 && color.b < 0.0001)
         discard;
-
+    float4 color2 = float4(1, 1, 1, 1);
     return color;
 
 }

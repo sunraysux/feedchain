@@ -9,16 +9,35 @@ struct VS_OUTPUT
 // ==== палитра по высоте ====
 float3 heightPalette(float h)
 {
-    float3 low = float3(0.45, 0.35, 0.2);   // трава (зелёный)
-    float3 mid = float3(0.05, 0.25, 0.05);    // камень (коричневатый)
-    float3 high = float3(0.9, 0.9, 0.95);     // снег (почти белый)
+    // Базовые цвета с примесью грязно-зеленого
+    float3 deepWater = float3(0.08, 0.16, 0.22);      // Глубокая вода с зеленоватым оттенком
+    float3 shallowWater = float3(0.22, 0.3, 0.4);     // Мелководье с зеленоватым оттенком
+    float3 wetSand = float3(0.5, 0.48, 0.35);         // Мокрый песок с зеленоватым оттенком
+    float3 drySand = float3(0.55, 0.52, 0.35);        // Сухой песок с зеленоватым оттенком
+    float3 grass = float3(0.15, 0.35, 0.1);           // Трава с более грязным зеленым оттенком
+    float3 rock = float3(0.35, 0.33, 0.25);           // Скалы с зеленоватым оттенком
+    float3 snow = float3(0.65, 0.68, 0.6);            // Снег с легким зеленоватым оттенком
 
     float3 c;
 
-    if (h < 0.4)
-        c = lerp(low, mid, smoothstep(0.4, 0.6, h));
+    if (h < 0.3)
+        c = deepWater;
+    else if (h < 0.38)
+        c = lerp(deepWater, shallowWater, smoothstep(0.5, 0.58, h));
+    else if (h < 0.4)
+        c = lerp(shallowWater, wetSand, smoothstep(0.58, 0.6, h));
+    else if (h < 0.43)
+        c = lerp(wetSand, drySand, smoothstep(0.6, 0.63, h));
+    else if (h < 0.48)
+        c = lerp(drySand, grass, smoothstep(0.63, 0.68, h));
+    else if (h < 0.65)
+        c = grass;
+    else if (h < 0.75)
+        c = lerp(grass, rock, smoothstep(0.75, 0.85, h));
+    else if (h < 0.8)
+        c = lerp(rock, snow, smoothstep(0.85, 0.9, h));
     else
-        c = lerp(mid, high, smoothstep(0.6, 0.9, h));
+        c = snow;
 
     return c;
 }

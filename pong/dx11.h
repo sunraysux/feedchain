@@ -602,6 +602,8 @@ namespace Shaders {
 		CreateVS(5, nameToPatchLPCWSTR("2d.h"));
 		CreatePS(6, nameToPatchLPCWSTR("mousePS.h"));
 		CreateVS(6, nameToPatchLPCWSTR("mouseVS.h"));
+		CreatePS(7, nameToPatchLPCWSTR("menuPS.h"));
+		CreateVS(7, nameToPatchLPCWSTR("menuVS.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -1070,7 +1072,6 @@ namespace Draw
 
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
 	}
-
 	void NullDrawer18(int quadCount, unsigned int instances = 1)
 	{
 		ConstBuf::Update(0, ConstBuf::drawerV);
