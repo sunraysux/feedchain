@@ -1,4 +1,17 @@
+bool heightW(float x, float y) {
 
+    auto& heightMap = Textures::Texture[10];
+    float normalizedX = (x + base_rangex) / (2.0f * base_rangex); // [0, 1]
+    float normalizedY = (y + base_rangey) / (2.0f * base_rangey); // [0, 1]
+    float u = normalizedX / 4.0f;
+    float v = normalizedY / 4.0f;
+
+    UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
+    UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+
+    float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+    return height < waterLevel;
+}
 
 class Tree : public Creature {
 public:
@@ -258,7 +271,21 @@ public:
             moveX = (moveX / mlen) * move_range;
             moveY = (moveY / mlen) * move_range;
         }
+        int max_attempts = 10;
+        int attempts = 0;
 
+        while (heightW(Wrap(x + moveX, base_rangex), Wrap(y + moveY, base_rangey)) && attempts < max_attempts) {
+            // ѕытаемс€ найти альтернативное направление
+            int i = 0;
+            for (i = 0;i < 10&& (heightW(x + moveX, y + moveY) && attempts < max_attempts);i++)
+            {
+                float angle = Random::Float(0, 2 * 3.14159f);
+                moveX = cos(angle) * move_range * i;
+                moveY = sin(angle) * move_range * i;
+            }
+            attempts++;
+            step = 0;
+        }
         x = Wrap(x + moveX, base_rangex);
         y = Wrap(y + moveY, base_rangey);
 

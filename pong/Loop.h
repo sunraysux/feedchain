@@ -79,12 +79,12 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 	Textures::RenderTarget(0, 0);
-	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX, (float)CHUNKS_PER_SIDEY, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX*2, (float)CHUNKS_PER_SIDEY*2, 0, 0);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(10, 0, vertex);
-	Draw::NullDrawer(32768 / 8);
+	Draw::NullDrawer(32768 / 2);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	Textures::RenderTarget(0, 0);

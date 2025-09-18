@@ -20,15 +20,15 @@ float3 heightPalette(float h)
 
     float3 c;
 
-    if (h < 0.3)
+    if (h < 0.1)
         c = deepWater;
-    else if (h < 0.38)
+    else if (h < 0.18)
         c = lerp(deepWater, shallowWater, smoothstep(0.5, 0.58, h));
-    else if (h < 0.4)
+    else if (h < 0.2)
         c = lerp(shallowWater, wetSand, smoothstep(0.58, 0.6, h));
-    else if (h < 0.43)
+    else if (h < 0.33)
         c = lerp(wetSand, drySand, smoothstep(0.6, 0.63, h));
-    else if (h < 0.48)
+    else if (h < 0.45)
         c = lerp(drySand, grass, smoothstep(0.63, 0.68, h));
     else if (h < 0.65)
         c = grass;

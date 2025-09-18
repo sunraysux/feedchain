@@ -510,9 +510,9 @@ void ShowRacketAndBall() {
                         /*if (c->type == type_::bush) {
 
                         }*/
-                        if (isVisible(c->x, c->y)) {
+                        //if (isVisible(c->x, c->y)) {
                             instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
-                        }
+                       // }
                     }   
                 }
             }
@@ -534,7 +534,7 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        if (isVisible(c->x, c->y)) {
+                       // if (isVisible(c->x, c->y)) {
                             if (c->age > c->age_limit / 2) {
                                 bigInstances.emplace_back(c->x, c->y, c->age / ageScale, 0);
                             }
@@ -544,7 +544,7 @@ void ShowRacketAndBall() {
                             else  {
                                 smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 5), 0);
                             }
-                        }
+                       // }
                     }
                 }
             }
@@ -570,7 +570,7 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        if (isVisible(c->x, c->y)) {
+                       // if (isVisible(c->x, c->y)) {
                             if (c->gender == gender_::male) {
                                 maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
@@ -578,7 +578,7 @@ void ShowRacketAndBall() {
                                 femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
 
-                        }
+                       // }
                     }
                 }
             }
@@ -604,14 +604,14 @@ void ShowRacketAndBall() {
                         float y1 = c->y;
                         float x2 = c->x + t;
                         float y2 = c->y + t;
-                        if (isVisible(c->x, c->y)) {
+                       // if (isVisible(c->x, c->y)) {
                             if (c->infect == true) {
                                 infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
                             else if (c->infect == false) {
                                 noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
                             }
-                        }
+                      //  }
 
                     }
                 }

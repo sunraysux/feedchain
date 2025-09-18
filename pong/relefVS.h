@@ -44,7 +44,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(1, 1);
     else offset = float2(0, 1);
 
-    float CHUNK_SIZE = 4.0;
+    float CHUNK_SIZE = 4;
 
     // ширина одной сетки (одного "мира") в юнитах
     float worldSizeX = gridX * CHUNK_SIZE;
