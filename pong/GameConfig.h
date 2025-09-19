@@ -9,6 +9,11 @@ gameState_  gameState = gameState_::MainMenu;
 
 
 //#include "ecosystem.h"
+float x=0;
+float y=0;
+float z=0;
+int seed = 0;
+
 float SIZEWOLFS = 100.0f;
 float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
@@ -45,20 +50,20 @@ inline float Wrap(float x, float range) {
 
 inline float WrapXcam(float x)
 {
-    x *= 2;
+    x /= 2;
     float size = base_rangex * 2.0f;
     while (x < -base_rangex) x += size;
     while (x > base_rangex) x -= size;
-    return x/2;
+    return x;
 }
 
 inline float WrapYcam(float y)
 {
-    y *= 2;
+    y /= 2;
     float size = base_rangey * 2.0f;
     while (y < -base_rangey) y += size;
     while (y > base_rangey) y -= size;
-    return y/2;
+    return y;
 }
 
 

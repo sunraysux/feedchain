@@ -196,6 +196,12 @@
     <ClInclude Include="menuPS.h">
       <Filter>shaders</Filter>
     </ClInclude>
+    <ClInclude Include="lightningPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="lightningVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

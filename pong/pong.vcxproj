@@ -178,6 +178,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameConfig.h" />
     <ClInclude Include="layer.h" />
+    <ClInclude Include="lightningVS.h" />
+    <ClInclude Include="lightningPS.h" />
     <ClInclude Include="Loop.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="menuPS.h" />

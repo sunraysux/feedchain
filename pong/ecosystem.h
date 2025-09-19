@@ -241,6 +241,8 @@ void drawCursor()
         Shaders::pShader(6);
 
         ConstBuf::global[0] = XMFLOAT4(Camera::state.mousendcX, Camera::state.mousendcY, 0.0f, 1.0f);
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
         Draw::Cursor();
         break;
     case gameState_::MainMenu:
@@ -252,6 +254,27 @@ void mouse()
 {
     HandleCreatureSelection(); // обновляем текущий выбор
     drawCursor(); // отрисовываем курсор с текстурой выбранного животного
+
+    if (seed > 0  ) {
+        if (seed == 1)
+        {
+             x = Camera::state.mouseX;
+             y = Camera::state.mouseY;
+             z = Camera::state.mouseZ;
+        }
+        Shaders::vShader(8);
+        Shaders::pShader(8);
+
+        ConstBuf::global[0] = XMFLOAT4(x, y,z+10, seed);
+        ConstBuf::ConstToVertex(5);
+        ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
+        Draw::Thunder(1);
+
+        seed++;
+        if (seed > 8) // сколько кадров жить
+            seed = 0; // выключить
+        
+    }
 
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
         std::vector<std::shared_ptr<Wolf>> new_wolfs;
@@ -343,10 +366,12 @@ void mouse()
             break;
         }
         case type_::lightning: {
-            kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 100.0f);
+            kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 50);
+            seed += 1;
             break;
         }
         }
+        
 
         add_new_entities(rabbits, new_rabbits);
         add_new_entities(wolves, new_wolfs);
