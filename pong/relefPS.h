@@ -13,7 +13,7 @@ float3 heightPalette(float h)
     float3 deepWater = float3(0.08, 0.12, 0.14);     // Тёмная глубокая вода
     float3 shallowWater = float3(0.15, 0.22, 0.25);  // Мелководье
     float3 mud = float3(0.3, 0.28, 0.22);            // Грязь/ил
-    float3 grass = float3(0.40, 0.42, 0.28);         // Приглушённая грязно-зелёная трава
+    float3 grass = float3(0.40, 0.47, 0.28);         // Приглушённая грязно-зелёная трава
     float3 darkGrass = float3(0.35, 0.38, 0.25);      // Тёмная трава
 
     float3 c;

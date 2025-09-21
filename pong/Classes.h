@@ -65,6 +65,14 @@ public:
             int xc = coord_to_chunkx(seedling->x);
             int yc = coord_to_chunky(seedling->y);
             if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 0) continue;
+            for (int i = -1;i < 1;i++) {
+                for (int j = -1;j < 1;j++) {
+                    xc = coord_to_chunkx(seedling->x+i*CHUNK_SIZE);
+                    yc = coord_to_chunky(seedling->y + j * CHUNK_SIZE);
+
+                    if (chunk_grid[xc ][yc ].countCreatures(chunk_grid[xc][yc].trees) > 0) continue;
+                }
+            }
             updateChunk();
             new_creatures.push_back(seedling);
         }
