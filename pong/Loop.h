@@ -58,8 +58,27 @@ void Loop() {
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
-
-	ProcessCreatures(population);
+	ticloop++;
+	switch (gameSpeed) {
+	case 1: // 0.25x → раз в 4 кадра
+		if (ticloop >= 4) { ProcessCreatures(population); UpdateAllGrass(); ticloop = 0; }
+		break;
+	case 2: // 0.5x → раз в 2 кадра
+		if (ticloop >= 2) { ProcessCreatures(population); UpdateAllGrass(); ticloop = 0; }
+		break;
+	case 3: // 1x → каждый кадр
+		ProcessCreatures(population); UpdateAllGrass(); ticloop = 0;
+		break;
+	case 4: // 2x → два раза за кадр
+		ProcessCreatures(population); UpdateAllGrass();
+		ProcessCreatures(population); UpdateAllGrass();
+		ticloop = 0;
+		break;
+	case 5: // 4x → четыре раза за кадр
+		for (int i = 0; i < 10; i++) { ProcessCreatures(population); UpdateAllGrass(); }
+		ticloop = 0;
+		break;
+	}
 	//ShowGrow();
 
 	mouse();
@@ -105,6 +124,61 @@ void Loop() {
 	Draw::Present();
 }
 
+void Looppause() {
+	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+	Camera::Update();
+	frameConst();
+	Textures::RenderTarget(0, 0);
+	Draw::Clear({ 0,0,0,0 });
+	Draw::ClearDepth();
+
+	//ProcessCreatures(population);
+	//ShowGrow();
+
+	mouse();
+	ShowRacketAndBall();
+
+	Showpopulations();
+	UpdateAllGrass();
+
+	//mouse2();
+
+
+	//вода
+
+
+
+
+	//рельеф
+	Shaders::vShader(3);
+	Shaders::pShader(3);
+
+	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX * 2, (float)CHUNKS_PER_SIDEY * 2, 0, 0);
+	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
+	ConstBuf::ConstToVertex(5);
+	ConstBuf::Update(5, ConstBuf::global);
+	Textures::TextureToShader(10, 0, vertex);
+	Draw::NullDrawer(32768 / 2);
+
+	//Depth::Depth(Depth::depthmode::readonly);
+	//Textures::RenderTarget(0, 0);
+	//Depth::SetWaterRasterizer();
+
+
+	Textures::TextureToShader(10, 0, pixel);
+	Shaders::vShader(4);
+	Shaders::pShader(4);
+
+	ConstBuf::global[0] = XMFLOAT4(waterLevel, 0, 0, 0);
+	ConstBuf::ConstToVertex(5);
+	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
+	Draw::NullDrawer(5);
+	//Depth::ResetRasterizer();
+	waterLevel = 0.6;
+	Draw::Present();
+
+}
+
 
 bool initgame = false;
 bool initmenu = false;
@@ -122,8 +196,8 @@ void drawWorld()
 			Textures::ReadTextureToCPU(10);
 			initmenu = true;
 		}
-		 StartMenu();
-	    // gameState = gameState_::game;
+		StartMenu();
+		// gameState = gameState_::game;
 		break;
 
 	case gameState_::game:
@@ -132,6 +206,13 @@ void drawWorld()
 			initgame = true;
 		}
 		Loop();
+		break;
+	case gameState_::pause:
+		if (!initgame) {
+			InitGame();
+			initgame = true;
+		}
+		Looppause();
 		break;
 	}
 }

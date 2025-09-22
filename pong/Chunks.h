@@ -38,7 +38,7 @@ struct Chunk {
                     // Проверки только для поиска партнера
                     if (c->age < c->maturity_age ||
                         gender == c->gender ||
-                        (currentTime - c->birth_time) < 200.0f) {
+                        (tick - c->birth_tick) < 200.0f) {
                         continue;
                     }
                 }

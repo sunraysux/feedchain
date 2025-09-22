@@ -198,11 +198,11 @@ public:
         gender = (Random::Int(0,1)==0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
-        maturity_age = 100;
-        age_limit = 200;
-        hunger_limit = 50;
+        maturity_age = 500;
+        age_limit = 1000;
+        hunger_limit = 250;
         hunger = 0;
-        birth_time = currentTime;
+        birth_tick = tick;
 
         isDirectionSelect = false;
         step = 0;
@@ -217,7 +217,11 @@ public:
         const float avoidanceStrength = 0.5f;
 
         bool isHunger = hunger > 100;
-        bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
+        const uint64_t MATURITY_TICKS = 50;
+
+        bool isMaturity = (age >= maturity_age) &&
+            (tick - birth_tick > MATURITY_TICKS) &&
+            !isHunger;
 
         //  избегание соседей 
         float ax = 0.0f, ay = 0.0f;
@@ -303,7 +307,7 @@ public:
     void reproduce(std::vector<std::shared_ptr<Rabbit>>& rabbits,
         std::vector<std::shared_ptr<Rabbit>>& new_rabbits) {
         const float mateCooldown = 200.0f;
-        if (age < maturity_age || (currentTime - birth_time) < mateCooldown || dead) return;
+        if (age < maturity_age || (tick - birth_tick) < mateCooldown || dead) return;
 
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
@@ -312,7 +316,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
-                if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
+                if (partner->age < maturity_age || (tick - partner->birth_tick) < mateCooldown) continue;
 
                 // рассто€ние с учЄтом тора
                 float dx = torusDelta(x, partner->x, base_rangex);
@@ -323,12 +327,12 @@ public:
                     auto offspring = std::make_shared<Rabbit>();
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
-                    offspring->birth_time = currentTime;
+                    offspring->birth_tick = tick;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
                     // ќбновл€ем cooldown родителей
-                    birth_time = currentTime;
-                    partner->birth_time = currentTime;
+                    birth_tick = tick;
+                    partner->birth_tick = tick;
 
                     // разнесение, чтобы не слипались
                     const float nudge = 5.0f;
@@ -421,9 +425,12 @@ public:
         PopulationManager& pop)  {
         //разна€ скорость
         const float avoidance_radius = 5.0f;
-
+        
         bool isHunger = hunger > 500;
-        bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
+        const float MATURITY_TICKS = 200;
+        bool isMaturity = (age >= maturity_age) &&
+            (tick - birth_tick > MATURITY_TICKS) &&
+            !isHunger;
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
@@ -518,7 +525,7 @@ public:
     void reproduce(std::vector<std::shared_ptr<Wolf>>& wolves,
         std::vector<std::shared_ptr<Wolf>>& new_wolfs) {
         const float mateCooldown = 200.0f;
-        if (age < maturity_age || (currentTime - birth_time) < mateCooldown || dead) return;
+        if (age < maturity_age || (tick - birth_time) < mateCooldown || dead) return;
 
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
@@ -527,7 +534,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
-                if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
+                if (partner->age < maturity_age || (tick - partner->birth_tick) < mateCooldown) continue;
 
                 // рассто€ние с учЄтом тора
                 float dx = torusDelta(x, partner->x, base_rangex);
@@ -538,12 +545,12 @@ public:
                     auto offspring = std::make_shared<Wolf>();
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
-                    offspring->birth_time = currentTime;
+                    offspring->birth_tick = tick;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
                     // ќбновл€ем cooldown родителей
-                    birth_time = currentTime;
-                    partner->birth_time = currentTime;
+                    birth_tick = tick;
+                    partner->birth_tick = tick;
 
                     // разнесение, чтобы не слипались
                     const float nudge = 5.0f;
@@ -630,7 +637,7 @@ public:
         age_limit = 200;
         hunger_limit = 50;
         hunger = 0;
-        birth_time = currentTime;
+        birth_time = tick;
 
         isDirectionSelect = false;
         step = 0;
@@ -653,7 +660,10 @@ public:
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 10;
-        bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
+        const float MATURITY_TICKS = 50;
+        bool isMaturity = (age >= maturity_age) &&
+            (tick - birth_tick > MATURITY_TICKS) &&
+            !isHunger;
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
@@ -757,7 +767,7 @@ public:
     void reproduce(std::vector<std::shared_ptr<Rat>>& rats,
         std::vector<std::shared_ptr<Rat>>& new_rats) {
         const float mateCooldown = 200.0f;
-        if (age < maturity_age || (currentTime - birth_time) < mateCooldown || dead) return;
+        if (age < maturity_age || (tick - birth_time) < mateCooldown || dead) return;
 
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
@@ -766,7 +776,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
-                if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
+                if (partner->age < maturity_age || (tick - partner->birth_tick) < mateCooldown) continue;
 
                 // рассто€ние с учЄтом тора
                 float dx = torusDelta(x, partner->x, base_rangex);
@@ -777,15 +787,15 @@ public:
                     auto offspring = std::make_shared<Rat>();
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
-                    offspring->birth_time = currentTime;
+                    offspring->birth_tick = tick;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
                     if (infect || partner->infect == true) {
                         offspring->infect = (rand() % 2 == 0) ? true : false;
                     }
                     // ќбновл€ем cooldown родителей
-                    birth_time = currentTime;
-                    partner->birth_time = currentTime;
+                    birth_tick = tick;
+                    partner->birth_tick = tick;
 
                     // разнесение, чтобы не слипались
                     const float nudge = 5.0f;
@@ -892,7 +902,7 @@ public:
     int step = 0;
     float nextPositionX = 0;
     float nextPositionY = 0;
-    float birth_time = 0.0f;
+    float birth_tick = 0.0f;
 
     void move(std::vector<std::shared_ptr<Eagle>>& new_eagles,
         PopulationManager& pop) {
@@ -900,7 +910,10 @@ public:
         const float avoidance_radius = 5.0f;
 
         bool isHunger = hunger > 500;
-        bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
+        const float MATURITY_TICKS = 200;
+        bool isMaturity = (age >= maturity_age) &&
+            (tick - birth_tick > MATURITY_TICKS) &&
+            !isHunger;
 
         // --- избегаем других волков
         float ax = 0, ay = 0;
@@ -995,7 +1008,7 @@ public:
     void reproduce(std::vector<std::shared_ptr<Eagle>>& eagles,
         std::vector<std::shared_ptr<Eagle>>& new_eagles) {
         const float mateCooldown = 200.0f;
-        if (age < maturity_age || (currentTime - birth_time) < mateCooldown || dead) return;
+        if (age < maturity_age || (tick - birth_tick) < mateCooldown || dead) return;
 
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
@@ -1004,7 +1017,7 @@ public:
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
-                if (partner->age < maturity_age || (currentTime - partner->birth_time) < mateCooldown) continue;
+                if (partner->age < maturity_age || (tick - partner->birth_tick) < mateCooldown) continue;
 
                 // рассто€ние с учЄтом тора
                 float dx = torusDelta(x, partner->x, base_rangex);
@@ -1015,12 +1028,12 @@ public:
                     auto offspring = std::make_shared<Eagle>();
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
-                    offspring->birth_time = currentTime;
+                    offspring->birth_tick = tick;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
                     // ќбновл€ем cooldown родителей
-                    birth_time = currentTime;
-                    partner->birth_time = currentTime;
+                    birth_tick = tick;
+                    partner->birth_tick = tick;
 
                     // разнесение, чтобы не слипались
                     const float nudge = 5.0f;

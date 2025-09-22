@@ -93,6 +93,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
 
+
         if (time >= timer::nextFrameTime)
         {
             currentTime = timer::GetCounter();
@@ -140,10 +141,56 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_KEYDOWN:
-        if (wParam == VK_ESCAPE)
+        if ((lParam & 0x40000000) == 0) // игнор автоповтора
         {
-            PostQuitMessage(0);
-            return 0;
+            bool shiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000);
+
+            switch (wParam)
+            {
+            case VK_SHIFT:
+                Camera::state.speedMul = 10.0f;
+                
+                break;
+            case VK_SPACE:
+                if (gameState == gameState_::game)
+                    gameState = gameState_::pause;
+                else if (gameState == gameState_::pause)
+                    gameState = gameState_::game;
+                break;
+
+            case '1':
+                if (shiftHeld) gameSpeed = 1;
+                else currentType = type_::wolf;
+                break;
+            case '2':
+                if (shiftHeld) gameSpeed = 2;
+                else currentType = type_::rabbit;
+                break;
+            case '3':
+                if (shiftHeld) gameSpeed = 3;
+                else currentType = type_::tree;
+                break;
+            case '4':
+                if (shiftHeld) gameSpeed = 4;
+                else currentType = type_::bush;
+                break;
+            case '5':
+                if (shiftHeld) gameSpeed = 5;
+                else currentType = type_::eagle;
+                break;
+            case '6': currentType = type_::rat;       break;
+            case '7': currentType = type_::lightning; break;
+
+            case VK_ESCAPE:
+                PostQuitMessage(0);
+                return 0;
+            }
+        }
+        break;
+
+    case WM_KEYUP:
+        if (wParam == VK_SHIFT) {
+            Camera::state.speedMul = 1.0f;
         }
         break;
     case WM_MOUSEWHEEL:

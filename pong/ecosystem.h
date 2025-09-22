@@ -23,7 +23,7 @@ void UpdateAllGrass() {
     }
 }
 void ProcessCreatures(PopulationManager& pop) {
-
+    tick++;
     int dead_rabbits = 0;
     int dead_trees = 0;
     int dead_wolfs = 0;
@@ -245,6 +245,45 @@ void drawCursor()
         ConstBuf::ConstToVertex(5);
         Draw::Cursor();
         break;
+    case gameState_::pause:
+        ShowCursor(false);
+        switch (currentType) {
+        case type_::wolf:
+            texture = Textures::Texture[3].TextureResView;
+            break;
+        case type_::rabbit:
+            texture = Textures::Texture[2].TextureResView;
+            break;
+        case type_::tree:
+            texture = Textures::Texture[9].TextureResView;
+            break;
+        case type_::bush:
+            texture = Textures::Texture[7].TextureResView;
+            break;
+        case type_::eagle:
+            texture = Textures::Texture[8].TextureResView;
+            break;
+        case type_::rat:
+            texture = Textures::Texture[15].TextureResView;
+            break;
+        case type_::lightning:
+            texture = Textures::Texture[18].TextureResView;
+            break;
+
+
+        }
+
+        if (texture) {
+            context->PSSetShaderResources(0, 1, &texture);
+        }
+        Shaders::vShader(6);
+        Shaders::pShader(6);
+
+        ConstBuf::global[0] = XMFLOAT4(Camera::state.mousendcX, Camera::state.mousendcY, 0.0f, 1.0f);
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::Cursor();
+        break;
     case gameState_::MainMenu:
         ShowCursor(true);
     }
@@ -252,7 +291,7 @@ void drawCursor()
 
 void mouse()
 {
-    HandleCreatureSelection(); // обновляем текущий выбор
+  //  HandleCreatureSelection(); // обновляем текущий выбор
     drawCursor(); // отрисовываем курсор с текстурой выбранного животного
 
     if (seed > 0  ) {

@@ -2,7 +2,7 @@
 #include <random> 
 #include <memory>
 enum class gameState_ {
-    MainMenu, game
+    MainMenu, game, pause
 };
 
 gameState_  gameState = gameState_::MainMenu;
@@ -13,7 +13,9 @@ float x=0;
 float y=0;
 float z=0;
 int seed = 0;
-
+int tick = 0;
+int gameSpeed = 3;
+static int ticloop = 0;
 float SIZEWOLFS = 100.0f;
 float SIZETREES = 10.0f;
 float SIZEBUSHES = 10.0f;
@@ -205,7 +207,7 @@ public:
     type_ type;
     bool dead = false;
     bool isDirectionSelect = false;
-    float birth_time;
+    float birth_tick;
     int berry_count;
     int blossoming_age = 0;
     int berry_limit;

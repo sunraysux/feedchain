@@ -1134,6 +1134,7 @@ namespace Camera
 		float moveSpeed = 10.0f;
 		float rotationSpeed = 0.003f;
 		XMVECTOR upDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+		float speedMul = 1;
 
 		// Проекция / матрицы
 		float fovAngle = XMConvertToRadians(30.0f);
@@ -1366,13 +1367,12 @@ namespace Camera
 		XMVECTOR horiz = XMVectorSet(cosY, sinY, 0.0f, 0.0f);
 		XMVECTOR right = XMVector3Normalize(XMVector3Cross(state.upDirection, horiz));
 
-		float speedMul = 1.0f;
+		//float speedMul = 1.0f;
 
 		// Если зажат Shift — ускоряем (например ×3)
-		if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
-			speedMul = 10.0f;
 
-		float factor = state.moveSpeed * speedMul * XMVectorGetZ(state.position) / 1000.0f;
+
+		float factor = state.moveSpeed * state.speedMul * XMVectorGetZ(state.position) / 1000.0f;
 
 		if (GetAsyncKeyState('W') & 0x8000) state.position += horiz * factor;
 		if (GetAsyncKeyState('S') & 0x8000) state.position -= horiz * factor;
