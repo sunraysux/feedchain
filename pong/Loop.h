@@ -56,7 +56,7 @@ void Loop() {
 	Camera::Update();
 	frameConst();
 	Textures::RenderTarget(0, 0);
-	Draw::Clear({ 0,0,0,0 });
+	Draw::Clear({ 0,0,0,0 });                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 	Draw::ClearDepth();
 
 	ProcessCreatures(population);

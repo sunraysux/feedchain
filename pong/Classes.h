@@ -64,17 +64,18 @@ public:
             int nearbyCount = 0;
             int xc = coord_to_chunkx(seedling->x);
             int yc = coord_to_chunky(seedling->y);
-            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].trees) > 0) continue;
+            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].Plant) > 0) continue;
             for (int i = -1;i < 1;i++) {
                 for (int j = -1;j < 1;j++) {
                     xc = coord_to_chunkx(seedling->x+i*CHUNK_SIZE);
                     yc = coord_to_chunky(seedling->y + j * CHUNK_SIZE);
 
-                    if (chunk_grid[xc ][yc ].countCreatures(chunk_grid[xc][yc].trees) > 0) continue;
+                    if (chunk_grid[xc ][yc ].countCreatures(chunk_grid[xc][yc].Plant) > 0) continue;
                 }
             }
-            updateChunk();
+            
             new_creatures.push_back(seedling);
+            updateChunk();
         }
     }
 
@@ -96,11 +97,11 @@ public:
     }
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.trees;
+        return chunk.Plant;
     }
 
     void addToChunk(Chunk& chunk) override {
-        chunk.trees.push_back(weak_from_this());
+        chunk.Plant.push_back(weak_from_this());
     }
 };
 
@@ -155,9 +156,10 @@ public:
             int nearbyCount = 0;
             int xc = coord_to_chunkx(seedling->x);
             int yc = coord_to_chunky(seedling->y);
-            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].bushes) > 50) continue;
-            updateChunk();
+            if (chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].Plant) > 50) continue;
+            
             new_creatures.push_back(seedling);
+            updateChunk();
         }
     }
 
@@ -183,11 +185,11 @@ public:
     }
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.bushes;
+        return chunk.Plant;
     }
 
     void addToChunk(Chunk& chunk) override {
-        chunk.bushes.push_back(weak_from_this());
+        chunk.Plant.push_back(weak_from_this());
     }
 };
 
@@ -221,25 +223,25 @@ public:
 
         //  избегание соседей 
         float ax = 0.0f, ay = 0.0f;
-        int nearbyCount = 0;
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-                int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
-                auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
-                nearbyCount += std::get<0>(t);
-                ax += std::get<1>(t);
-                ay += std::get<2>(t);
-            }
-        }
+        //int nearbyCount = 0;
+        //for (int i = -1; i <= 1; ++i) {
+        //    for (int j = -1; j <= 1; ++j) {
+        //        int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+        //        int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+        //        auto t = chunk_grid[ncx][ncy].nearly_creature_square(chunk_grid[ncx][ncy].rabbits, x, y, avoidance_radius);
+        //        nearbyCount += std::get<0>(t);
+        //        ax += std::get<1>(t);
+        //        ay += std::get<2>(t);
+        //    }
+        //}
        
-        if (nearbyCount > 0) {
-            ax /= nearbyCount;
-            ay /= nearbyCount;
-            float len = std::sqrt(ax * ax + ay * ay);
-            if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
-            ay = (ay / len) * avoidanceStrength; }
-        }
+        //if (nearbyCount > 0) {
+        //    ax /= nearbyCount;
+        //    ay /= nearbyCount;
+        //    float len = std::sqrt(ax * ax + ay * ay);
+        //    if (len > 1e-6f) { ax = (ax / len) * avoidanceStrength;
+        //    ay = (ay / len) * avoidanceStrength; }
+        //}
 
         //  Выбор цели для размножения 
         if (isMaturity && (!isDirectionSelect || step <= 0)&&pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
@@ -308,7 +310,7 @@ public:
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
 
-        for (auto& w : chunk_grid[base_cx][base_cy].rabbits) {
+        for (auto& w : chunk_grid[base_cx][base_cy].Animal) {
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
@@ -393,22 +395,23 @@ public:
 
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.rabbits;
+        return chunk.Animal;
     }
     void addToChunk(Chunk& chunk) override {
-        chunk.rabbits.push_back(weak_from_this());
+        chunk.Animal.push_back(weak_from_this());
     }
 };
 class Wolf : public Creature {
 public:
     Wolf() : Creature(type_::wolf) {
         gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
-        eating_range = 10;
+        eating_range = 50;
         age = 0;
         maturity_age = 2000;
         age_limit = 4000;
         hunger_limit = 1000;
         hunger = 0;
+        nutritional_value = 1000;
     }
 
     bool isDirectionSelect = false;
@@ -416,13 +419,13 @@ public:
     float nextPositionX = 0;
     float nextPositionY = 0;
     float birth_time = 0.0f;
-
+    
     void move(std::vector<std::shared_ptr<Wolf>>& new_wolfs,
         PopulationManager& pop)  {
         //разная скорость
         const float avoidance_radius = 5.0f;
-
         bool isHunger = hunger > 500;
+        
         bool isMaturity = (age >= maturity_age) && (currentTime - birth_time > 200) && !isHunger;
 
         // --- избегаем других волков
@@ -452,7 +455,7 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rabbit, 10, false, gender);
+            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::wolf, 10, false, gender);
             float rabbitX = targetRabbit.first;
             float rabbitY = targetRabbit.second;
             if (rabbitX != -5000.0f) {
@@ -523,7 +526,7 @@ public:
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
 
-        for (auto& w : chunk_grid[base_cx][base_cy].wolves) {
+        for (auto& w : chunk_grid[base_cx][base_cy].Animal) {
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
@@ -570,52 +573,72 @@ public:
         }
     }
 
-    void eat(std::vector<std::shared_ptr<Rabbit>>& rabbits) {
-        if (hunger <= 10 || dead) return;
-        int base_cx = coord_to_chunkx(x);
-        int base_cy = coord_to_chunky(y);
-        for (auto& w : chunk_grid[base_cx][base_cy].rabbits) {
-            if (auto partner = w.lock()) {
-                if (partner->dead) continue;
+    void eat() {
+        bool isHunger = hunger > 500;
+        if (!isHunger) return;
 
-                // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
+        std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::wolf, 2, false, gender);
+        float rabbitX = targetRabbit.first;
+        float rabbitY = targetRabbit.second;
+        int base_cx = coord_to_chunkx(rabbitX);
+        int base_cy = coord_to_chunky(rabbitY);
 
-                if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    partner->dead = true;
-                    break;
+
+        if (rabbitX != -5000.0f) {
+            float dx = torusDelta(x, rabbitX, base_rangex);
+            float dy = torusDelta(y, rabbitY, base_rangey);
+
+            for (auto& w : chunk_grid[base_cx][base_cy].Animal) {
+                if (auto partner = w.lock()) {
+                    if (partner->type == type)continue;
+                    if (partner->dead) continue;
+                    float d = std::sqrt(dx * dx + dy * dy);
+                    if (d < eating_range ) {
+
+                        if (partner->nutritional_value <= nutritional_value) {
+                            hunger -= partner->nutritional_value;
+                            partner->dead = true;
+                            isDirectionSelect = false;
+                            break;
+                        }
+                        else if (partner->nutritional_value > nutritional_value) {
+                            dead = true;
+                            partner->nutritional_value -= nutritional_value;
+                            break;
+                        }
+                        nextPositionX = (dx / d) * move_range;
+                        nextPositionY = (dy / d) * move_range;
+                        isDirectionSelect = false;
+                    }
+
                 }
             }
+
         }
     }
-
     bool shouldDie() const override {
         return dead || age > age_limit || hunger > hunger_limit;
     }
 
     void process(std::vector<std::shared_ptr<Wolf>>& wolves,
         std::vector<std::shared_ptr<Wolf>>& new_wolves,
-        std::vector<std::shared_ptr<Rabbit>>& rabbits,
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
         move_range = Random::Int(1, 15);
         move(new_wolves,pop);
-        eat(rabbits);
+        eat();
         if (!pop.canAddWolf(static_cast<int>(new_wolves.size()))) return;
         reproduce(wolves, new_wolves);
     }
 
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.wolves;
+        return chunk.Animal;
     }
 
     void addToChunk(Chunk& chunk) override {
-        chunk.wolves.push_back(weak_from_this());
+        chunk.Animal.push_back(weak_from_this());
     }
 };
 
@@ -762,7 +785,7 @@ public:
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
 
-        for (auto& w : chunk_grid[base_cx][base_cy].rats) {
+        for (auto& w : chunk_grid[base_cx][base_cy].Animal) {
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
@@ -826,7 +849,7 @@ public:
 
             if (chunk.grass.growth < 0) chunk.grass.growth = 0;
         }
-        for (auto& w : chunk_grid[base_cx][base_cy].bushes) {
+        for (auto& w : chunk_grid[base_cx][base_cy].Plant) {
             if (auto partner = w.lock()) {
                 if (partner->dead || partner->berry_count == 0) continue;
 
@@ -868,11 +891,11 @@ public:
 
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.rats;
+        return chunk.Animal;
     }
 
     void addToChunk(Chunk& chunk) override {
-        chunk.rats.push_back(weak_from_this());
+        chunk.Animal.push_back(weak_from_this());
     }
 };
 
@@ -880,12 +903,13 @@ class Eagle : public Creature {
 public:
     Eagle() : Creature(type_::eagle) {
         gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
-        eating_range = 10;
+        eating_range = 50;
         age = 0;
         maturity_age = 2000;
         age_limit = 4000;
         hunger_limit = 1000;
         hunger = 0;
+        nutritional_value = 1000;
     }
 
     bool isDirectionSelect = false;
@@ -929,7 +953,7 @@ public:
 
         // --- выбираем цель
         if (isHunger) {
-            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::rat, 10, false, gender);
+            std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::eagle, 10, false, gender);
             float rabbitX = targetRabbit.first;
             float rabbitY = targetRabbit.second;
             if (rabbitX != -5000.0f) {
@@ -1000,7 +1024,7 @@ public:
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
 
-        for (auto& w : chunk_grid[base_cx][base_cy].eagles) {
+        for (auto& w : chunk_grid[base_cx][base_cy].Animal) {
             if (auto partner = w.lock()) {
                 if (partner.get() == this || partner->dead) continue;
                 if (partner->gender == gender) continue;
@@ -1047,25 +1071,47 @@ public:
         }
     }
 
-    void eat(std::vector<std::shared_ptr<Rat>>& rats) {
-        if (hunger <= 10 || dead) return;
-        int base_cx = coord_to_chunkx(x);
-        int base_cy = coord_to_chunky(y);
-        for (auto& w : chunk_grid[base_cx][base_cy].rats) {
-            if (auto partner = w.lock()) {
-                if (partner->dead) continue;
+    void eat() {
+        bool isHunger = hunger > 500;
+        if (!isHunger) return;
 
-                // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
+        std::pair<float, float> targetRabbit = searchNearestCreature(x, y, type_::eagle, 2, false, gender);
+        float rabbitX = targetRabbit.first;
+        float rabbitY = targetRabbit.second;
+        int base_cx = coord_to_chunkx(rabbitX);
+        int base_cy = coord_to_chunky(rabbitY);
 
-                if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    partner->dead = true;
-                    break;
+
+        if (rabbitX != -5000.0f) {
+            float dx = torusDelta(x, rabbitX, base_rangex);
+            float dy = torusDelta(y, rabbitY, base_rangey);
+
+            for (auto& w : chunk_grid[base_cx][base_cy].Animal) {
+                if (auto partner = w.lock()) {
+                    if (partner->type == type)continue;
+                    if (partner->dead) continue;
+                    float d = std::sqrt(dx * dx + dy * dy);
+                    if (d < eating_range ) {
+
+                        if (partner->nutritional_value <= nutritional_value) {
+                            hunger -= partner->nutritional_value;
+                            partner->dead = true;
+                            isDirectionSelect = false;
+                            break;
+                        }
+                        else if (partner->nutritional_value > nutritional_value) {
+                            dead = true;
+                            partner->nutritional_value -= nutritional_value;
+                            break;
+                        }
+                        nextPositionX = (dx / d) * move_range;
+                        nextPositionY = (dy / d) * move_range;
+                        isDirectionSelect = false;
+                    }
+
                 }
             }
+
         }
     }
 
@@ -1075,24 +1121,23 @@ public:
 
     void process(std::vector<std::shared_ptr<Eagle>>& eagles,
         std::vector<std::shared_ptr<Eagle>>& new_eagles,
-        std::vector<std::shared_ptr<Rat>>& rats,
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
         move_range = Random::Int(1, 15);
         move(new_eagles, pop);
-        eat(rats);
+        eat();
         if (!pop.canAddEagle(static_cast<int>(new_eagles.size()))) return;
         reproduce(eagles, new_eagles);
     }
 
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.eagles;
+        return chunk.Animal;
     }
 
     void addToChunk(Chunk& chunk) override {
-        chunk.eagles.push_back(weak_from_this());
+        chunk.Animal.push_back(weak_from_this());
     }
 };
 

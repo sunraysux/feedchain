@@ -1,21 +1,17 @@
 struct Chunk {
-    std::vector<std::weak_ptr<Creature>> trees;
-    std::vector<std::weak_ptr<Creature>> rabbits;
-    std::vector<std::weak_ptr<Creature>> wolves;
-    std::vector<std::weak_ptr<Creature>> bushes;
-    std::vector<std::weak_ptr<Creature>> eagles;
-    std::vector<std::weak_ptr<Creature>> rats;
+    std::vector<std::weak_ptr<Creature>> Plant;
+    std::vector<std::weak_ptr<Creature>> Animal;
     Grass grass;
     bool water;
     // Поиск ближайшего существа указанного типа
     std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly,gender_ gender) const {
         switch (creatureType) {
-        case type_::rabbit: return nearest_mature_creature(rabbits, x, y, matureOnly,gender);
-        case type_::wolf:   return nearest_mature_creature(wolves, x, y, matureOnly, gender);
-        case type_::tree:   return nearest_mature_creature(trees, x, y, matureOnly, gender);
-        case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly, gender);
-        case type_::eagle: return nearest_mature_creature(eagles, x, y, matureOnly, gender);
-        case type_::rat: return nearest_mature_creature(rats, x, y, matureOnly, gender);
+        case type_::rabbit: return nearest_mature_creature(Animal, type_::rabbit, x, y, matureOnly,gender);
+        case type_::wolf:   return nearest_mature_creature(Animal, type_::wolf, x, y, matureOnly, gender);
+        case type_::tree:   return nearest_mature_creature(Plant, type_::tree, x, y, matureOnly, gender);
+        case type_::bush: return nearest_mature_creature(Plant, type_::bush, x, y, matureOnly, gender);
+        case type_::eagle: return nearest_mature_creature(Animal, type_::eagle, x, y, matureOnly, gender);
+        case type_::rat: return nearest_mature_creature(Animal, type_::rat, x, y, matureOnly, gender);
         default: return { -5000.0f, -5000.0f };
         }
     }
@@ -23,6 +19,7 @@ struct Chunk {
     template<typename T>
     std::pair<float, float> nearest_mature_creature(
         const std::vector<std::weak_ptr<T>>& creatures,
+        type_ type,
         float x, float y,
         bool matureOnly,
         gender_ gender
@@ -33,20 +30,26 @@ struct Chunk {
 
         for (auto& w : creatures) {
             if (auto c = w.lock()) {
-                if (matureOnly) {
 
-                    // Проверки только для поиска партнера
+                if (matureOnly) {
+                    // Ищем партнёра того же типа
+                    if (c->type != type) continue;
+
+                    // Доп. проверки для размножения
                     if (c->age < c->maturity_age ||
                         gender == c->gender ||
-                        (currentTime - c->birth_time) < 200.0f) {
+                        (currentTime - c->birth_time) < 200.0f)
+                    {
                         continue;
                     }
                 }
-                                        
-                if (c->blossoming_age != 0) {
-                    if (c->berry_count == 0) {
-                        return std::make_pair(-5000.0f, -5000.0f);
-                    }
+                else {
+                    // Ищем еду — все типы кроме своего
+                    if (c->type == type) continue;
+
+                    // Доп. фильтр для растений без ягод
+                    if (c->blossoming_age != 0 && c->berry_count == 0)
+                        continue;
                 }
                 ///
 
@@ -63,6 +66,7 @@ struct Chunk {
                 }
             }
         }
+    
 
         return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-5000.0f, -5000.0f);
     }
@@ -187,12 +191,8 @@ void kill_creatures_in_radius(float center_x, float center_y, float radius) {
                 };
 
             // Проверяем все типы существ
-            check_creatures(chunk.trees);
-            check_creatures(chunk.rabbits);
-            check_creatures(chunk.wolves);
-            check_creatures(chunk.bushes);
-            check_creatures(chunk.eagles);
-            check_creatures(chunk.rats);
+            check_creatures(chunk.Plant);
+            check_creatures(chunk.Animal);
         }
     }
 }
@@ -223,13 +223,19 @@ std::pair<float, float> searchNearestCreature(
                 best_dx = dx;
                 best_dy = dy;
                 found = true;
+
             }
         }
         };
 
     // Проверяем центр
-    checkChunk(chunk_grid[center_cx][center_cy]);
 
+    checkChunk(chunk_grid[center_cx][center_cy]);
+    if (found) {
+        float targetX = Wrap(x + best_dx, base_rangex);
+        float targetY = Wrap(y + best_dy, base_rangey);
+        return { targetX, targetY };
+    }
     // Кольца вокруг центра
     for (int ring = 1; ring <= max_chunk_radius; ++ring) {
         int R = CHUNK_SIZE * ring;

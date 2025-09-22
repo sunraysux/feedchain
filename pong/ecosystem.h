@@ -40,9 +40,9 @@ void ProcessCreatures(PopulationManager& pop) {
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
     for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
-    for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
+    for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, pop);
     for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
-    for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
+    for (auto& eagle : eagles) eagle->process(eagles, new_eagles, pop);
 
 
     auto remove_dead = [](auto& container, int& counter) {
@@ -137,8 +137,9 @@ void InitGame() {
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
         tree->age = 0;
-        tree->updateChunk();
+        
         trees.push_back(tree);
+        tree->updateChunk();
         population.tree_count++;
     }
     for (int i = 0; i < 0; i++) {
@@ -146,8 +147,9 @@ void InitGame() {
         bush-> y = Random::Int(-100, 100);
         bush-> x = Random::Int(-100, 100);
         bush->age = Random::Int(0, 1000);
-        bush->updateChunk();
+        
         bushes.push_back(bush);
+        bush->updateChunk();
         population.bush_count++;
     }
    // Начальные кролики
@@ -529,6 +531,21 @@ void ShowGrow() {
     DrawBatchedInstances(5, midGrowthInstances);
     DrawBatchedInstances(4, highGrowthInstances);
 }
+
+std::vector<std::weak_ptr<Creature>> filterByType(
+    const std::vector<std::weak_ptr<Creature>>& list,
+    type_ t)
+{
+    std::vector<std::weak_ptr<Creature>> out;
+    out.reserve(list.size());
+    for (auto& w : list) {
+        if (auto sp = w.lock()) {
+            if (sp->type == t) out.push_back(w);
+        }
+    }
+    return out;
+}
+
 void ShowRacketAndBall() {
     Shaders::vShader(0);
     Shaders::pShader(0);
@@ -670,12 +687,30 @@ void ShowRacketAndBall() {
     int bush_arr[] = { 7,13,14 };
     int eagle_arr[] = {8,16};
     int rat_arr[] = {17,15};
-    drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
-    drawVirusCheack(rat_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
-    drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
-    drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
-    drawAnimals(eagle_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.eagles; }, SIZEAGLES);
-    drawPlant(tree_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.trees; }, SIZETREES);
+   
+    drawPlant(bush_arr, [](const Chunk& c) {
+        return filterByType(c.Plant, type_::bush);
+        }, SIZEBUSHES);
+
+    drawVirusCheack(rat_arr, [](const Chunk& c) {
+        return filterByType(c.Animal, type_::rat);
+        }, SIZERATS);
+
+    drawCreatures(2, [](const Chunk& c) {
+        return filterByType(c.Animal, type_::rabbit);
+        }, SIZERABBITS);
+
+    drawCreatures(3, [](const Chunk& c) {
+        return filterByType(c.Animal, type_::wolf);
+        }, SIZEWOLFS);
+
+    drawAnimals(eagle_arr, [](const Chunk& c) {
+        return filterByType(c.Animal, type_::eagle);
+        }, SIZEAGLES);
+
+    drawPlant(tree_arr, [](const Chunk& c) {
+        return filterByType(c.Plant, type_::tree);
+        }, SIZETREES);
     
 }
 
