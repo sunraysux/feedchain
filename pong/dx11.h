@@ -1091,7 +1091,7 @@ namespace Draw
 		ConstBuf::Update(1, ConstBuf::drawerP);
 		ConstBuf::ConstToPixel(1);
 
-		context->DrawInstanced(quadCount * 36, instances, 0, 0);
+		context->DrawInstanced(quadCount * 42, instances, 0, 0);
 	}
 
 	void Cursor()
@@ -1114,7 +1114,7 @@ namespace Draw
 
 void frameConst()
 {
-	ConstBuf::frame.time = XMFLOAT4{ (float)(timer::frameBeginTime * .01) ,0,0,0 };
+	ConstBuf::frame.time = XMFLOAT4{ (float)(tick)/2 ,0,0,0 };
 	ConstBuf::frame.aspect = XMFLOAT4{ aspect,iaspect, float(window.width), float(window.height) };
 	ConstBuf::UpdateFrame();
 }

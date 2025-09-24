@@ -16,9 +16,10 @@ int seed = 0;
 int tick = 0;
 int gameSpeed = 3;
 static int ticloop = 0;
+float SIZEGRASS = 50;
 float SIZEWOLFS = 100.0f;
-float SIZETREES = 10.0f;
-float SIZEBUSHES = 10.0f;
+float SIZETREES = 100.0f;
+float SIZEBUSHES = 50.0f;
 float SIZERABBITS = 100.0f;
 float SIZEAGLES = 100.0f;
 float SIZERATS = 100.0f;
@@ -84,7 +85,7 @@ inline float WrapY(float y)
     while (y > base_rangey) y -= size;
     return y;
 }
-const int CHUNK_SIZE = 32; // Размер чанка
+const int CHUNK_SIZE = 8; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  
@@ -138,7 +139,9 @@ public:
     int wolf_count = 0;
     int bush_count = 0;
     int eagle_count = 0;
+    int grass_count = 0;
     int rat_count = 0;
+    const int grass_limit = 5000;
     const int wolf_limit = 100;
     const int rabbit_limit = 500;
     const int tree_limit = 500;
@@ -167,14 +170,18 @@ public:
     bool canAddRat(int pending = 0) const {
         return rat_count + pending < rat_limit;
     }
+    bool canAddGrass(int pending = 0) const {
+        return grass_count + pending < grass_limit;
+    }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_grass) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
         bush_count += delta_bushes;
         eagle_count += delta_eagles;
         rat_count += delta_rats;
+        grass_count += delta_grass;
     }
 };
 
@@ -184,11 +191,11 @@ extern std::vector<std::vector<Chunk>> chunk_grid(
     CHUNKS_PER_SIDEX,
     std::vector<Chunk>(CHUNKS_PER_SIDEY)
 );
-struct Grass {
-    float growthLevel = 1.0f;
-    float growth = 100;
-    int maxGrowth = 100;
-};
+//struct Grass {
+//    float growthLevel = 1.0f;
+//    float growth = 100;
+//    int maxGrowth = 100;
+//};
 
 inline float distanceSquared(float x1, float y1, float x2, float y2) {
     float dx = x1 - x2;
@@ -230,7 +237,17 @@ public:
                 }),
             container.end()
         );
+        auto& container2 = getChunkContainer2(chunk);
 
+        // Удаляем weak_ptr, указывающий на текущий объект
+        container2.erase(
+            std::remove_if(container2.begin(), container2.end(),
+                [this](const std::weak_ptr<Creature>& wp) {
+                    auto sp = wp.lock();
+                    return !sp || sp.get() == this;
+                }),
+            container2.end()
+        );
         current_chunk_x = -1;
         current_chunk_y = -1;
     }
@@ -254,7 +271,7 @@ public:
 protected:
     // Виртуальный метод для получения нужного контейнера в чанке
     virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) = 0;
-
+    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) = 0;
     // Виртуальный метод для добавления в чанк (уже объявлен)
     virtual void addToChunk(Chunk& chunk) = 0;
 };

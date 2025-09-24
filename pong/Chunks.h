@@ -1,11 +1,14 @@
 struct Chunk {
     std::vector<std::weak_ptr<Creature>> trees;
+    std::vector<std::weak_ptr<Creature>> Plants;
+    std::vector<std::weak_ptr<Creature>> Animals;
+    std::vector<std::weak_ptr<Creature>> grass;
     std::vector<std::weak_ptr<Creature>> rabbits;
     std::vector<std::weak_ptr<Creature>> wolves;
     std::vector<std::weak_ptr<Creature>> bushes;
     std::vector<std::weak_ptr<Creature>> eagles;
     std::vector<std::weak_ptr<Creature>> rats;
-    Grass grass;
+    //Grass grass;
     bool water;
     // ѕоиск ближайшего существа указанного типа
     std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly,gender_ gender) const {
@@ -16,6 +19,7 @@ struct Chunk {
         case type_::bush: return nearest_mature_creature(bushes, x, y, matureOnly, gender);
         case type_::eagle: return nearest_mature_creature(eagles, x, y, matureOnly, gender);
         case type_::rat: return nearest_mature_creature(rats, x, y, matureOnly, gender);
+        case type_::grass: return nearest_mature_creature(grass, x, y, matureOnly, gender);
         default: return { -5000.0f, -5000.0f };
         }
     }
@@ -99,56 +103,56 @@ struct Chunk {
         return count;
     }
 
-    bool Grassneightboor() {
-        return grass.growth > 80;
-    }
-
-    void UpdateGrassGrowth(int x, int y) {
-        float growthSpeed = 1.0f;
-        int N = 0;
-        if (grass.growth <= 0) {
-            // ѕолучаем мировые координаты центра текущего чанка
-            float world_center_x = (x + 0.5f) * CHUNK_SIZE - base_rangex;
-            float world_center_y = (y + 0.5f) * CHUNK_SIZE - base_rangey;
-
-            for (int i = -1; i <= 1; ++i) {
-                for (int j = -1; j <= 1; ++j) {
-                    // ѕропускаем текущий чанк
-                    if (i == 0 && j == 0) continue;
-                    if (i == 1 && j == 1) continue;
-                    if (i == -1 && j == -1) continue;
-                    if (i == -1 && j == 1) continue;
-                    if (i == 1 && j == -1) continue;
-                    // ¬ычисл€ем мировые координаты соседнего чанка
-                    float neighbor_x = world_center_x + i * CHUNK_SIZE;
-                    float neighbor_y = world_center_y + j * CHUNK_SIZE;
-
-                    // ќборачиваем координаты, если они выход€т за границы мира
-                    neighbor_x = Wrap(neighbor_x, base_rangex);
-                    neighbor_y = Wrap(neighbor_y, base_rangey);
-
-                    // ѕреобразуем мировые координаты в индексы чанков
-                    int ncx = coord_to_chunkx(neighbor_x);
-                    int ncy = coord_to_chunky(neighbor_y);
-
-                    // ѕровер€ем, что индексы в пределах массива
-                    if (ncx >= 0 && ncx < CHUNKS_PER_SIDEX &&
-                        ncy >= 0 && ncy < CHUNKS_PER_SIDEY) {
-
-                        if (chunk_grid[ncx][ncy].Grassneightboor()) {
-                            N += 1;
-                        }
-                    }
-                }
-            }
-
-            grass.growth += growthSpeed * N;
-            return;
-        }
-
-        if (grass.growth < grass.maxGrowth && grass.growth>0) grass.growth += growthSpeed;
-
-    }
+    //bool Grassneightboor() {
+    //    return grass.growth > 80;
+    //}
+    //
+    //void UpdateGrassGrowth(int x, int y) {
+    //    float growthSpeed = 1.0f;
+    //    int N = 0;
+    //    if (grass.growth <= 0) {
+    //        // ѕолучаем мировые координаты центра текущего чанка
+    //        float world_center_x = (x + 0.5f) * CHUNK_SIZE - base_rangex;
+    //        float world_center_y = (y + 0.5f) * CHUNK_SIZE - base_rangey;
+    //
+    //        for (int i = -1; i <= 1; ++i) {
+    //            for (int j = -1; j <= 1; ++j) {
+    //                // ѕропускаем текущий чанк
+    //                if (i == 0 && j == 0) continue;
+    //                if (i == 1 && j == 1) continue;
+    //                if (i == -1 && j == -1) continue;
+    //                if (i == -1 && j == 1) continue;
+    //                if (i == 1 && j == -1) continue;
+    //                // ¬ычисл€ем мировые координаты соседнего чанка
+    //                float neighbor_x = world_center_x + i * CHUNK_SIZE;
+    //                float neighbor_y = world_center_y + j * CHUNK_SIZE;
+    //
+    //                // ќборачиваем координаты, если они выход€т за границы мира
+    //                neighbor_x = Wrap(neighbor_x, base_rangex);
+    //                neighbor_y = Wrap(neighbor_y, base_rangey);
+    //
+    //                // ѕреобразуем мировые координаты в индексы чанков
+    //                int ncx = coord_to_chunkx(neighbor_x);
+    //                int ncy = coord_to_chunky(neighbor_y);
+    //
+    //                // ѕровер€ем, что индексы в пределах массива
+    //                if (ncx >= 0 && ncx < CHUNKS_PER_SIDEX &&
+    //                    ncy >= 0 && ncy < CHUNKS_PER_SIDEY) {
+    //
+    //                    if (chunk_grid[ncx][ncy].Grassneightboor()) {
+    //                        N += 1;
+    //                    }
+    //                }
+    //            }
+    //        }
+    //
+    //        grass.growth += growthSpeed * N;
+    //        return;
+    //    }
+    //
+    //    if (grass.growth < grass.maxGrowth && grass.growth>0) grass.growth += growthSpeed;
+    //
+    //}
 };
 // ‘ункци€ дл€ проверки и уничтожени€ существ в радиусе от курсора
 void kill_creatures_in_radius(float center_x, float center_y, float radius) {

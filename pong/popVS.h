@@ -48,21 +48,22 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     VS_OUTPUT output = (VS_OUTPUT)0;
 
     // ќпредел€ем позиции и высоты дл€ каждой полоски
-    float barPositions[6] = { -0.99, -0.98, -0.97, -0.96, -0.95, -0.94 };
-    float barHeights[6] = {
+    float barPositions[7] = { -0.99, -0.98, -0.97, -0.96, -0.95, -0.94,-0.93 };
+    float barHeights[7] = {
         gConst[0].x - 1,  // rabbitRatio
         gConst[0].y - 1,  // treeRatio
         gConst[0].z - 1,  // wolfRatio
         gConst[0].w - 1,  // bushRatio
         gConst[1].x - 1,  // ratRatio
-        gConst[1].y - 1   // eagleRatio
+        gConst[1].y - 1,
+        gConst[1].z - 1 // eagleRatio
     };
 
     // ќпредел€ем какую полоску и какой vertex в ней рисуем
     uint barIndex = vID / 6;      // 6 вершин на полоску (2 треугольника)
     uint vertexInBar = vID % 6;   // Ќомер вершины внутри полоски
 
-    if (barIndex >= 6) {
+    if (barIndex >= 7) {
         output.pos = float4(0, 0, 0, 1);
         return output;
     }

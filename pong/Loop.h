@@ -61,21 +61,21 @@ void Loop() {
 	ticloop++;
 	switch (gameSpeed) {
 	case 1: // 0.25x → раз в 4 кадра
-		if (ticloop >= 4) { ProcessCreatures(population); UpdateAllGrass(); ticloop = 0; }
+		if (ticloop >= 4) { ProcessCreatures(population);  ticloop = 0; }
 		break;
 	case 2: // 0.5x → раз в 2 кадра
-		if (ticloop >= 2) { ProcessCreatures(population); UpdateAllGrass(); ticloop = 0; }
+		if (ticloop >= 2) { ProcessCreatures(population);  ticloop = 0; }
 		break;
 	case 3: // 1x → каждый кадр
-		ProcessCreatures(population); UpdateAllGrass(); ticloop = 0;
+		ProcessCreatures(population);  ticloop = 0;
 		break;
 	case 4: // 2x → два раза за кадр
-		ProcessCreatures(population); UpdateAllGrass();
-		ProcessCreatures(population); UpdateAllGrass();
+		ProcessCreatures(population); 
+		ProcessCreatures(population);
 		ticloop = 0;
 		break;
 	case 5: // 4x → четыре раза за кадр
-		for (int i = 0; i < 10; i++) { ProcessCreatures(population); UpdateAllGrass(); }
+		for (int i = 0; i < 10; i++) { ProcessCreatures(population);  }
 		ticloop = 0;
 		break;
 	}
@@ -85,7 +85,7 @@ void Loop() {
 	ShowRacketAndBall();
 
 	Showpopulations();
-	UpdateAllGrass();
+	//UpdateAllGrass();
 
 	//mouse2();
 
@@ -99,12 +99,12 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX*2, (float)CHUNKS_PER_SIDEY*2, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX*2, (float)CHUNKS_PER_SIDEY*4, 0, 0);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(10, 0, vertex);
-	Draw::NullDrawer(32768 / 2);
+	Draw::NullDrawer(32768 *16);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);
@@ -139,7 +139,6 @@ void Looppause() {
 	ShowRacketAndBall();
 
 	Showpopulations();
-	UpdateAllGrass();
 
 	//mouse2();
 
@@ -153,15 +152,15 @@ void Looppause() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX * 2, (float)CHUNKS_PER_SIDEY * 2, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX*2, (float)CHUNKS_PER_SIDEY*4, 0, 0);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(10, 0, vertex);
-	Draw::NullDrawer(32768 / 2);
+	Draw::NullDrawer(32768 *16);
 
 	//Depth::Depth(Depth::depthmode::readonly);
-	//Textures::RenderTarget(0, 0);
+	//Textures::RenderTarget(0, 0);3
 	//Depth::SetWaterRasterizer();
 
 

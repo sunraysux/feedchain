@@ -180,6 +180,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case '6': currentType = type_::rat;       break;
             case '7': currentType = type_::lightning; break;
+            case '8': currentType = type_::grass; break;
 
             case VK_ESCAPE:
                 PostQuitMessage(0);

@@ -41,13 +41,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     // высота
     float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    p.z = gConst[iID].w;
     float heightScale = height * 7;
     p.z = height * heightScale * heightScale * heightScale;
     //p.z = height * heightScale ;
 
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0, 0, 1); // Z - это высота
+    float3 cameraUp = float3(0,0,gConst[iID].w); // Z - это высота
 
     float3 bottomLeft = p + cameraRight * sz ;
     float3 bottomRight = p - cameraRight * sz ;

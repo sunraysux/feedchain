@@ -15,13 +15,13 @@ void checkButtons() {
         gameState = gameState_::game;
     }
 }
-void UpdateAllGrass() {
-    for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-        for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
-            chunk_grid[cx][cy].UpdateGrassGrowth(cx,cy);
-        }
-    }
-}
+//void UpdateAllGrass() {
+//    for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+//        for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
+//            chunk_grid[cx][cy].UpdateGrassGrowth(cx,cy);
+//        }
+//    }
+//}
 void ProcessCreatures(PopulationManager& pop) {
     tick++;
     int dead_rabbits = 0;
@@ -30,20 +30,22 @@ void ProcessCreatures(PopulationManager& pop) {
     int dead_eagles = 0;
     int dead_bushes = 0;
     int dead_rats = 0;
+    int dead_grass = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
     std::vector<std::shared_ptr<Bush>> new_bushes;
     std::vector<std::shared_ptr<Eagle>> new_eagles;
     std::vector<std::shared_ptr<Rat>> new_rats;
+    std::vector<std::shared_ptr<Grass>> new_grass;
 
-    for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, trees, pop);
+    for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, pop);
     for (auto& tree : trees) tree->process(trees, new_trees, pop);
     for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
     for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
     for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
-
+    for (auto& gras : grass) gras->process(grass, new_grass, pop);
 
     auto remove_dead = [](auto& container, int& counter) {
         using ContainerType = typename std::remove_reference<decltype(container)>::type;
@@ -70,7 +72,7 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(bushes, dead_bushes);
     remove_dead(eagles, dead_eagles);
     remove_dead(rats, dead_rats);
-
+    remove_dead(grass, dead_grass);
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
         dest.reserve(dest.size() + src.size());
@@ -86,7 +88,8 @@ void ProcessCreatures(PopulationManager& pop) {
         static_cast<int>(new_wolfs.size()) - dead_wolfs,
         static_cast<int>(new_bushes.size()) - dead_bushes,
         static_cast<int>(new_eagles.size()) - dead_eagles,
-        static_cast<int>(new_rats.size()) - dead_rats
+        static_cast<int>(new_rats.size()) - dead_rats,
+        static_cast<int>(new_grass.size()) - dead_grass
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolves, new_wolfs);
@@ -94,6 +97,7 @@ void ProcessCreatures(PopulationManager& pop) {
     add_new_entities(bushes, new_bushes);
     add_new_entities(eagles, new_eagles);
     add_new_entities(rats, new_rats);
+    add_new_entities(grass, new_grass);
 
 }
 //инициализация игры
@@ -131,6 +135,9 @@ void InitGame() {
     Textures::LoadTextureFromFile(16, L"Debug/eagleFemale.png");
     Textures::LoadTextureFromFile(17, L"Debug/infectRat.png");
     Textures::LoadTextureFromFile(18, L"Debug/lightning.png");
+    Textures::LoadTextureFromFile(19, L"Debug/трава1.png");
+    Textures::LoadTextureFromFile(20, L"Debug/трава2.png");
+    Textures::LoadTextureFromFile(21, L"Debug/трава3.png");
     // Начальные растения
     for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
@@ -188,19 +195,29 @@ void InitGame() {
        rats.push_back(rat);
        population.rat_count++;
    }
+   for (int i = 0; i < 0; i++) {
+       auto gras = std::make_shared<Grass>();
+       gras->y = Random::Int(-base_rangey, base_rangey);
+       gras->x = Random::Int(-base_rangex, base_rangex);
+       gras->age = 0;
+       gras->updateChunk();
+       grass.push_back(gras);
+       population.grass_count++;
+   }
 }
 
 type_ currentType = type_::wolf; // по умолчанию волк
 
-void HandleCreatureSelection() {
-    if (GetAsyncKeyState('1') & 0x8000) currentType = type_::wolf;
-    if (GetAsyncKeyState('2') & 0x8000) currentType = type_::rabbit;
-    if (GetAsyncKeyState('3') & 0x8000) currentType = type_::tree;
-    if (GetAsyncKeyState('4') & 0x8000) currentType = type_::bush;
-    if (GetAsyncKeyState('5') & 0x8000) currentType = type_::eagle;
-    if (GetAsyncKeyState('6') & 0x8000) currentType = type_::rat;
-    if (GetAsyncKeyState('7') & 0x8000) currentType = type_::lightning;
-}
+//void HandleCreatureSelection() {
+//    if (GetAsyncKeyState('1') & 0x8000) currentType = type_::wolf;
+//    if (GetAsyncKeyState('2') & 0x8000) currentType = type_::rabbit;
+//    if (GetAsyncKeyState('3') & 0x8000) currentType = type_::tree;
+//    if (GetAsyncKeyState('4') & 0x8000) currentType = type_::bush;
+//    if (GetAsyncKeyState('5') & 0x8000) currentType = type_::eagle;
+//    if (GetAsyncKeyState('6') & 0x8000) currentType = type_::rat;
+//    if (GetAsyncKeyState('7') & 0x8000) currentType = type_::lightning;
+//    if (GetAsyncKeyState('8') & 0x8000) currentType = type_::grass;
+//}
 
 void drawCursor()
 {
@@ -230,7 +247,9 @@ void drawCursor()
         case type_::lightning:
             texture = Textures::Texture[18].TextureResView;
             break;
-
+        case type_::grass:
+            texture = Textures::Texture[19].TextureResView;
+            break;
 
         }
 
@@ -269,7 +288,9 @@ void drawCursor()
         case type_::lightning:
             texture = Textures::Texture[18].TextureResView;
             break;
-
+        case type_::grass:
+            texture = Textures::Texture[19].TextureResView;
+            break;
 
         }
 
@@ -322,6 +343,7 @@ void mouse()
         std::vector<std::shared_ptr<Bush>> new_bushes;
         std::vector<std::shared_ptr<Eagle>> new_eagles;
         std::vector<std::shared_ptr<Rat>> new_rats;
+        std::vector<std::shared_ptr<Grass>> new_grass;
 
         auto add_new_entities = [](auto& dest, auto& src) {
             dest.reserve(dest.size() + src.size());
@@ -369,6 +391,18 @@ void mouse()
             }
             break;
         }
+        case type_::grass: {
+            if (population.canAddGrass(static_cast<int>(new_grass.size()))) {
+                auto gras = std::make_shared<Grass>();
+                gras->y = Wrap(Camera::state.mouseY, base_rangey);
+                gras->x = Wrap(Camera::state.mouseX, base_rangex);
+                gras->age = 0;
+                gras->updateChunk();
+                new_grass.push_back(gras);
+                population.grass_count++;
+            }
+            break;
+        }
         case type_::bush: {
             if (population.canAddBush(static_cast<int>(new_bushes.size()))) {
                 auto bush = std::make_shared<Bush>();
@@ -411,7 +445,7 @@ void mouse()
         }
         }
         
-
+        add_new_entities(grass, new_grass);
         add_new_entities(rabbits, new_rabbits);
         add_new_entities(wolves, new_wolfs);
         add_new_entities(trees, new_trees);
@@ -465,6 +499,10 @@ void Showpopulations() {
         static_cast<float>(population.eagle_count) * 2 / population.eagle_limit,                                 //
         2.0f                                                                                                 //
     );
+    float grassRatio = min(                                                                                  //
+        static_cast<float>(population.grass_count) * 2 / population.grass_limit,                                 //
+        2.0f                                                                                                 //
+    );
 
     ConstBuf::global[0] = XMFLOAT4(                                                                          //
         rabbitRatio,                                                                                         //
@@ -476,7 +514,7 @@ void Showpopulations() {
     ConstBuf::global[1] = XMFLOAT4(                                                                          //
         ratRatio,                                                                                         //
         eagleRatio,
-        0,
+        grassRatio,
         0
 
     );
@@ -525,49 +563,49 @@ auto isVisible = [&](float x, float y) -> bool {
         ndcY >= -1.0f && ndcY <= 1.0f &&
         ndcZ >= 0.0f && ndcZ <= 1.0f);
     };
-void ShowGrow() {
-    Shaders::vShader(5);
-    Shaders::pShader(0);
-    // Векторы для разных групп травы
-    std::vector<XMFLOAT4> lowGrowthInstances;
-    std::vector<XMFLOAT4> midGrowthInstances;
-    std::vector<XMFLOAT4> highGrowthInstances;
-
-    // Собираем траву по чанкам
-    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-            const Chunk& chunk = chunk_grid[cx][cy];
-            int x1 = cx * CHUNK_SIZE - base_rangex;
-            int y1 = cy * CHUNK_SIZE - base_rangey;
-            int x2 = x1 + CHUNK_SIZE;
-            int y2 = y1 + CHUNK_SIZE;
-            float worldWidth = base_rangex * 2.0f;
-            float worldHeight = base_rangey * 2.0f;
-          //  if (isVisible(x1, y1)) {
-
-                XMFLOAT4 rect(x1, y1, CHUNK_SIZE, 0);
-                if (chunk.grass.growth < 33) {
-                    lowGrowthInstances.push_back(rect);
-                }
-                else if (chunk.grass.growth < 66) {
-                    midGrowthInstances.push_back(rect);
-                }
-                else {
-                    highGrowthInstances.push_back(rect);
-
-
-
-               // }
-            }
-        }
-
-
-    }
-    // Отрисовываем траву батчами
-    DrawBatchedInstances(6, lowGrowthInstances);
-    DrawBatchedInstances(5, midGrowthInstances);
-    DrawBatchedInstances(4, highGrowthInstances);
-}
+//void ShowGrow() {
+//    Shaders::vShader(5);
+//    Shaders::pShader(0);
+//    // Векторы для разных групп травы
+//    std::vector<XMFLOAT4> lowGrowthInstances;
+//    std::vector<XMFLOAT4> midGrowthInstances;
+//    std::vector<XMFLOAT4> highGrowthInstances;
+//
+//    // Собираем траву по чанкам
+//    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
+//        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
+//            const Chunk& chunk = chunk_grid[cx][cy];
+//            int x1 = cx * CHUNK_SIZE - base_rangex;
+//            int y1 = cy * CHUNK_SIZE - base_rangey;
+//            int x2 = x1 + CHUNK_SIZE;
+//            int y2 = y1 + CHUNK_SIZE;
+//            float worldWidth = base_rangex * 2.0f;
+//            float worldHeight = base_rangey * 2.0f;
+//          //  if (isVisible(x1, y1)) {
+//
+//                XMFLOAT4 rect(x1, y1, CHUNK_SIZE, 0);
+//                if (chunk.grass.growth < 33) {
+//                    lowGrowthInstances.push_back(rect);
+//                }
+//                else if (chunk.grass.growth < 66) {
+//                    midGrowthInstances.push_back(rect);
+//                }
+//                else {
+//                    highGrowthInstances.push_back(rect);
+//
+//
+//
+//               // }
+//            }
+//        }
+//
+//
+//    }
+//    // Отрисовываем траву батчами
+//    DrawBatchedInstances(6, lowGrowthInstances);
+//    DrawBatchedInstances(5, midGrowthInstances);
+//    DrawBatchedInstances(4, highGrowthInstances);
+//}
 void ShowRacketAndBall() {
     Shaders::vShader(0);
     Shaders::pShader(0);
@@ -591,7 +629,7 @@ void ShowRacketAndBall() {
 
                         }*/
                         //if (isVisible(c->x, c->y)) {
-                            instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
+                            instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
                        // }
                     }   
                 }
@@ -616,13 +654,13 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                        // if (isVisible(c->x, c->y)) {
                             if (c->age > c->age_limit / 2) {
-                                bigInstances.emplace_back(c->x, c->y, c->age / ageScale, 0);
+                                bigInstances.emplace_back(c->x, c->y, c->age / ageScale, arr[0]);
                             }
                             else if (c->age > c->age_limit / 3) {
-                                standartInstances.emplace_back(c->x, c->y, c->age / ageScale, 0);
+                                standartInstances.emplace_back(c->x, c->y, c->age / ageScale, arr[0]);
                             }
                             else  {
-                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 5), 0);
+                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 1), arr[0]);
                             }
                        // }
                     }
@@ -632,9 +670,9 @@ void ShowRacketAndBall() {
         }
        
         
-        DrawBatchedInstances(arr[0], smallInstances);
-        DrawBatchedInstances(arr[1], standartInstances);
-        DrawBatchedInstances(arr[2], bigInstances);
+        DrawBatchedInstances(arr[1], smallInstances);
+        DrawBatchedInstances(arr[2], standartInstances);
+        DrawBatchedInstances(arr[3], bigInstances);
         };
     auto drawAnimals = [&](int arr[], auto&& getCreatureList, float ageScale) {
         std::vector<XMFLOAT4> maleInstances;
@@ -652,10 +690,10 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                        // if (isVisible(c->x, c->y)) {
                             if (c->gender == gender_::male) {
-                                maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
+                                maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
                             }
                             else if (c->gender == gender_::female) {
-                                femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
+                                femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
                             }
 
                        // }
@@ -686,10 +724,10 @@ void ShowRacketAndBall() {
                         float y2 = c->y + t;
                        // if (isVisible(c->x, c->y)) {
                             if (c->infect == true) {
-                                infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
+                                infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
                             }
                             else if (c->infect == false) {
-                                noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 0);
+                                noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
                             }
                       //  }
 
@@ -705,16 +743,19 @@ void ShowRacketAndBall() {
 
         };
 
-    int tree_arr[] = { 9,11,12 };
-    int bush_arr[] = { 7,13,14 };
+    int tree_arr[] = { 2,9,11,12 };
+    int bush_arr[] = {1,
+        7,13,14 };
     int eagle_arr[] = {8,16};
     int rat_arr[] = {17,15};
+    int grass_arr[] = { 1,19,20,21 };
     drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
     drawVirusCheack(rat_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
     drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
     drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
     drawAnimals(eagle_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.eagles; }, SIZEAGLES);
     drawPlant(tree_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.trees; }, SIZETREES);
+    drawPlant(grass_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.grass; }, SIZEGRASS);
     
 }
 
