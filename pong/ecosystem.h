@@ -566,6 +566,7 @@ void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instanc
         Draw::NullDrawer(1, static_cast<int>(count));
     }
 }
+// --- Одна текстура ---
 template<typename T, typename F>
 void DrawFromSharedVector(int textureIndex, const std::vector<std::shared_ptr<T>>& vec, F toInstance)
 {
@@ -657,9 +658,7 @@ void DrawInfectCheck(const int arr[2], const std::vector<std::shared_ptr<T>>& ve
 }
 
 
-    
-
-    // ----------------- Новая ShowRacketAndBall, рисующая из твоих векторов -----------------
+  
 void ShowRacketAndBallFromVectors(
     const std::vector<std::shared_ptr<Rabbit>>& rabbits,
     const std::vector<std::shared_ptr<Tree>>& trees,
@@ -672,22 +671,21 @@ void ShowRacketAndBallFromVectors(
     Shaders::vShader(0);
     Shaders::pShader(0);
 
-    // Массивы текстур, как у тебя раньше
     int tree_arr[] = { 2,9,11,12 };
     int bush_arr[] = { 1,7,13,14 };
-    int eagle_arr[] = {2, 8,16 };   // [male, female]
-    int rat_arr[] = { 17,15 };    // [infect, noinfect] — подставь верно если иначе
+    int eagle_arr[] = {2, 8,16 };
+    int rat_arr[] = { 17,15 };   
     int grass_arr[] = { 1,19,20,21 };
 
     // Рисуем: напрямую из векторов
-    DrawSimpleCreatures<Rabbit>(2, rabbits, SIZERABBITS);     // texture 2 для кроликов (как раньше)
-    DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);         // волки
+    DrawSimpleCreatures<Rabbit>(2, rabbits, SIZERABBITS);   
+    DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);        
 
-    DrawAnimalsByGender<Eagle>(eagle_arr, eagles, SIZEAGLES); // орлы по полу
-    DrawPlantsBySize<Tree>(tree_arr, trees, SIZETREES);      // деревья (мал/ст/больш)
-    DrawPlantsBySize<Bush>(bush_arr, bushes, SIZEBUSHES);    // кусты
-    DrawPlantsBySize<Grass>(grass_arr, grass, SIZEGRASS);    // трава
-    DrawInfectCheck<Rat>(rat_arr, rats, SIZERATS);           // крысы infect/noinfect
+    DrawAnimalsByGender<Eagle>(eagle_arr, eagles, SIZEAGLES);
+    DrawPlantsBySize<Tree>(tree_arr, trees, SIZETREES);      
+    DrawPlantsBySize<Bush>(bush_arr, bushes, SIZEBUSHES);    
+    DrawPlantsBySize<Grass>(grass_arr, grass, SIZEGRASS);    
+    DrawInfectCheck<Rat>(rat_arr, rats, SIZERATS);           
 }
 
 

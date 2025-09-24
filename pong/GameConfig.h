@@ -98,13 +98,11 @@ class Creature;
 
 class Random {
 public:
-    // mt19937 (как у тебя)
     static std::mt19937& GetGenerator() {
         static std::mt19937 gen{ std::random_device{}() };
         return gen;
     }
 
-    // Оригинальный API (оставляем)
     static float Float(float minVal, float maxVal) {
         std::uniform_real_distribution<float> dist(minVal, maxVal);
         return dist(GetGenerator());
@@ -148,7 +146,6 @@ public:
     }
 
     static inline float FastFloat(float minVal, float maxVal) {
-        // используем UINT32_MAX чтобы не столкнуться с макросами и получить constexpr-константу
         static const float invMax = 1.0f / static_cast<float>(UINT32_MAX);
         return minVal + (FastNext() * invMax) * (maxVal - minVal);
     }
