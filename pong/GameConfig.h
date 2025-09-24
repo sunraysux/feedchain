@@ -1,6 +1,7 @@
 ﻿#include <algorithm>
 #include <random> 
 #include <memory>
+#include <limits>
 enum class gameState_ {
     MainMenu, game, pause
 };
@@ -91,27 +92,70 @@ const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  
 class Creature;
 
+#include <random>
+#include <cstdint>
+#include <limits>
+
 class Random {
 public:
+    // mt19937 (как у тебя)
     static std::mt19937& GetGenerator() {
-        static std::mt19937 gen{ std::random_device{}() }; // Инициализируется один раз
+        static std::mt19937 gen{ std::random_device{}() };
         return gen;
     }
 
-    // Дополнительно — хелперы:
-    static float Float(float min, float max) {
-        std::uniform_real_distribution<float> dist(min, max);
+    // Оригинальный API (оставляем)
+    static float Float(float minVal, float maxVal) {
+        std::uniform_real_distribution<float> dist(minVal, maxVal);
         return dist(GetGenerator());
     }
 
-    static int Int(int min, int max) {
-        std::uniform_int_distribution<int> dist(min, max);
+    static int Int(int minVal, int maxVal) {
+        std::uniform_int_distribution<int> dist(minVal, maxVal);
         return dist(GetGenerator());
     }
 
-    static bool Chance(float probability) { // от 0.0 до 1.0
+    static bool Chance(float probability) {
         std::bernoulli_distribution dist(probability);
         return dist(GetGenerator());
+    }
+
+    static int Int0_100() {
+        static std::uniform_int_distribution<int> dist(0, 100);
+        return dist(GetGenerator());
+    }
+    static float Float01() {
+        static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+        return dist(GetGenerator());
+    }
+
+    // xorshift32 — очень быстрый генератор, пригоден для массовых вызовов
+    static uint32_t& FastState() {
+        static uint32_t state = 123456789u;
+        return state;
+    }
+
+    static inline uint32_t FastNext() {
+        uint32_t& s = FastState();
+        s ^= s << 13;
+        s ^= s >> 17;
+        s ^= s << 5;
+        return s;
+    }
+
+    static inline int FastInt(int minVal, int maxVal) {
+        return minVal + (FastNext() % (maxVal - minVal + 1));
+    }
+
+    static inline float FastFloat(float minVal, float maxVal) {
+        // используем UINT32_MAX чтобы не столкнуться с макросами и получить constexpr-константу
+        static const float invMax = 1.0f / static_cast<float>(UINT32_MAX);
+        return minVal + (FastNext() * invMax) * (maxVal - minVal);
+    }
+
+    static inline bool FastChance(float probability) {
+        static const float invMax = 1.0f / static_cast<float>(UINT32_MAX);
+        return (FastNext() * invMax) < probability;
     }
 };
 

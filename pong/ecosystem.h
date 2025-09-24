@@ -65,14 +65,16 @@ void ProcessCreatures(PopulationManager& pop) {
             container.end()
         );
         };
-
+    if (tick % 10 == 0) {
+        remove_dead(grass, dead_grass);
+    }
     remove_dead(rabbits, dead_rabbits);
     remove_dead(wolves, dead_wolfs);
     remove_dead(trees, dead_trees);
     remove_dead(bushes, dead_bushes);
     remove_dead(eagles, dead_eagles);
     remove_dead(rats, dead_rats);
-    remove_dead(grass, dead_grass);
+    //remove_dead(grass, dead_grass);
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
         dest.reserve(dest.size() + src.size());
@@ -524,22 +526,6 @@ void Showpopulations() {
     Draw::NullDrawer18(1); 
     
 }
-int BATCH_SIZE = 4000;
-void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
-    if (instances.empty()) return;
-    Textures::TextureToShader(10, 0, vertex);
-    context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
-    for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
-        size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
-
-        // Копируем порцию данных в ConstBuf::global
-        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global);
-
-        ConstBuf::Update(5, ConstBuf::global);
-        ConstBuf::ConstToVertex(5);
-        Draw::NullDrawer(1, static_cast<int>(count));
-    }
-}
 auto isVisible = [&](float x, float y) -> bool {
     // Преобразуем мировые координаты объекта в однородные координаты
     XMVECTOR objectPos = XMVectorSet(x, y, 0, 1.0f);
@@ -563,199 +549,145 @@ auto isVisible = [&](float x, float y) -> bool {
         ndcY >= -1.0f && ndcY <= 1.0f &&
         ndcZ >= 0.0f && ndcZ <= 1.0f);
     };
-//void ShowGrow() {
-//    Shaders::vShader(5);
-//    Shaders::pShader(0);
-//    // Векторы для разных групп травы
-//    std::vector<XMFLOAT4> lowGrowthInstances;
-//    std::vector<XMFLOAT4> midGrowthInstances;
-//    std::vector<XMFLOAT4> highGrowthInstances;
-//
-//    // Собираем траву по чанкам
-//    for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-//        for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-//            const Chunk& chunk = chunk_grid[cx][cy];
-//            int x1 = cx * CHUNK_SIZE - base_rangex;
-//            int y1 = cy * CHUNK_SIZE - base_rangey;
-//            int x2 = x1 + CHUNK_SIZE;
-//            int y2 = y1 + CHUNK_SIZE;
-//            float worldWidth = base_rangex * 2.0f;
-//            float worldHeight = base_rangey * 2.0f;
-//          //  if (isVisible(x1, y1)) {
-//
-//                XMFLOAT4 rect(x1, y1, CHUNK_SIZE, 0);
-//                if (chunk.grass.growth < 33) {
-//                    lowGrowthInstances.push_back(rect);
-//                }
-//                else if (chunk.grass.growth < 66) {
-//                    midGrowthInstances.push_back(rect);
-//                }
-//                else {
-//                    highGrowthInstances.push_back(rect);
-//
-//
-//
-//               // }
-//            }
-//        }
-//
-//
-//    }
-//    // Отрисовываем траву батчами
-//    DrawBatchedInstances(6, lowGrowthInstances);
-//    DrawBatchedInstances(5, midGrowthInstances);
-//    DrawBatchedInstances(4, highGrowthInstances);
-//}
-void ShowRacketAndBall() {
+
+int BATCH_SIZE = 4000;
+void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
+    if (instances.empty()) return;
+    Textures::TextureToShader(10, 0, vertex);
+    context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+    for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
+        size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
+
+        // Копируем порцию данных в ConstBuf::global
+        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global);
+
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        Draw::NullDrawer(1, static_cast<int>(count));
+    }
+}
+template<typename T, typename F>
+void DrawFromSharedVector(int textureIndex, const std::vector<std::shared_ptr<T>>& vec, F toInstance)
+{
+    if (vec.empty()) return;
+
+    std::vector<XMFLOAT4> instances;
+    instances.reserve(vec.size());
+    for (const auto& p : vec) {
+        if (!p) continue;
+        instances.push_back(toInstance(p.get()));
+    }
+    DrawBatchedInstances(textureIndex, instances);
+}
+
+// --- Спец-хелпер для растений (3 категории по возрасту) ---
+template<typename T>
+void DrawPlantsBySize(const int arr[4], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
+{
+    std::vector<XMFLOAT4> smallInstances; smallInstances.reserve(vec.size() / 3);
+    std::vector<XMFLOAT4> standardInstances; standardInstances.reserve(vec.size() / 3);
+    std::vector<XMFLOAT4> bigInstances; bigInstances.reserve(vec.size() / 3);
+
+    for (const auto& p : vec) {
+        if (!p) continue;
+        const Creature* c = p.get();
+        float as = c->age / ageScale;
+        if (c->age > c->age_limit / 2) {
+            bigInstances.emplace_back(c->x, c->y, as, static_cast<float>(arr[0]));
+        }
+        else if (c->age > c->age_limit / 3) {
+            standardInstances.emplace_back(c->x, c->y, as, static_cast<float>(arr[0]));
+        }
+        else {
+            smallInstances.emplace_back(c->x, c->y, max(as, 1.0f), static_cast<float>(arr[0]));
+        }
+    }
+
+    DrawBatchedInstances(arr[1], smallInstances);
+    DrawBatchedInstances(arr[2], standardInstances);
+    DrawBatchedInstances(arr[3], bigInstances);
+}
+
+// --- Спец-хелпер для животных с разделением по полу ---
+template<typename T>
+void DrawAnimalsByGender(const int arr[2], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
+{
+    std::vector<XMFLOAT4> male; male.reserve(vec.size() / 2);
+    std::vector<XMFLOAT4> female; female.reserve(vec.size() / 2);
+
+    for (const auto& p : vec) {
+        if (!p) continue;
+        const Creature* c = p.get();
+        float s = max(c->age / ageScale, 10.0f);
+        if (c->gender == gender_::male) male.emplace_back(c->x, c->y, s, 1.0f);
+        else female.emplace_back(c->x, c->y, s, 1.0f);
+    }
+
+    DrawBatchedInstances(arr[0], male);
+    DrawBatchedInstances(arr[1], female);
+}
+
+// --- Спец-хелпер для простых одно-текстурных существ (Rabbits/Wolves) ---
+template<typename T>
+void DrawSimpleCreatures(int textureIndex, const std::vector<std::shared_ptr<T>>& vec, float ageScale)
+{
+    DrawFromSharedVector(textureIndex, vec, [ageScale](const T* c)->XMFLOAT4 {
+        float s = max(c->age / ageScale, 10.0f);
+        return XMFLOAT4(c->x, c->y, s, 1.0f);
+        });
+}
+
+// --- Спец-хелпер для вирусной проверки (infect / not infect) ---
+template<typename T>
+void DrawInfectCheck(const int arr[2], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
+{
+    std::vector<XMFLOAT4> infect; infect.reserve(vec.size() / 2);
+    std::vector<XMFLOAT4> noinfect; noinfect.reserve(vec.size() / 2);
+
+    for (const auto& p : vec) {
+        if (!p) continue;
+        const Creature* c = p.get();
+        float s = max(c->age / ageScale, 10.0f);
+        if (c->infect) infect.emplace_back(c->x, c->y, s, 1.0f);
+        else noinfect.emplace_back(c->x, c->y, s, 1.0f);
+    }
+
+    DrawBatchedInstances(arr[0], infect);
+    DrawBatchedInstances(arr[1], noinfect);
+}
+
+
+    
+
+    // ----------------- Новая ShowRacketAndBall, рисующая из твоих векторов -----------------
+void ShowRacketAndBallFromVectors(
+    const std::vector<std::shared_ptr<Rabbit>>& rabbits,
+    const std::vector<std::shared_ptr<Tree>>& trees,
+    const std::vector<std::shared_ptr<Wolf>>& wolves,
+    const std::vector<std::shared_ptr<Bush>>& bushes,
+    const std::vector<std::shared_ptr<Eagle>>& eagles,
+    const std::vector<std::shared_ptr<Rat>>& rats,
+    const std::vector<std::shared_ptr<Grass>>& grass)
+{
     Shaders::vShader(0);
     Shaders::pShader(0);
-   
 
-    // Универсальная функция для сбора и отрисовки существ
-    auto drawCreatures = [&](int textureIndex, auto&& getCreatureList, float ageScale) {
-        std::vector<XMFLOAT4> instances;
-
-        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
-                for (const auto& weakPtr : creatureList) {
-                    if (auto c = weakPtr.lock()) {
-                        float t = c->age / ageScale;
-                        float x1 = c->x - t / 1.2f;
-                        float y1 = c->y;
-                        float x2 = c->x + t;
-                        float y2 = c->y + t;
-                        /*if (c->type == type_::bush) {
-
-                        }*/
-                        //if (isVisible(c->x, c->y)) {
-                            instances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
-                       // }
-                    }   
-                }
-            }
-
-        }
-        DrawBatchedInstances(textureIndex, instances);
-        };
-    auto drawPlant = [&](int arr [], auto&& getCreatureList, float ageScale) {
-        std::vector<XMFLOAT4> smallInstances;
-        std::vector<XMFLOAT4> standartInstances;
-        std::vector<XMFLOAT4> bigInstances;
-        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
-                for (const auto& weakPtr : creatureList) {
-                    if (auto c = weakPtr.lock()) {
-                        float t = c->age / ageScale;
-                        float x1 = c->x - t / 1.2f;
-                        float y1 = c->y;
-                        float x2 = c->x + t;
-                        float y2 = c->y + t;
-                       // if (isVisible(c->x, c->y)) {
-                            if (c->age > c->age_limit / 2) {
-                                bigInstances.emplace_back(c->x, c->y, c->age / ageScale, arr[0]);
-                            }
-                            else if (c->age > c->age_limit / 3) {
-                                standartInstances.emplace_back(c->x, c->y, c->age / ageScale, arr[0]);
-                            }
-                            else  {
-                                smallInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 1), arr[0]);
-                            }
-                       // }
-                    }
-                }
-            }
-
-        }
-       
-        
-        DrawBatchedInstances(arr[1], smallInstances);
-        DrawBatchedInstances(arr[2], standartInstances);
-        DrawBatchedInstances(arr[3], bigInstances);
-        };
-    auto drawAnimals = [&](int arr[], auto&& getCreatureList, float ageScale) {
-        std::vector<XMFLOAT4> maleInstances;
-        std::vector<XMFLOAT4> femaleInstances;
-        
-        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
-                for (const auto& weakPtr : creatureList) {
-                    if (auto c = weakPtr.lock()) {
-                        float t = c->age / ageScale;
-                        float x1 = c->x - t / 1.2f;
-                        float y1 = c->y;
-                        float x2 = c->x + t;
-                        float y2 = c->y + t;
-                       // if (isVisible(c->x, c->y)) {
-                            if (c->gender == gender_::male) {
-                                maleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
-                            }
-                            else if (c->gender == gender_::female) {
-                                femaleInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
-                            }
-
-                       // }
-                    }
-                }
-            }
-
-        }
-
-
-        DrawBatchedInstances(arr[0], maleInstances);
-        DrawBatchedInstances(arr[1], femaleInstances);
-        
-        };
-    auto drawVirusCheack = [&](int arr[], auto&& getCreatureList, float ageScale) {
-        std::vector<XMFLOAT4> infectInstances;
-        std::vector<XMFLOAT4> noinfectInstances;
-
-        for (int cy = CHUNKS_PER_SIDEY - 1; cy >= 0; --cy) {
-            for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-                const auto& creatureList = getCreatureList(chunk_grid[cx][cy]);
-                for (const auto& weakPtr : creatureList) {
-                    if (auto c = weakPtr.lock()) {
-                        float t = c->age / ageScale;
-                        float x1 = c->x - t / 1.2f;
-                        float y1 = c->y;
-                        float x2 = c->x + t;
-                        float y2 = c->y + t;
-                       // if (isVisible(c->x, c->y)) {
-                            if (c->infect == true) {
-                                infectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
-                            }
-                            else if (c->infect == false) {
-                                noinfectInstances.emplace_back(c->x, c->y, max(c->age / ageScale, 10), 1);
-                            }
-                      //  }
-
-                    }
-                }
-            }
-
-        }
-
-
-        DrawBatchedInstances(arr[0], infectInstances);
-        DrawBatchedInstances(arr[1], noinfectInstances);
-
-        };
-
+    // Массивы текстур, как у тебя раньше
     int tree_arr[] = { 2,9,11,12 };
-    int bush_arr[] = {1,
-        7,13,14 };
-    int eagle_arr[] = {8,16};
-    int rat_arr[] = {17,15};
+    int bush_arr[] = { 1,7,13,14 };
+    int eagle_arr[] = { 8,16 };   // [male, female]
+    int rat_arr[] = { 17,15 };    // [infect, noinfect] — подставь верно если иначе
     int grass_arr[] = { 1,19,20,21 };
-    drawPlant(bush_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.bushes; }, SIZEBUSHES);
-    drawVirusCheack(rat_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.rats; }, SIZERATS);
-    drawCreatures(2, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.rabbits; }, SIZERABBITS);
-    drawCreatures(3, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.wolves; }, SIZEWOLFS);
-    drawAnimals(eagle_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>&{ return c.eagles; }, SIZEAGLES);
-    drawPlant(tree_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.trees; }, SIZETREES);
-    drawPlant(grass_arr, [](const Chunk& c) -> const std::vector<std::weak_ptr<Creature>>& { return c.grass; }, SIZEGRASS);
-    
+
+    // Рисуем: напрямую из векторов
+    DrawSimpleCreatures<Rabbit>(2, rabbits, SIZERABBITS);     // texture 2 для кроликов (как раньше)
+    DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);         // волки
+
+    DrawAnimalsByGender<Eagle>(eagle_arr, eagles, SIZEAGLES); // орлы по полу
+    DrawPlantsBySize<Tree>(tree_arr, trees, SIZETREES);      // деревья (мал/ст/больш)
+    DrawPlantsBySize<Bush>(bush_arr, bushes, SIZEBUSHES);    // кусты
+    DrawPlantsBySize<Grass>(grass_arr, grass, SIZEGRASS);    // трава
+    DrawInfectCheck<Rat>(rat_arr, rats, SIZERATS);           // крысы infect/noinfect
 }
+
 

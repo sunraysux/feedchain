@@ -26,59 +26,61 @@ public:
     void reproduce(std::vector<std::shared_ptr<Grass>>& all_grass,
         std::vector<std::shared_ptr<Grass>>& new_creatures) {
 
-        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
-        if ((Random::Int(0, 100)) >= (reproductionChance * 100))
-            return;
+        if (!Random::FastChance(0.05f)) return;
 
         int seeds = Random::Int(1, 5);
-
+        float seedlingx=x;
+        float seedlingy=y;
+        auto& heightMap = Textures::Texture[10];
+        const UINT texW = static_cast<UINT>(heightMap.size.x);
+        const UINT texH = static_cast<UINT>(heightMap.size.y);
         for (int s = 0; s < seeds; s++) {
-            auto seedling = std::make_shared<Grass>();
-            float a = Random::Float(0, 2 * 3.14159265f);
-            float dX = cosf(a); float dY = sinf(a);
-            seedling->x = x +dX*20;
-            seedling->y = y +dY*20;
-            // ќбрезка по границам
-            seedling->x = Wrap(seedling->x, base_rangex);
-            seedling->y = Wrap(seedling->y, base_rangey);
+            float a = Random::Float(0.0f, 2.0f * 3.14159265f);
+            float dist = Random::Float(5.0f, 20.0f);
+            float dx = cosf(a) * dist;
+            float dy = sinf(a) * dist;
+            float seedlingx = x + dx;
+            float seedlingy = y + dy;
+             seedlingx = Wrap(seedlingx, base_rangex);
+            seedlingy = Wrap(seedlingy, base_rangey);
 
             // ѕроверка минимального рассто€ни€ (например, 2.0f)
-            auto& heightMap = Textures::Texture[10];
-            float normalizedX = (seedling->x + base_rangex) / (2.0f * base_rangex); // [0, 1]
-            float normalizedY = (seedling->y + base_rangey) / (2.0f * base_rangey); // [0, 1]
-            float u = normalizedX / 4.0f;
-            float v = normalizedY / 4.0f;
 
-            UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-            UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+            float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex)/4; // [0,1]
+            float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey)/4; // [0,1]
+
+            // clamp и перевод в индекс (избегаем %)
+            UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
+            UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
             float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
             if (height < waterLevel + Random::Float(-0.1, 0.1)) continue;
             // ѕроверка плотности (например, не более 10 растений в радиусе 5)
-            int xc = coord_to_chunkx(seedling->x);
-            int yc = coord_to_chunky(seedling->y);
+            int xc = coord_to_chunkx(seedlingx);
+            int yc = coord_to_chunky(seedlingy);
 
             float radius = 15.0f;
             float radius2 = radius * radius;
 
             int totalGrass = 0;
-
+            int MAX_PLANTS_PER_CHUNK=1;
 
 
             // проходим по траве в чанке
             for (auto& gWeak : chunk_grid[xc][yc].Plants) {
                 if (auto g = gWeak.lock()) { // провер€ем, что объект жив
-                    float dx = g->x - seedling->x;
-                    float dy = g->y - seedling->y;
+                    float dx = g->x - seedlingx;
+                    float dy = g->y - seedlingy;
                     for (int i = -1;i < 1;i++) {
                         for (int j = -1;j < 1;j++) {
-                            xc = coord_to_chunkx(seedling->x + i * CHUNK_SIZE);
-                            yc = coord_to_chunky(seedling->y + j * CHUNK_SIZE);
-                            int plant = chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].Plants);
-                            if (plant > 0)
-                                totalGrass+=plant;
+                            xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
+                            yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
+                            int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].Plants.size());
+                            
+                            totalGrass += totalGrass1;
+                            if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
                         }
-                    
+                        if (totalGrass > 1) break;
                     }
                 }
             }
@@ -86,8 +88,14 @@ public:
 
 
             if (totalGrass > 1) continue;
-            updateChunk();
-            new_creatures.push_back(seedling);
+            auto seedling = std::make_shared<Grass>();
+            seedling->x = seedlingx;
+            seedling->y = seedlingy;
+            // установить базовые значени€
+            seedling->age = 0;
+            seedling->birth_tick = tick;
+            seedling->updateChunk();
+            new_creatures.push_back(std::move(seedling));
 
 
         }
@@ -103,10 +111,14 @@ public:
     void process(std::vector<std::shared_ptr<Grass>>& creatures,
         std::vector<std::shared_ptr<Grass>>& new_grass,
         PopulationManager& pop) {
-        if (shouldDie()) return;
+        if  (Random::FastChance(0.1f)) {
+            if (shouldDie()) return;
+        }
         age++;
-        if (age >= maturity_age ) {
-            reproduce(creatures, new_grass);
+        if (age >= maturity_age) {
+            if (tick % 5 == 0) {
+                reproduce(creatures, new_grass);
+            }
         }
     }
 protected:
