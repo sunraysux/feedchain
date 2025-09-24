@@ -161,6 +161,9 @@
     <Image Include="Debug\standartTree.png" />
     <Image Include="Debug\start.png" />
     <Image Include="Debug\wolf.png" />
+    <Image Include="Debug\Трава1.png" />
+    <Image Include="Debug\Трава2.png" />
+    <Image Include="Debug\Трава3.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav" />
