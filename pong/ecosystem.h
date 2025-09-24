@@ -610,7 +610,7 @@ void DrawPlantsBySize(const int arr[4], const std::vector<std::shared_ptr<T>>& v
 
 // --- Спец-хелпер для животных с разделением по полу ---
 template<typename T>
-void DrawAnimalsByGender(const int arr[2], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
+void DrawAnimalsByGender(const int arr[3], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
 {
     std::vector<XMFLOAT4> male; male.reserve(vec.size() / 2);
     std::vector<XMFLOAT4> female; female.reserve(vec.size() / 2);
@@ -619,12 +619,12 @@ void DrawAnimalsByGender(const int arr[2], const std::vector<std::shared_ptr<T>>
         if (!p) continue;
         const Creature* c = p.get();
         float s = max(c->age / ageScale, 10.0f);
-        if (c->gender == gender_::male) male.emplace_back(c->x, c->y, s, 1.0f);
-        else female.emplace_back(c->x, c->y, s, 1.0f);
+        if (c->gender == gender_::male) male.emplace_back(c->x, c->y, s, arr[0]);
+        else female.emplace_back(c->x, c->y, s, arr[0]);
     }
 
-    DrawBatchedInstances(arr[0], male);
-    DrawBatchedInstances(arr[1], female);
+    DrawBatchedInstances(arr[1], male);
+    DrawBatchedInstances(arr[2], female);
 }
 
 // --- Спец-хелпер для простых одно-текстурных существ (Rabbits/Wolves) ---
@@ -675,7 +675,7 @@ void ShowRacketAndBallFromVectors(
     // Массивы текстур, как у тебя раньше
     int tree_arr[] = { 2,9,11,12 };
     int bush_arr[] = { 1,7,13,14 };
-    int eagle_arr[] = { 8,16 };   // [male, female]
+    int eagle_arr[] = {2, 8,16 };   // [male, female]
     int rat_arr[] = { 17,15 };    // [infect, noinfect] — подставь верно если иначе
     int grass_arr[] = { 1,19,20,21 };
 

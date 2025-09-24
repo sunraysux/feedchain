@@ -191,12 +191,8 @@ void kill_creatures_in_radius(float center_x, float center_y, float radius) {
                 };
 
             // Проверяем все типы существ
-            check_creatures(chunk.trees);
-            check_creatures(chunk.rabbits);
-            check_creatures(chunk.wolves);
-            check_creatures(chunk.bushes);
-            check_creatures(chunk.eagles);
-            check_creatures(chunk.rats);
+            check_creatures(chunk.Plants);
+            check_creatures(chunk.Animals);
         }
     }
 }

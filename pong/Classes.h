@@ -391,7 +391,7 @@ public:
     int MATURITY_TICKS = 200;
     void move(std::vector<std::shared_ptr<Rabbit>>& new_rabbits,
         PopulationManager& pop) {
-        const float avoidance_radius = 5.0f;
+        const float avoidance_radius = 10.0f;
         const float avoidanceStrength = 0.5f;
 
         bool isHunger = hunger > 200;
@@ -425,7 +425,7 @@ public:
         }
         if (remainingSteps <= 0||tick-stepsTick>10) {
             if (isHunger) {
-                auto bush = searchNearestCreature(x, y, type_::grass, 3, false, gender);
+                auto bush = searchNearestCreature(x, y, type_::grass, 10, false, gender);
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
                     float dy = torusDelta(y, bush.second, base_rangey);
@@ -444,7 +444,7 @@ public:
                 }
             }
             else if (isMaturity && pop.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
-                auto target = searchNearestCreature(x, y, type_::rabbit, 3, true, gender);
+                auto target = searchNearestCreature(x, y, type_::rabbit, 10, true, gender);
                 if (target.first != -5000.0f) {
                     float dx = torusDelta(x, target.first, base_rangex);
                     float dy = torusDelta(y, target.second, base_rangey);
