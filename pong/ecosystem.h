@@ -581,7 +581,7 @@ void DrawFromSharedVector(int textureIndex, const std::vector<std::shared_ptr<T>
     DrawBatchedInstances(textureIndex, instances);
 }
 
-// --- Спец-хелпер для растений (3 категории по возрасту) ---
+// ---для растений (3 категории по возрасту) ---
 template<typename T>
 void DrawPlantsBySize(const int arr[4], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
 {
@@ -609,7 +609,7 @@ void DrawPlantsBySize(const int arr[4], const std::vector<std::shared_ptr<T>>& v
     DrawBatchedInstances(arr[3], bigInstances);
 }
 
-// --- Спец-хелпер для животных с разделением по полу ---
+// ---  для животных с разделением по полу ---
 template<typename T>
 void DrawAnimalsByGender(const int arr[3], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
 {

@@ -17,7 +17,7 @@ class Grass : public Creature {
 public:
     Grass() : Creature(type_::grass) {
         // Инициализация параметров растения
-        nutritional_value = 200;
+        nutritional_value = 100;
         maturity_age = 250;
         age_limit = 500;
         age = 0;
