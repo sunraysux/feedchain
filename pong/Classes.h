@@ -44,18 +44,15 @@ public:
              seedlingx = Wrap(seedlingx, base_rangex);
             seedlingy = Wrap(seedlingy, base_rangey);
 
-            // ѕроверка минимального рассто€ни€ (например, 2.0f)
-
             float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex)/4; // [0,1]
             float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey)/4; // [0,1]
 
-            // clamp и перевод в индекс (избегаем %)
             UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
             UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
             float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
             if (height < waterLevel + Random::Float(-0.1, 0.1)) continue;
-            // ѕроверка плотности (например, не более 10 растений в радиусе 5)
+
             int xc = coord_to_chunkx(seedlingx);
             int yc = coord_to_chunky(seedlingy);
 
@@ -68,7 +65,7 @@ public:
 
             // проходим по траве в чанке
             for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) { // провер€ем, что объект жив
+                if (auto g = gWeak.lock()) { 
                     float dx = g->x - seedlingx;
                     float dy = g->y - seedlingy;
                     for (int i = -1;i < 1;i++) {
@@ -186,7 +183,7 @@ public:
 
             // проходим по траве в чанке
             for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) { // провер€ем, что объект жив
+                if (auto g = gWeak.lock()) {
                     float dx = g->x - seedling->x;
                     float dy = g->y - seedling->y;
                     for (int i = -1;i < 1;i++) {
@@ -305,7 +302,7 @@ public:
 
             // проходим по траве в чанке
             for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) { // провер€ем, что объект жив
+                if (auto g = gWeak.lock()) { 
                     float dx = g->x - seedling->x;
                     float dy = g->y - seedling->y;
                     for (int i = -1;i < 1;i++) {
@@ -437,7 +434,6 @@ public:
                         // сколько шагов нужно до куста
                         remainingSteps = static_cast<int>(d / speed);
 
-                        // чтобы не застревал р€дом, добавь 1-2 шага про запас
                         remainingSteps = max(1, remainingSteps);
                         stepsTick = tick;
                     }
