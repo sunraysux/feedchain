@@ -46,9 +46,9 @@ void ProcessCreatures(PopulationManager& pop) {
     for (auto& gras : grass) gras->process(new_grass, pop);
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, pop);
-    for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
-    for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
-    for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
+    for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, pop);
+    for (auto& rat : rats) rat->process(rats, new_rats, pop);
+    for (auto& eagle : eagles) eagle->process(eagles, new_eagles, pop);
     
 
     auto remove_dead = [](auto& container, int& counter) {
@@ -350,7 +350,9 @@ void mouse()
         std::vector<std::shared_ptr<Eagle>> new_eagles;
         std::vector<std::shared_ptr<Rat>> new_rats;
         std::vector<std::shared_ptr<Grass>> new_grass;
-
+        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+            return;
+        }
         auto add_new_entities = [](auto& dest, auto& src) {
             dest.reserve(dest.size() + src.size());
             for (auto& entity : src) {

@@ -95,6 +95,22 @@ struct Chunk {
         }
         return { nearby, avoidX, avoidY };
     }
+    std::tuple<int, float, float> nearlyUnity_creature_square(
+        type_ creatureType,
+        float x, float y,
+        float half_side
+    ) {
+        switch (creatureType) {
+        case type_::rabbit: return nearly_creature_square(rabbits, x, y, half_side);
+        case type_::wolf:   return nearly_creature_square(wolves, x, y, half_side);
+        case type_::tree:   return nearly_creature_square(trees, x, y, half_side );
+        case type_::bush: return nearly_creature_square(bushes, x, y, half_side );
+        case type_::eagle: return nearly_creature_square(eagles, x, y, half_side);
+        case type_::rat: return nearly_creature_square(rats, x, y, half_side);
+        case type_::grass: return nearly_creature_square(grass, x, y, half_side);
+        }
+    }
+    
 
     template<typename T>
     int countCreatures(const std::vector<std::weak_ptr<T>>& creatures) const {
