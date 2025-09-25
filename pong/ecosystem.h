@@ -38,14 +38,18 @@ void ProcessCreatures(PopulationManager& pop) {
     std::vector<std::shared_ptr<Eagle>> new_eagles;
     std::vector<std::shared_ptr<Rat>> new_rats;
     std::vector<std::shared_ptr<Grass>> new_grass;
+    
+
+    
+    for (auto& tree : trees) tree->process(new_trees, pop);
+    for (auto& bush : bushes) bush->process(new_bushes, pop);
+    for (auto& gras : grass) gras->process(new_grass, pop);
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, pop);
-    for (auto& tree : trees) tree->process(trees, new_trees, pop);
-    for (auto& bush : bushes) bush->process(bushes, new_bushes, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, rabbits, pop);
     for (auto& rat : rats) rat->process(rats, new_rats, bushes, pop);
     for (auto& eagle : eagles) eagle->process(eagles, new_eagles, rats, pop);
-    for (auto& gras : grass) gras->process(grass, new_grass, pop);
+    
 
     auto remove_dead = [](auto& container, int& counter) {
         using ContainerType = typename std::remove_reference<decltype(container)>::type;

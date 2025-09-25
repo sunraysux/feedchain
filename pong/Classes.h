@@ -13,24 +13,29 @@ bool heightW(float x, float y) {
     return height < waterLevel;
 }
 
-class Grass : public Creature {
+class Plnt : public Creature {
 public:
-    Grass() : Creature(type_::grass) {
-        // »нициализаци€ параметров растени€
-        nutritional_value = 100;
-        maturity_age = 250;
-        age_limit = 500;
-        age = 0;
+    Plnt(type_ t) : Creature(t) {}
+
+
+    virtual std::shared_ptr<Plnt> createOffspring() = 0;
+    virtual bool canAdd(PopulationManager& pop, size_t newSize) = 0;
+    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {}
+    bool shouldDie() const override {
+        return dead || age > age_limit;
     }
 
-    void reproduce(std::vector<std::shared_ptr<Grass>>& all_grass,
-        std::vector<std::shared_ptr<Grass>>& new_creatures) {
 
+
+protected:
+    
+    template <typename T>
+    void reproduce(std::vector<std::shared_ptr<T>>& new_plants) {
         if (!Random::FastChance(0.05f)) return;
 
         int seeds = Random::Int(1, 5);
-        float seedlingx=x;
-        float seedlingy=y;
+        float seedlingx = x;
+        float seedlingy = y;
         auto& heightMap = Textures::Texture[10];
         const UINT texW = static_cast<UINT>(heightMap.size.x);
         const UINT texH = static_cast<UINT>(heightMap.size.y);
@@ -41,11 +46,11 @@ public:
             float dy = sinf(a) * dist;
             float seedlingx = x + dx;
             float seedlingy = y + dy;
-             seedlingx = Wrap(seedlingx, base_rangex);
+            seedlingx = Wrap(seedlingx, base_rangex);
             seedlingy = Wrap(seedlingy, base_rangey);
 
-            float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex)/4; // [0,1]
-            float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey)/4; // [0,1]
+            float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex) / 4; // [0,1]
+            float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey) / 4; // [0,1]
 
             UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
             UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
@@ -60,20 +65,20 @@ public:
             float radius2 = radius * radius;
 
             int totalGrass = 0;
-            int MAX_PLANTS_PER_CHUNK=1;
+            int MAX_PLANTS_PER_CHUNK = 1;
 
 
             // проходим по траве в чанке
             for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) { 
+                if (auto g = gWeak.lock()) {
                     float dx = g->x - seedlingx;
                     float dy = g->y - seedlingy;
-                    for (int i = -1;i < 1;i++) {
-                        for (int j = -1;j < 1;j++) {
+                    for (int i = -1; i < 1; i++) {
+                        for (int j = -1; j < 1; j++) {
                             xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
                             yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
                             int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].Plants.size());
-                            
+
                             totalGrass += totalGrass1;
                             if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
                         }
@@ -85,39 +90,56 @@ public:
 
 
             if (totalGrass > 1) continue;
-            auto seedling = std::make_shared<Grass>();
+            auto offspring = createOffspring();
+
+
+            auto seedling = std::dynamic_pointer_cast<T>(offspring);
             seedling->x = seedlingx;
             seedling->y = seedlingy;
             // установить базовые значени€
             seedling->age = 0;
             seedling->birth_tick = tick;
             seedling->updateChunk();
-            new_creatures.push_back(std::move(seedling));
-
+            new_plants.push_back(std::move(seedling));
 
         }
     }
-
-
-    void eat() {} // –астени€ не ед€т
-
-    bool shouldDie() const override {
-        return dead || age > age_limit;
-    }
-
-    void process(std::vector<std::shared_ptr<Grass>>& creatures,
-        std::vector<std::shared_ptr<Grass>>& new_grass,
+    template <typename T>
+    void process(
+        std::vector<std::shared_ptr<T>>& new_plants,
         PopulationManager& pop) {
-        if  (Random::FastChance(0.1f)) {
-            if (shouldDie()) return;
-        }
+        if (shouldDie()) return;
         age++;
-        if (age >= maturity_age) {
+
+        if (age >= maturity_age && canAdd(pop, 0)) {
             if (tick % 5 == 0) {
-                reproduce(creatures, new_grass);
+                reproduce(new_plants);
             }
         }
     }
+};
+
+
+class Grass : public Plnt {
+public:
+    Grass() : Plnt(type_::grass) {
+        // »нициализаци€ параметров растени€
+        nutritional_value = 100;
+        maturity_age = 250;
+        age_limit = 500;
+        age = 0;
+    }
+    std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Grass>(); }
+    bool canAdd(PopulationManager& pop, size_t newSize) override {
+        return pop.canAddGrass(static_cast<int>(newSize));
+    }
+
+    void process(std::vector<std::shared_ptr<Grass>>& new_plants,
+        PopulationManager& pop) {
+        Plnt::process<Grass>(new_plants, pop);
+    }
+    
+
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
         return chunk.grass;
@@ -131,9 +153,10 @@ protected:
     }
 };
 
-class Tree : public Creature {
+
+class Tree : public Plnt {
 public:
-    Tree() : Creature(type_::tree) {
+    Tree() : Plnt(type_::tree) {
         // »нициализаци€ параметров растени€
         nutritional_value = 100;
         age = 0;
@@ -141,90 +164,16 @@ public:
         age_limit = 5000;
     }
 
-    void reproduce(std::vector<std::shared_ptr<Tree>>& all_trees,
-        std::vector<std::shared_ptr<Tree>>& new_creatures) {
-
-        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
-        if ((Random::Int(0, 100)) >= (reproductionChance * 100))
-            return;
-
-        int seeds = Random::Int(1, 5);
-
-        for (int s = 0; s < seeds; s++) {
-            auto seedling = std::make_shared<Tree>();
-            float a = Random::Float(0, 2 * 3.14159265f);
-            float dX = cosf(a); float dY = sinf(a);
-            seedling->x = x + dX * 20;
-            seedling->y = y + dY * 20;
-            // ќбрезка по границам
-            seedling->x = Wrap(seedling->x, base_rangex);
-            seedling->y = Wrap(seedling->y, base_rangey);
-
-            auto& heightMap = Textures::Texture[10];
-            float normalizedX = (seedling->x + base_rangex) / (2.0f * base_rangex); // [0, 1]
-            float normalizedY = (seedling->y + base_rangey) / (2.0f * base_rangey); // [0, 1]
-            float u = normalizedX / 4.0f;
-            float v = normalizedY / 4.0f;
-
-            UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-            UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
-
-            float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
-            if (height < waterLevel + Random::Float(-0.1, 0.1)) continue;
-            int xc = coord_to_chunkx(seedling->x);
-            int yc = coord_to_chunky(seedling->y);
-
-            float radius = 15.0f;
-            float radius2 = radius * radius;
-
-            int totalGrass = 0;
-
-
-
-            // проходим по траве в чанке
-            for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) {
-                    float dx = g->x - seedling->x;
-                    float dy = g->y - seedling->y;
-                    for (int i = -1;i < 1;i++) {
-                        for (int j = -1;j < 1;j++) {
-                            xc = coord_to_chunkx(seedling->x + i * CHUNK_SIZE);
-                            yc = coord_to_chunky(seedling->y + j * CHUNK_SIZE);
-                            int plant = chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].Plants);
-                            if (plant > 0)
-                                totalGrass += plant;
-                        }
-
-                    }
-                }
-            }
-
-
-
-            if (totalGrass > 1) continue;
-            updateChunk();
-            new_creatures.push_back(seedling);
-
-
-        }
+    std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Tree>(); }
+    bool canAdd(PopulationManager& pop, size_t newSize) override {
+        return pop.canAddTree(static_cast<int>(newSize));
     }
 
-
-    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // –астени€ не ед€т
-
-    bool shouldDie() const override {
-        return dead || age > age_limit;
-    }
-
-    void process(std::vector<std::shared_ptr<Tree>>& creatures,
-        std::vector<std::shared_ptr<Tree>>& new_trees,
+    void process(std::vector<std::shared_ptr<Tree>>& new_plants,
         PopulationManager& pop) {
-        if (shouldDie()) return;
-        age++;
-        if (age >= maturity_age && pop.canAddTree(static_cast<int>(new_trees.size()))) {
-            reproduce(creatures, new_trees);
-        }
+        Plnt::process<Tree>(new_plants, pop);
     }
+
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
         return chunk.trees;
@@ -239,9 +188,9 @@ protected:
     }
 };
 
-class Bush : public Creature {
+class Bush : public Plnt {
 public:
-    Bush() : Creature(type_::bush) {
+    Bush() : Plnt(type_::bush) {
         // »нициализаци€ параметров растени€
         nutritional_value = 200;
         age = 0;
@@ -252,102 +201,25 @@ public:
         berry_limit = 5;
     }
     
-  
-
-    void blossoming() {
+    std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Bush>(); }
+    bool canAdd(PopulationManager& pop, size_t newSize) override {
+        return pop.canAddBush(static_cast<int>(newSize));
+    }
+    /*void blossoming() {
         float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
         if ((Random::Int(0, 100)) >= (reproductionChance * 100))
             return;
         berry_count++;
-    }
-    void reproduce(std::vector<std::shared_ptr<Bush>>& all_bushs,
-        std::vector<std::shared_ptr<Bush>>& new_creatures) {
-
-        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
-        if ((Random::Int(0, 100)) >= (reproductionChance * 100))
-            return;
-
-        int seeds = Random::Int(1, 5);
-
-        for (int s = 0; s < seeds; s++) {
-            auto seedling = std::make_shared<Bush>();
-            float a = Random::Float(0, 2 * 3.14159265f);
-            float dX = cosf(a); float dY = sinf(a);
-            seedling->x = x + dX * 20;
-            seedling->y = y + dY * 20;
-            // ќбрезка по границам
-            seedling->x = Wrap(seedling->x, base_rangex);
-            seedling->y = Wrap(seedling->y, base_rangey);
-
-            auto& heightMap = Textures::Texture[10];
-            float normalizedX = (seedling->x + base_rangex) / (2.0f * base_rangex); // [0, 1]
-            float normalizedY = (seedling->y + base_rangey) / (2.0f * base_rangey); // [0, 1]
-            float u = normalizedX / 4.0f;
-            float v = normalizedY / 4.0f;
-
-            UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-            UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
-
-            float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
-            if (height < waterLevel + Random::Float(-0.1, 0.1)) continue;
-            int xc = coord_to_chunkx(seedling->x);
-            int yc = coord_to_chunky(seedling->y);
-
-            float radius = 15.0f;
-            float radius2 = radius * radius;
-
-            int totalGrass = 0;
-
-
-
-            // проходим по траве в чанке
-            for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) { 
-                    float dx = g->x - seedling->x;
-                    float dy = g->y - seedling->y;
-                    for (int i = -1;i < 1;i++) {
-                        for (int j = -1;j < 1;j++) {
-                            xc = coord_to_chunkx(seedling->x + i * CHUNK_SIZE);
-                            yc = coord_to_chunky(seedling->y + j * CHUNK_SIZE);
-                            int plant = chunk_grid[xc][yc].countCreatures(chunk_grid[xc][yc].Plants);
-                            if (plant > 0)
-                                totalGrass += plant;
-                        }
-
-                    }
-                }
-            }
-
-
-
-            if (totalGrass > 1) continue;
-            updateChunk();
-            new_creatures.push_back(seedling);
-
-
-        }
-    }
-
-
-
-    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {} // –астени€ не ед€т
-
-    bool shouldDie() const override {
-        return dead || age > age_limit;
-    }
-
-    void process(std::vector<std::shared_ptr<Bush>>& creatures,
-        std::vector<std::shared_ptr<Bush>>& new_bushes,
+    }*/
+    
+    void process(std::vector<std::shared_ptr<Bush>>& new_plants,
         PopulationManager& pop) {
-        if (shouldDie()) return;
-        age++;
-        if (age >= blossoming_age && berry_count < berry_limit) {
-            blossoming();
-        }
-        if(age >= maturity_age && pop.canAddBush(static_cast<int>(new_bushes.size())) && berry_count>0) {
-            reproduce(creatures, new_bushes);
-        }
+        Plnt::process<Bush>(new_plants, pop);
     }
+
+   
+
+    
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
         return chunk.bushes;
@@ -1364,4 +1236,5 @@ std::vector<std::shared_ptr<Bush>> bushes;
 std::vector<std::shared_ptr<Eagle>> eagles;
 std::vector<std::shared_ptr<Rat>> rats;
 std::vector<std::shared_ptr<Grass>> grass;
+
 
