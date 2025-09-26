@@ -160,27 +160,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case '1':
                 if (shiftHeld) gameSpeed = 1;
-                else currentType = type_::wolf;
+                else currentType = type_::wolf, slot_number = 1;
                 break;
             case '2':
                 if (shiftHeld) gameSpeed = 2;
-                else currentType = type_::rabbit;
+                else currentType = type_::rabbit, slot_number = 2;
                 break;
             case '3':
                 if (shiftHeld) gameSpeed = 3;
-                else currentType = type_::tree;
+                else currentType = type_::tree, slot_number = 3;
                 break;
             case '4':
                 if (shiftHeld) gameSpeed = 4;
-                else currentType = type_::bush;
+                else currentType = type_::bush, slot_number = 4;
                 break;
             case '5':
                 if (shiftHeld) gameSpeed = 5;
-                else currentType = type_::eagle;
+                else currentType = type_::eagle, slot_number = 5;
                 break;
-            case '6': currentType = type_::rat;       break;
-            case '7': currentType = type_::grass; break;
-            case '8': currentType = type_::lightning; break;
+            case '6': currentType = type_::rat;slot_number = 6;       break;
+            case '7': currentType = type_::grass;slot_number = 7; break;
+            case '8': currentType = type_::lightning;slot_number = 8; break;
 
             case VK_ESCAPE:
                 PostQuitMessage(0);

@@ -157,6 +157,11 @@
     <Image Include="Debug\rat.png" />
     <Image Include="Debug\smallBush.png" />
     <Image Include="Debug\smallTree.png" />
+    <Image Include="Debug\speed.png" />
+    <Image Include="Debug\speed025.png" />
+    <Image Include="Debug\speed05.png" />
+    <Image Include="Debug\speed2.png" />
+    <Image Include="Debug\speed3.png" />
     <Image Include="Debug\standartBush.png" />
     <Image Include="Debug\standartTree.png" />
     <Image Include="Debug\start.png" />
@@ -195,6 +200,8 @@
     <ClInclude Include="relefPS.h" />
     <ClInclude Include="relefVS.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="slotPS.h" />
+    <ClInclude Include="slotVS.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="VS.h" />

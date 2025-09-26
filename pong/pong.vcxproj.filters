@@ -211,6 +211,12 @@
     <ClInclude Include="lightningVS.h">
       <Filter>shaders</Filter>
     </ClInclude>
+    <ClInclude Include="slotPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="slotVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

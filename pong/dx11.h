@@ -606,6 +606,8 @@ namespace Shaders {
 		CreateVS(7, nameToPatchLPCWSTR("menuVS.h"));
 		CreatePS(8, nameToPatchLPCWSTR("lightningPS.h"));
 		CreateVS(8, nameToPatchLPCWSTR("lightningVS.h"));
+		CreatePS(9, nameToPatchLPCWSTR("slotPS.h"));
+		CreateVS(9, nameToPatchLPCWSTR("slotVS.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -1083,6 +1085,21 @@ namespace Draw
 		ConstBuf::ConstToPixel(1);
 
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
+	}
+	void dravslot(int slot, int tex_i)
+	{
+		Textures::TextureToShader(tex_i, 0, pixel);
+		Shaders::vShader(9);
+		Shaders::pShader(9);
+		ConstBuf::global[0] = XMFLOAT4(
+			slot_number,
+			gameSpeed,
+			slot,
+			0
+		);
+		ConstBuf::Update(5, ConstBuf::global);
+		ConstBuf::ConstToVertex(5);
+		Draw::NullDrawer(1);
 	}
 	void NullDrawer18(int quadCount, unsigned int instances = 1)
 	{

@@ -40,67 +40,115 @@ protected:
         const UINT texW = static_cast<UINT>(heightMap.size.x);
         const UINT texH = static_cast<UINT>(heightMap.size.y);
         for (int s = 0; s < seeds; s++) {
-            float a = Random::Float(0.0f, 2.0f * 3.14159265f);
-            float dist = Random::Float(5.0f, 20.0f);
-            float dx = cosf(a) * dist;
-            float dy = sinf(a) * dist;
-            float seedlingx = x + dx;
-            float seedlingy = y + dy;
-            seedlingx = Wrap(seedlingx, base_rangex);
-            seedlingy = Wrap(seedlingy, base_rangey);
+            if (type == type_::tree) {
+                float a = Random::Float(0.0f, 2.0f * 3.14159265f);
+                float dist = Random::Float(5.0f, 40.0f);
+                float dx = cosf(a) * dist;
+                float dy = sinf(a) * dist;
+                float seedlingx = x + dx;
+                float seedlingy = y + dy;
+                seedlingx = Wrap(seedlingx, base_rangex);
+                seedlingy = Wrap(seedlingy, base_rangey);
 
-            float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex) / 4; // [0,1]
-            float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey) / 4; // [0,1]
+                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex) / 4; // [0,1]
+                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey) / 4; // [0,1]
 
-            UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
-            UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
+                UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
+                UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
-            float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
-            if (height < waterLevel + Random::Float(-0.1, 0.1)) continue;
+                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+                if (height < waterLevel ) continue;
 
-            int xc = coord_to_chunkx(seedlingx);
-            int yc = coord_to_chunky(seedlingy);
+                int xc = coord_to_chunkx(seedlingx);
+                int yc = coord_to_chunky(seedlingy);
 
-            float radius = 15.0f;
-            float radius2 = radius * radius;
+                float radius = 15.0f;
+                float radius2 = radius * radius;
 
-            int totalGrass = 0;
-            int MAX_PLANTS_PER_CHUNK = 1;
+                int totalGrass = 0;
+                int MAX_PLANTS_PER_CHUNK = 1;
+                for (int i = -5; i < 5; i++) {
+                    for (int j = -5; j < 5; j++) {
+                        xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
+                        yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
+                        int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].trees.size());
 
-
-            // проходим по траве в чанке
-            for (auto& gWeak : chunk_grid[xc][yc].Plants) {
-                if (auto g = gWeak.lock()) {
-                    float dx = g->x - seedlingx;
-                    float dy = g->y - seedlingy;
-                    for (int i = -1; i < 1; i++) {
-                        for (int j = -1; j < 1; j++) {
-                            xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
-                            yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
-                            int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].Plants.size());
-
-                            totalGrass += totalGrass1;
-                            if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
-                        }
-                        if (totalGrass > 1) break;
+                        totalGrass += totalGrass1;
+                        if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
                     }
+                    if (totalGrass > 1) break;
                 }
+
+                if (totalGrass > 1) continue;
+                auto offspring = createOffspring();
+
+
+                auto seedling = std::dynamic_pointer_cast<T>(offspring);
+                seedling->x = seedlingx;
+                seedling->y = seedlingy;
+                // установить базовые значения
+                seedling->age = 0;
+                seedling->birth_tick = tick;
+                seedling->updateChunk();
+                new_plants.push_back(std::move(seedling));
             }
+           
+            else {
+                float a = Random::Float(0.0f, 2.0f * 3.14159265f);
+                float dist = Random::Float(5.0f, 20.0f);
+                float dx = cosf(a) * dist;
+                float dy = sinf(a) * dist;
+                float seedlingx = x + dx;
+                float seedlingy = y + dy;
+                seedlingx = Wrap(seedlingx, base_rangex);
+                seedlingy = Wrap(seedlingy, base_rangey);
+
+                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex) / 4; // [0,1]
+                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey) / 4; // [0,1]
+
+                UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
+                UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
+
+                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+                if (height < waterLevel) continue;
+
+                int xc = coord_to_chunkx(seedlingx);
+                int yc = coord_to_chunky(seedlingy);
+
+                float radius = 15.0f;
+                float radius2 = radius * radius;
+
+                int totalGrass = 0;
+                int MAX_PLANTS_PER_CHUNK = 1;
+                for (int i = -1; i < 1; i++) {
+                    for (int j = -1; j < 1; j++) {
+                        xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
+                        yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
+                        int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].Plants.size());
+
+                        totalGrass += totalGrass1;
+                        if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
+                    }
+                    if (totalGrass > 1) break;
+                }
 
 
 
-            if (totalGrass > 1) continue;
-            auto offspring = createOffspring();
 
 
-            auto seedling = std::dynamic_pointer_cast<T>(offspring);
-            seedling->x = seedlingx;
-            seedling->y = seedlingy;
-            // установить базовые значения
-            seedling->age = 0;
-            seedling->birth_tick = tick;
-            seedling->updateChunk();
-            new_plants.push_back(std::move(seedling));
+                if (totalGrass > 1) continue;
+                auto offspring = createOffspring();
+
+
+                auto seedling = std::dynamic_pointer_cast<T>(offspring);
+                seedling->x = seedlingx;
+                seedling->y = seedlingy;
+                // установить базовые значения
+                seedling->age = 0;
+                seedling->birth_tick = tick;
+                seedling->updateChunk();
+                new_plants.push_back(std::move(seedling));
+            }
 
         }
     }
@@ -331,7 +379,7 @@ class Grass : public Plnt {
 public:
     Grass() : Plnt(type_::grass) {
         // Инициализация параметров растения
-        nutritional_value = 100;
+        nutritional_value = 200;
         maturity_age = 250;
         age_limit = 500;
         age = 0;

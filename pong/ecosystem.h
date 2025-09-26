@@ -69,7 +69,7 @@ void ProcessCreatures(PopulationManager& pop) {
             container.end()
         );
         };
-    if (tick % 10 == 0) {
+    if (tick % Random::Int(1,5) == 0) {
         remove_dead(grass, dead_grass);
     }
     remove_dead(rabbits, dead_rabbits);
@@ -144,6 +144,11 @@ void InitGame() {
     Textures::LoadTextureFromFile(19, L"Debug/трава1.png");
     Textures::LoadTextureFromFile(20, L"Debug/трава2.png");
     Textures::LoadTextureFromFile(21, L"Debug/трава3.png");
+    Textures::LoadTextureFromFile(22, L"Debug/speed025.png");
+    Textures::LoadTextureFromFile(23, L"Debug/speed05.png");
+    Textures::LoadTextureFromFile(24, L"Debug/speed.png");
+    Textures::LoadTextureFromFile(25, L"Debug/speed2.png");
+    Textures::LoadTextureFromFile(26, L"Debug/speed3.png");
     // Начальные растения
     for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
@@ -213,7 +218,6 @@ void InitGame() {
 }
 
 type_ currentType = type_::wolf; // по умолчанию волк
-
 //void HandleCreatureSelection() {
 //    if (GetAsyncKeyState('1') & 0x8000) currentType = type_::wolf;
 //    if (GetAsyncKeyState('2') & 0x8000) currentType = type_::rabbit;
@@ -350,9 +354,7 @@ void mouse()
         std::vector<std::shared_ptr<Eagle>> new_eagles;
         std::vector<std::shared_ptr<Rat>> new_rats;
         std::vector<std::shared_ptr<Grass>> new_grass;
-        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-            return;
-        }
+
         auto add_new_entities = [](auto& dest, auto& src) {
             dest.reserve(dest.size() + src.size());
             for (auto& entity : src) {
@@ -364,6 +366,9 @@ void mouse()
 
         switch (currentType) {
         case type_::wolf: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddWolf(static_cast<int>(new_wolfs.size()))) {
                 auto wolf = std::make_shared<Wolf>();
                 wolf->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -376,6 +381,9 @@ void mouse()
             break;
         }
         case type_::rabbit: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddRabbit(static_cast<int>(new_rabbits.size()))) {
                 auto rabbit = std::make_shared<Rabbit>();
                 rabbit->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -388,6 +396,9 @@ void mouse()
             break;
         }
         case type_::tree: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddTree(static_cast<int>(new_trees.size()))) {
                 auto tree = std::make_shared<Tree>();
                 tree->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -400,6 +411,9 @@ void mouse()
             break;
         }
         case type_::grass: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddGrass(static_cast<int>(new_grass.size()))) {
                 auto gras = std::make_shared<Grass>();
                 gras->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -412,6 +426,9 @@ void mouse()
             break;
         }
         case type_::bush: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddBush(static_cast<int>(new_bushes.size()))) {
                 auto bush = std::make_shared<Bush>();
                 bush->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -423,6 +440,9 @@ void mouse()
             break;
         }
         case type_::eagle: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddEagle(static_cast<int>(new_eagles.size()))) {
                 auto eagle = std::make_shared<Eagle>();
                 eagle->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -435,6 +455,9 @@ void mouse()
             break;
         }
         case type_::rat: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
             if (population.canAddRat(static_cast<int>(new_rats.size()))) {
                 auto rat = std::make_shared<Rat>();
                 rat->y = Wrap(Camera::state.mouseY, base_rangey);
@@ -519,8 +542,8 @@ void Showpopulations() {
         bushRatio
         
     );
-    ConstBuf::global[1] = XMFLOAT4(                                                                          //
-        ratRatio,                                                                                         //
+    ConstBuf::global[1] = XMFLOAT4(                                                          
+        ratRatio,                                                                            
         eagleRatio,
         grassRatio,
         0
@@ -530,6 +553,26 @@ void Showpopulations() {
     ConstBuf::Update(5, ConstBuf::global);
     ConstBuf::ConstToVertex(5);
     Draw::NullDrawer18(1); 
+
+
+    Draw::dravslot(1,3);
+    Draw::dravslot(2, 2);
+    Draw::dravslot(3, 9);
+    Draw::dravslot(4, 7);
+    Draw::dravslot(5, 16);
+    Draw::dravslot(6, 15);
+    Draw::dravslot(7, 19);
+    Draw::dravslot(8, 18);
+    if (gameSpeed == 1)
+        Draw::dravslot(-1, 22);
+    if (gameSpeed == 2)
+        Draw::dravslot(-1, 23);
+    if (gameSpeed == 3)
+        Draw::dravslot(-1, 24);
+    if (gameSpeed == 4)
+        Draw::dravslot(-1, 25);
+    if (gameSpeed == 5)
+        Draw::dravslot(-1, 26);
     
 }
 auto isVisible = [&](float x, float y) -> bool {

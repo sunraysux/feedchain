@@ -16,6 +16,7 @@ float z=0;
 int seed = 0;
 int tick = 0;
 int gameSpeed = 3;
+int slot_number = 1;
 static int ticloop = 0;
 float SIZEGRASS = 50;
 float SIZEWOLFS = 100.0f;
