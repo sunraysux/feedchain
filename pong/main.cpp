@@ -77,7 +77,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg = { 0 };
 
     timer::StartCounter();
-    ShowCursor(FALSE);
+
     Camera::HW();
     terraloop();
     //Camera::Camera();
@@ -183,7 +183,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case '8': currentType = type_::lightning;slot_number = 8; break;
 
             case VK_ESCAPE:
-                PostQuitMessage(0);
+                gameState = gameState_::MainMenu;
+//                PostQuitMessage(0);
                 return 0;
             }
         }
@@ -231,6 +232,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
             break;
         case IDM_EXIT:
+            
             DestroyWindow(hWnd);
             break;
         default:

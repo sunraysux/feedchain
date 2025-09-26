@@ -16,6 +16,7 @@
 	Draw::Present();
 }
 void StartMenu() {
+
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 	Camera::Update();
 	frameConst();
@@ -202,6 +203,7 @@ void drawWorld()
 	{
 	case gameState_::MainMenu:
 		if (!initmenu) {
+			
 			Textures::LoadTextureFromFile(30, L"Debug/menu.png");
 			Textures::LoadTextureFromFile(31, L"Debug/start.png");
 			Textures::LoadTextureFromFile(32, L"Debug/exit.png");
@@ -209,6 +211,7 @@ void drawWorld()
 			Textures::ReadTextureToCPU(10);
 			initmenu = true;
 		}
+		ShowCursor(true);
 		StartMenu();
 		// gameState = gameState_::game;
 		break;
@@ -218,6 +221,7 @@ void drawWorld()
 			InitGame();
 			initgame = true;
 		}
+		ShowCursor(false);
 		Loop();
 		break;
 	case gameState_::pause:
@@ -225,6 +229,7 @@ void drawWorld()
 			InitGame();
 			initgame = true;
 		}
+		ShowCursor(false);
 		Looppause();
 		break;
 	}
