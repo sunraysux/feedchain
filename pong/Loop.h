@@ -76,7 +76,7 @@ void Loop() {
 		ticloop = 0;
 		break;
 	case 5: // 4x → четыре раза за кадр
-		for (int i = 0; i < 10; i++) { ProcessCreatures(population);  }
+		for (int i = 0; i < 5; i++) { ProcessCreatures(population);  }
 		ticloop = 0;
 		break;
 	}
