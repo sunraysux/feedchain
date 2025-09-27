@@ -1105,7 +1105,7 @@ namespace Camera
 
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(state.Eye, state.at, state.Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(
-			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.01f, 10000.0f)
+			XMMatrixPerspectiveFovLH(state.fovAngle, (float)width / (float)height, 0.1f, 10000.0f)
 		);
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
