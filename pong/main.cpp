@@ -183,8 +183,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case '8': currentType = type_::lightning;slot_number = 8; break;
 
             case VK_ESCAPE:
-                gameState = gameState_::MainMenu;
-//                PostQuitMessage(0);
+              //  gameState = gameState_::MainMenu;
+                PostQuitMessage(0);
                 return 0;
             }
         }

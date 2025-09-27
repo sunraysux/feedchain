@@ -184,6 +184,7 @@ public:
     bool shouldDie() const override {
         return dead || age > age_limit || hunger > hunger_limit;
     }
+    bool isUsedInfection = false;
 
 
 
@@ -198,11 +199,28 @@ protected:
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
+        if (type == type_::rat) {
+            if (!infect) {
+                infection();
+            }
+            if (infect && !isUsedInfection) {
+                usedInfection();
+            }
+        }
         move_range = Random::Int(1, 5);
         move(pop);
         eat();
         if (canAdd(pop,0))
             reproduce(creatures, new_creatures);
+    }
+    void infection() {
+        if (Random::Int(1, 100000) == 1) {
+            infect = true;
+        }
+    }
+    void usedInfection() {
+        age_limit *= 0.8;
+        isUsedInfection = true;
     }
 protected:
     void move(PopulationManager& pop) {
@@ -451,9 +469,9 @@ public:
         age = 0;
         maturity_age = 500;
         age_limit = 1000;
-        berry_count = 0;
+        /*berry_count = 0;*/
         blossoming_age = 80;
-        berry_limit = 5;
+        /*berry_limit = 5;*/
     }
     
     std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Bush>(); }
@@ -651,12 +669,12 @@ class Rat : public Animal {
 public:
     Rat() : Animal(type_::rat) {
         nutritional_value = 1000;
-        gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
+        gender = (Random::Int(0,1)==0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
-        maturity_age = 250;
-        age_limit = 500;
-        hunger_limit = 200;
+        maturity_age = 500;
+        age_limit = 1500;
+        hunger_limit = 400;
         hunger = 0;
         birth_tick = tick;
 
@@ -704,7 +722,7 @@ public:
         int base_cy = coord_to_chunky(y);
         Chunk& chunk = chunk_grid[base_cx][base_cy];
 
-        for (auto& w : getFoodContainer(chunk_grid[base_cx][base_cy])) {
+        for (auto& w : getFoodContainer(chunk)) {
             if (auto partner = w.lock()) {
                 if (partner->dead) continue;
 
@@ -723,22 +741,10 @@ public:
 
     
 
-    void process(std::vector<std::shared_ptr<Rat>>& rats,
-        std::vector<std::shared_ptr<Rat>>& new_rats,
+    void process(std::vector<std::shared_ptr<Rat>>& creature,
+        std::vector<std::shared_ptr<Rat>>& new_creature,
         PopulationManager& pop) {
-        if (shouldDie()) return;
-        if (!infect) {
-            infection();
-        }
-        if (infect && !isUsedInfection) {
-            usedInfection();
-        }
-        age++; hunger++;
-        move_range = Random::Int(1, 5);
-        move(pop);
-        eat();
-        if (!pop.canAddRat(static_cast<int>(new_rats.size()))) return;
-        reproduce(rats, new_rats);
+        Animal::process<Rat>(creature, new_creature, pop);
     }
 
 protected:

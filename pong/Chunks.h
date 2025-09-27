@@ -47,11 +47,11 @@ struct Chunk {
                     }
                 }
                                         
-                if (c->blossoming_age != 0) {
+                /*if (c->blossoming_age != 0) {
                     if (c->berry_count == 0) {
                         return std::make_pair(-5000.0f, -5000.0f);
                     }
-                }
+                }*/
                 ///
 
                 ///
