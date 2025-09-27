@@ -182,6 +182,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case '7': currentType = type_::grass;slot_number = 7; break;
             case '8': currentType = type_::lightning;slot_number = 8; break;
 
+            case VK_LBUTTON: {
+
+                float barPositions = -0.35;
+                float barHeights = -0.85;
+                /*float barLeft = barPositions - 0.1 + slot * 0.1;  
+                float barRight = barPositions + slot * 0.1;  */     
+                float barBottom = -1;                           // Нижняя граница
+                float barTop = barHeights;            // Верхняя граница
+                if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+                    (barPositions - 0.1 + 1 * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 1 * 0.1)) {
+                    currentType = type_::wolf; slot_number = 1;
+                }
+                /*if ((-0.3 < Camera::state.mousendcY && Camera::state.mousendcY < -0.1) &&
+                    (-0.1 < Camera::state.mousendcX && Camera::state.mousendcX < 0.1) &&
+                    GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+                {
+                    ExitProcess(0);
+                }*/
+            }
+            break;
             case VK_ESCAPE:
               //  gameState = gameState_::MainMenu;
                 PostQuitMessage(0);

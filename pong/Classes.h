@@ -174,7 +174,6 @@ public:
     virtual std::shared_ptr<Animal> createOffspring() = 0;
     virtual bool canAdd(PopulationManager& pop, size_t newSize) = 0;
     virtual std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) = 0;
-    virtual void eat() = 0;
     virtual std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& chunk) = 0;
     int stepsTick = 0;
     float dirX = 0.0f, dirY = 0.0f;
@@ -184,7 +183,6 @@ public:
     bool shouldDie() const override {
         return dead || age > age_limit || hunger > hunger_limit;
     }
-    bool isUsedInfection = false;
 
 
 
@@ -213,15 +211,7 @@ protected:
         if (canAdd(pop,0))
             reproduce(creatures, new_creatures);
     }
-    void infection() {
-        if (Random::Int(1, 100000) == 1) {
-            infect = true;
-        }
-    }
-    void usedInfection() {
-        age_limit *= 0.8;
-        isUsedInfection = true;
-    }
+
 protected:
     void move(PopulationManager& pop) {
         const float avoidance_radius = 10.0f;
@@ -383,13 +373,48 @@ protected:
                     } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
                     partner->isDirectionSelect = true;
                     partner->step = Random::Int(5, 15);
-
+                    if (isUsedInfection || partner->isUsedInfection) {
+                        if (Random::Int(1, 2) == 1) {
+                            offspring->isUsedInfection = true;
+                        }
+                    }
                     new_creatures.push_back(offspring);
                     break;
                 }
             }
 
         }
+    }
+    void eat() {
+        if (hunger <= 10 || dead) return;
+        int base_cx = coord_to_chunkx(x);
+        int base_cy = coord_to_chunky(y);
+        Chunk& chunk = chunk_grid[base_cx][base_cy];
+
+        for (auto& w : getFoodContainer(chunk_grid[base_cx][base_cy])) {
+            if (auto partner = w.lock()) {
+                if (partner->dead) continue;
+
+                // расстояние с учётом тора
+                float dx = torusDelta(x, partner->x, base_rangex);
+                float dy = torusDelta(y, partner->y, base_rangey);
+                float dist2 = dx * dx + dy * dy;
+
+                if (dist2 < eating_range) {
+                    hunger -= partner->nutritional_value;
+                    partner->dead = true;
+                }
+            }
+        }
+    }
+    void infection() {
+        if (Random::Int(1, 100000) == 1) {
+            infect = true;
+        }
+    }
+    void usedInfection() {
+        age_limit *= 0.8;
+        isUsedInfection = true;
     }
 };
 
@@ -489,10 +514,7 @@ public:
         PopulationManager& pop) {
         Plnt::process<Bush>(new_plants, pop);
     }
-
-   
-
-    
+ 
 protected:
     std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
         return chunk.bushes;
@@ -544,29 +566,6 @@ public:
         return chunk.rabbits;
     }
     
-
-    void eat() {
-        if (hunger <= 10 || dead) return;
-        int base_cx = coord_to_chunkx(x);
-        int base_cy = coord_to_chunky(y);
-        Chunk& chunk = chunk_grid[base_cx][base_cy];
-
-        for (auto& w : getFoodContainer(chunk_grid[base_cx][base_cy])) {
-            if (auto partner = w.lock()) {
-                if (partner->dead) continue;
-
-                // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
-
-                if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    partner->dead=true;
-                }
-            }
-        }
-    }
     void process(std::vector<std::shared_ptr<Rabbit>>& creature,
         std::vector<std::shared_ptr<Rabbit>>& new_creature,
         PopulationManager& pop) {
@@ -587,6 +586,7 @@ protected:
         chunk.Animals.push_back(weak_from_this());
     }
 };
+
 class Wolf : public Animal {
 public:
     Wolf() : Animal(type_::wolf) {
@@ -620,28 +620,6 @@ public:
     }
     std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) override {
         return chunk.wolves;
-    }
-
-    void eat() {
-        if (hunger <= 10 || dead) return;
-        int base_cx = coord_to_chunkx(x);
-        int base_cy = coord_to_chunky(y);
-        for (auto& w : getFoodContainer(chunk_grid[base_cx][base_cy])) {
-            if (auto partner = w.lock()) {
-                if (partner->dead) continue;
-
-                // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
-
-                if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    partner->dead = true;
-                    break;
-                }
-            }
-        }
     }
     
     void process(std::vector<std::shared_ptr<Wolf>>& creature,
@@ -705,42 +683,6 @@ public:
         return chunk.rats;
     }
 
-    void infection() {
-        if (Random::Int(1, 100000) == 1) {
-            infect = true;
-        }
-    }
-    void usedInfection() {
-        age_limit *= 0.8;
-        isUsedInfection = true;
-    }
-
-
-    void eat() {
-        if (hunger <= 10 || dead) return;
-        int base_cx = coord_to_chunkx(x);
-        int base_cy = coord_to_chunky(y);
-        Chunk& chunk = chunk_grid[base_cx][base_cy];
-
-        for (auto& w : getFoodContainer(chunk)) {
-            if (auto partner = w.lock()) {
-                if (partner->dead) continue;
-
-                // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
-
-                if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    partner->dead = true;
-                }
-            }
-        }
-    }
-
-    
-
     void process(std::vector<std::shared_ptr<Rat>>& creature,
         std::vector<std::shared_ptr<Rat>>& new_creature,
         PopulationManager& pop) {
@@ -789,31 +731,6 @@ public:
     }
     std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) override {
         return chunk.eagles;
-    }
-
-    
-    
-
-    void eat() {
-        if (hunger <= 10 || dead) return;
-        int base_cx = coord_to_chunkx(x);
-        int base_cy = coord_to_chunky(y);
-        for (auto& w : getFoodContainer(chunk_grid[base_cx][base_cy])) {
-            if (auto partner = w.lock()) {
-                if (partner->dead) continue;
-
-                // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
-
-                if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    partner->dead = true;
-                    break;
-                }
-            }
-        }
     }
 
     void process(std::vector < std::shared_ptr <Eagle>> &creature,

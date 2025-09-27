@@ -261,6 +261,7 @@ public:
     int blossoming_age = 0;
     int berry_limit;
     bool infect = false;
+    bool isUsedInfection = false;
     Creature(type_ t) : type(t) {}
 
 
@@ -318,8 +319,11 @@ protected:
     virtual void addToChunk(Chunk& chunk) = 0;
 };
 
+
 inline float torusDelta(float from, float to, float size) {
     float d = to - from;
     return Wrap(d, size);
 }
+
+
 
