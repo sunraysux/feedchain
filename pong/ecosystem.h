@@ -353,7 +353,17 @@ void mouse()
             seed = 0; // выключить
         
     }
+    float barPositions = -0.35;
+    float barHeights = -0.85;
+    float barBottom = -1;
+    float barTop = barHeights;
 
+    
+        if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+            (barPositions < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 0.8)) {
+            return;
+        }
+    
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
         std::vector<std::shared_ptr<Wolf>> new_wolfs;
         std::vector<std::shared_ptr<Rabbit>> new_rabbits;
