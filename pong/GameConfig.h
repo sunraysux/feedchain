@@ -25,6 +25,7 @@ float SIZEBUSHES = 50.0f;
 float SIZERABBITS = 100.0f;
 float SIZEAGLES = 100.0f;
 float SIZERATS = 100.0f;
+float SIZEBERRYS = 50.0f;
 float base_rangey = 1024.0f;
 float base_rangex = 1024.0f;
 float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
@@ -183,6 +184,7 @@ public:
     int eagle_count = 0;
     int grass_count = 0;
     int rat_count = 0;
+    int berry_count = 0;
     const int grass_limit = 5000;
     const int wolf_limit = 100;
     const int rabbit_limit = 500;
@@ -190,6 +192,7 @@ public:
     const int bush_limit = 500;
     const int eagle_limit = 100;
     const int rat_limit = 500;
+    const int berry_limit = 2500;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -215,8 +218,11 @@ public:
     bool canAddGrass(int pending = 0) const {
         return grass_count + pending < grass_limit;
     }
+    bool canAddBerrys(int pending = 0) const {
+        return berry_count + pending < berry_limit;
+    }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_grass) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
@@ -224,6 +230,7 @@ public:
         eagle_count += delta_eagles;
         rat_count += delta_rats;
         grass_count += delta_grass;
+        berry_count += delta_berrys;
     }
 };
 
@@ -262,6 +269,8 @@ public:
     int berry_limit;
     bool infect = false;
     bool isUsedInfection = false;
+    bool isRotten = false;
+    int id;
     Creature(type_ t) : type(t) {}
 
 

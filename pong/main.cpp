@@ -182,25 +182,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case '7': currentType = type_::grass;slot_number = 7; break;
             case '8': currentType = type_::lightning;slot_number = 8; break;
 
-            case VK_LBUTTON: {
-
-                float barPositions = -0.35;
-                float barHeights = -0.85;
-                /*float barLeft = barPositions - 0.1 + slot * 0.1;  
-                float barRight = barPositions + slot * 0.1;  */     
-                float barBottom = -1;                           // Нижняя граница
-                float barTop = barHeights;            // Верхняя граница
-                if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
-                    (barPositions - 0.1 + 1 * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 1 * 0.1)) {
-                    currentType = type_::wolf; slot_number = 1;
-                }
-                /*if ((-0.3 < Camera::state.mousendcY && Camera::state.mousendcY < -0.1) &&
-                    (-0.1 < Camera::state.mousendcX && Camera::state.mousendcX < 0.1) &&
-                    GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-                {
-                    ExitProcess(0);
-                }*/
-            }
             break;
             case VK_ESCAPE:
               //  gameState = gameState_::MainMenu;
@@ -210,6 +191,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
+    case WM_LBUTTONDOWN: {
+        if ((lParam & 0x40000000) == 0) {
+            float barPositions = -0.35;
+            float barHeights = -0.85;
+            float barBottom = -1;
+            float barTop = barHeights;
+
+            for (int slot = 1; slot < 9; slot++) {
+                if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+                    (barPositions - 0.1 + slot * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + slot * 0.1)) {
+                    slot_number = slot;
+                }
+            }
+            switch (slot_number)
+            {
+            case 1: currentType = type_::wolf; break;
+            case 2: currentType = type_::rabbit; break;
+            case 3: currentType = type_::tree; break;
+            case 4: currentType = type_::bush; break;
+            case 5: currentType = type_::eagle; break;
+            case 6: currentType = type_::rat; break;
+            case 7: currentType = type_::grass; break;
+            case 8: currentType = type_::lightning; break;
+            default:
+                break;
+            }
+        }
+    }
+    break;
     case WM_KEYUP:
         if (wParam == VK_SHIFT) {
             Camera::state.speedMul = 1.0f;

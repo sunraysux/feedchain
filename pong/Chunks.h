@@ -6,6 +6,7 @@ struct Chunk {
     std::vector<std::weak_ptr<Creature>> rabbits;
     std::vector<std::weak_ptr<Creature>> wolves;
     std::vector<std::weak_ptr<Creature>> bushes;
+    std::vector<std::weak_ptr<Creature>> berrys;
     std::vector<std::weak_ptr<Creature>> eagles;
     std::vector<std::weak_ptr<Creature>> rats;
     //Grass grass;
@@ -20,10 +21,34 @@ struct Chunk {
         case type_::eagle: return nearest_mature_creature(eagles, x, y, matureOnly, gender);
         case type_::rat: return nearest_mature_creature(rats, x, y, matureOnly, gender);
         case type_::grass: return nearest_mature_creature(grass, x, y, matureOnly, gender);
+        case type_::berry: return nearest_mature_creature(berrys, x, y, matureOnly, gender);
         default: return { -5000.0f, -5000.0f };
         }
     }
+    const int killBerrys(float x, float y, int id) {
+        float best_dx = 0, best_dy = 0;
+        float best_dist2 = 100000000;
+        bool found = false;
 
+        for (auto& w : berrys) {
+            if (auto c = w.lock()) {
+                if (id == c->id) {
+                    float dx = torusDelta(x, c->x, base_rangex);
+                    float dy = torusDelta(y, c->y, base_rangey);
+                    float dist2 = dx * dx + dy * dy;
+
+                    if (dist2 > 0.0f && dist2 < best_dist2) {
+                        best_dx = dx;
+                        best_dy = dy;
+                        best_dist2 = dist2;
+                        c->dead = true;
+                    }
+                }
+            }
+        }
+        return 0;
+    
+    }
     template<typename T>
     std::pair<float, float> nearest_mature_creature(
         const std::vector<std::weak_ptr<T>>& creatures,
@@ -47,14 +72,6 @@ struct Chunk {
                     }
                 }
                                         
-                /*if (c->blossoming_age != 0) {
-                    if (c->berry_count == 0) {
-                        return std::make_pair(-5000.0f, -5000.0f);
-                    }
-                }*/
-                ///
-
-                ///
                 float dx = torusDelta(x, c->x, base_rangex);
                 float dy = torusDelta(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -108,6 +125,7 @@ struct Chunk {
         case type_::eagle: return nearly_creature_square(eagles, x, y, half_side);
         case type_::rat: return nearly_creature_square(rats, x, y, half_side);
         case type_::grass: return nearly_creature_square(grass, x, y, half_side);
+        case type_::berry: return nearly_creature_square(berrys, x, y, half_side);
         }
     }
     

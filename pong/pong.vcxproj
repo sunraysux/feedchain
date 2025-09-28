@@ -169,6 +169,7 @@
     <Image Include="Debug\Трава1.png" />
     <Image Include="Debug\Трава2.png" />
     <Image Include="Debug\Трава3.png" />
+    <Image Include="Debug\Ягода.png" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav" />

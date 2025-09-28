@@ -1,4 +1,4 @@
-bool heightW(float x, float y) {
+п»їbool heightW(float x, float y) {
 
     auto& heightMap = Textures::Texture[10];
     float normalizedX = (x + base_rangex) / (2.0f * base_rangex); // [0, 1]
@@ -12,7 +12,7 @@ bool heightW(float x, float y) {
     float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
     return height < waterLevel;
 }
-
+int plant_id = 0;
 class Plnt : public Creature {
 public:
     Plnt(type_ t) : Creature(t) {}
@@ -24,8 +24,7 @@ public:
     bool shouldDie() const override {
         return dead || age > age_limit;
     }
-
-
+    
 
 protected:
     
@@ -86,10 +85,11 @@ protected:
                 auto seedling = std::dynamic_pointer_cast<T>(offspring);
                 seedling->x = seedlingx;
                 seedling->y = seedlingy;
-                // установить базовые значения
+                // СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Р±Р°Р·РѕРІС‹Рµ Р·РЅР°С‡РµРЅРёСЏ
                 seedling->age = 0;
                 seedling->birth_tick = tick;
                 seedling->updateChunk();
+                seedling->id = plant_id + s+1;
                 new_plants.push_back(std::move(seedling));
             }
            
@@ -143,29 +143,37 @@ protected:
                 auto seedling = std::dynamic_pointer_cast<T>(offspring);
                 seedling->x = seedlingx;
                 seedling->y = seedlingy;
-                // установить базовые значения
+                // СѓСЃС‚Р°РЅРѕРІРёС‚СЊ Р±Р°Р·РѕРІС‹Рµ Р·РЅР°С‡РµРЅРёСЏ
                 seedling->age = 0;
                 seedling->birth_tick = tick;
+                seedling->id = plant_id + s + 1;
                 seedling->updateChunk();
                 new_plants.push_back(std::move(seedling));
             }
 
         }
+        plant_id += seeds;
     }
+
     template <typename T>
     void process(
         std::vector<std::shared_ptr<T>>& new_plants,
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++;
-
-        if (age >= maturity_age && canAdd(pop, 0)) {
-            if (tick % 5 == 0) {
-                reproduce(new_plants);
+        if (type == type_::berry && !isRotten && age > age_limit * 0.5) {
+            isRotten = true;
+        }
+        if (type != type_::berry) {
+            if (age >= maturity_age && canAdd(pop, 0)) {
+                if (tick % 5 == 0) {
+                    reproduce(new_plants);
+                }
             }
         }
     }
 };
+
 class Animal : public Creature {
 public:
     Animal(type_ t) : Creature(t) {}
@@ -222,7 +230,7 @@ protected:
         bool isMaturity = (age >= maturity_age) &&
             (tick - birth_tick > MATURITY_TICKS) &&
             !isHunger;
-        //  избегание соседей 
+        //  РёР·Р±РµРіР°РЅРёРµ СЃРѕСЃРµРґРµР№ 
         float ax = 0.0f, ay = 0.0f;
         int nearbyCount = 0;
         for (int i = -1; i <= 1; ++i) {
@@ -256,7 +264,7 @@ protected:
                         dirX = dx / d;
                         dirY = dy / d;
 
-                        // сколько шагов нужно до куста
+                        // СЃРєРѕР»СЊРєРѕ С€Р°РіРѕРІ РЅСѓР¶РЅРѕ РґРѕ РєСѓСЃС‚Р°
                         remainingSteps = static_cast<int>(d / speed);
 
                         remainingSteps = max(1, remainingSteps);
@@ -274,7 +282,7 @@ protected:
                         dirX = dx / d;
                         dirY = dy / d;
 
-                        // сколько шагов нужно до куста
+                        // СЃРєРѕР»СЊРєРѕ С€Р°РіРѕРІ РЅСѓР¶РЅРѕ РґРѕ РєСѓСЃС‚Р°
                         remainingSteps = static_cast<int>(d / speed);
 
                         remainingSteps = max(1, remainingSteps);
@@ -282,7 +290,7 @@ protected:
                     }
                 }
             }
-            // если всё ещё нет направления — случайный угол
+            // РµСЃР»Рё РІСЃС‘ РµС‰С‘ РЅРµС‚ РЅР°РїСЂР°РІР»РµРЅРёСЏ вЂ” СЃР»СѓС‡Р°Р№РЅС‹Р№ СѓРіРѕР»
             if (remainingSteps <= 0) {
                 float a = Random::Float(0, 2 * 3.14159265f);
                 dirX = cosf(a); dirY = sinf(a);
@@ -291,21 +299,21 @@ protected:
             }
         }
 
-        // вычисляем steering: основной dir + небольшое избегание
-        float steerX = dirX + ax * 0.7f; // ax,ay — из расчёта избегания соседей
+        // РІС‹С‡РёСЃР»СЏРµРј steering: РѕСЃРЅРѕРІРЅРѕР№ dir + РЅРµР±РѕР»СЊС€РѕРµ РёР·Р±РµРіР°РЅРёРµ
+        float steerX = dirX + ax * 0.7f; // ax,ay вЂ” РёР· СЂР°СЃС‡С‘С‚Р° РёР·Р±РµРіР°РЅРёСЏ СЃРѕСЃРµРґРµР№
         float steerY = dirY + ay * 0.7f;
         float slen = std::sqrt(steerX * steerX + steerY * steerY);
         if (slen > 1e-6f) { steerX /= slen; steerY /= slen; }
 
-        // пробуем сделать один маленький шаг
+        // РїСЂРѕР±СѓРµРј СЃРґРµР»Р°С‚СЊ РѕРґРёРЅ РјР°Р»РµРЅСЊРєРёР№ С€Р°Рі
         float candX = Wrap(x + steerX * speed, base_rangex);
         float candY = Wrap(y + steerY * speed, base_rangey);
 
         if (heightW(candX, candY)) {
-            // вода прямо впереди — пробуем обход в стороны (+/- 45°)
+            // РІРѕРґР° РїСЂСЏРјРѕ РІРїРµСЂРµРґРё вЂ” РїСЂРѕР±СѓРµРј РѕР±С…РѕРґ РІ СЃС‚РѕСЂРѕРЅС‹ (+/- 45В°)
             float baseAngle = atan2f(dirY, dirX);
             bool found = false;
-            const float offsets[4] = { 0.5f, -0.5f, 1.0f, -1.0f }; // в радианах ~30°, -30°, 60°, -60°
+            const float offsets[4] = { 0.5f, -0.5f, 1.0f, -1.0f }; // РІ СЂР°РґРёР°РЅР°С… ~30В°, -30В°, 60В°, -60В°
             for (float off : offsets) {
                 float na = baseAngle + off;
                 float nx = cosf(na), ny = sinf(na);
@@ -314,12 +322,12 @@ protected:
                 if (!heightW(tx, ty)) { dirX = nx; dirY = ny; found = true; break; }
             }
             if (!found) {
-                // застряли — сбрасываем направление, в следующем тике выберется новое
+                // Р·Р°СЃС‚СЂСЏР»Рё вЂ” СЃР±СЂР°СЃС‹РІР°РµРј РЅР°РїСЂР°РІР»РµРЅРёРµ, РІ СЃР»РµРґСѓСЋС‰РµРј С‚РёРєРµ РІС‹Р±РµСЂРµС‚СЃСЏ РЅРѕРІРѕРµ
                 remainingSteps = 0;
             }
         }
         else {
-            // шаг возможен — совершаем его
+            // С€Р°Рі РІРѕР·РјРѕР¶РµРЅ вЂ” СЃРѕРІРµСЂС€Р°РµРј РµРіРѕ
             x = candX; y = candY;
             remainingSteps--;
             updateChunk();
@@ -340,7 +348,7 @@ protected:
                 if (partner->gender == gender) continue;
                 if (partner->age < maturity_age || (tick - partner->birth_tick) < MATURITY_TICKS) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
@@ -353,11 +361,11 @@ protected:
                     offspring->birth_tick = tick;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
-                    // Обновляем cooldown родителей
+                    // РћР±РЅРѕРІР»СЏРµРј cooldown СЂРѕРґРёС‚РµР»РµР№
                     birth_tick = tick;
                     partner->birth_tick = tick;
 
-                    // разнесение, чтобы не слипались
+                    // СЂР°Р·РЅРµСЃРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ СЃР»РёРїР°Р»РёСЃСЊ
                     const float nudge = 5.0f;
                     float nd = std::sqrt(dx * dx + dy * dy);
                     do {
@@ -395,13 +403,16 @@ protected:
             if (auto partner = w.lock()) {
                 if (partner->dead) continue;
 
-                // расстояние с учётом тора
+                // СЂР°СЃСЃС‚РѕСЏРЅРёРµ СЃ СѓС‡С‘С‚РѕРј С‚РѕСЂР°
                 float dx = torusDelta(x, partner->x, base_rangex);
                 float dy = torusDelta(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
 
                 if (dist2 < eating_range) {
                     hunger -= partner->nutritional_value;
+                    if (partner->isRotten == true) {
+                        dead = true;
+                    }
                     partner->dead = true;
                 }
             }
@@ -418,10 +429,42 @@ protected:
     }
 };
 
+class Berry : public Plnt {
+public:
+    Berry() : Plnt(type_::berry) {
+        // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї ГЇГ Г°Г Г¬ГҐГІГ°Г®Гў Г°Г Г±ГІГҐГ­ГЁГї
+        nutritional_value = 50;
+        age = 0;
+        maturity_age = 100;
+        age_limit = 500;
+    }
+    std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Berry>(); }
+    bool canAdd(PopulationManager& pop, size_t newSize) override {
+        return pop.canAddBerrys(static_cast<int>(newSize));
+    }
+
+    void process(std::vector<std::shared_ptr<Berry>>& new_plants,
+        PopulationManager& pop) {
+        Plnt::process<Berry>(new_plants, pop);
+    }
+
+protected:
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
+        return chunk.berrys;
+    }
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
+        return chunk.Plants;
+    }
+    void addToChunk(Chunk& chunk) override {
+        chunk.berrys.push_back(weak_from_this());
+        chunk.Plants.push_back(weak_from_this());
+    }
+};
+
 class Grass : public Plnt {
 public:
     Grass() : Plnt(type_::grass) {
-        // Инициализация параметров растения
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ СЂР°СЃС‚РµРЅРёСЏ
         nutritional_value = 200;
         maturity_age = 250;
         age_limit = 500;
@@ -455,7 +498,7 @@ protected:
 class Tree : public Plnt {
 public:
     Tree() : Plnt(type_::tree) {
-        // Инициализация параметров растения
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ СЂР°СЃС‚РµРЅРёСЏ
         nutritional_value = 100;
         age = 0;
         maturity_age = 1000;
@@ -489,30 +532,79 @@ protected:
 class Bush : public Plnt {
 public:
     Bush() : Plnt(type_::bush) {
-        // Инициализация параметров растения
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°СЂР°РјРµС‚СЂРѕРІ СЂР°СЃС‚РµРЅРёСЏ
         nutritional_value = 200;
         age = 0;
         maturity_age = 500;
         age_limit = 1000;
-        /*berry_count = 0;*/
+        berry_count = 0;
         blossoming_age = 80;
-        /*berry_limit = 5;*/
+        berry_limit = 5;
     }
     
     std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Bush>(); }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddBush(static_cast<int>(newSize));
     }
-    /*void blossoming() {
-        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
-        if ((Random::Int(0, 100)) >= (reproductionChance * 100))
-            return;
-        berry_count++;
-    }*/
     
-    void process(std::vector<std::shared_ptr<Bush>>& new_plants,
+    void blossoming(std::vector<std::shared_ptr<Berry>>& new_berrys) {
+
+
+        float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
+        if ((Random::Float(0, 100)) >= (reproductionChance * 100))
+            return;
+        float t = age / SIZEBUSHES;
+        float x1 = x - t / 1.2f;
+        float y1 = y;
+        float x2 = x + t;
+        float y2 = y + t;
+        auto seedling = std::make_shared<Berry>();
+        seedling->age = 0;
+        seedling->dead = false;
+        seedling->age_limit = 100 + Random::Int(-10, 10);
+        float radiusX = (x2 - x1) / 2.0f;
+        float radiusY = (y2 - y1) / 2.0f;
+        float angle = Random::Float(0, 3.14f * 2);
+        seedling->x = x + radiusX * cos(angle) * Random::Float(0, 1);
+        seedling->y = y + radiusY * sin(angle) * Random::Float(0, 1);
+        seedling->x = Wrap(seedling->x, base_rangex);
+        seedling->y = Wrap(seedling->y, base_rangey);
+        seedling->id = id;
+        updateChunk();
+        new_berrys.push_back(seedling);
+
+    }
+
+    void process(
+        std::vector<std::shared_ptr<Bush>>& new_plants,
+        std::vector<std::shared_ptr<Berry>>& new_berrys,
         PopulationManager& pop) {
-        Plnt::process<Bush>(new_plants, pop);
+        if (shouldDie()) return;
+
+        if (age > age_limit * 0.95) {
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
+                    int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+                    chunk_grid[ncx][ncy].killBerrys(x, y, id);
+
+                }
+            }
+        }
+        age++;
+
+        
+        if (age >= maturity_age && canAdd(pop, 0)) {
+            if (tick % 5 == 0) {
+                reproduce(new_plants);
+            }
+        }
+        if (age >= blossoming_age && pop.canAddBerrys()) {
+            if (tick % 5 == 0) {
+                blossoming(new_berrys);
+            }
+        }
+        
     }
  
 protected:
@@ -671,8 +763,8 @@ public:
     int remainingSteps = 0;
     float speed = 1.0f;
     int MATURITY_TICKS = 25;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.bushes; }
-    type_ getFoodType() const override { return type_::bush; }
+    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.berrys; }
+    type_ getFoodType() const override { return type_::berry; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddRat(static_cast<int>(newSize));
     }
@@ -756,7 +848,7 @@ protected:
 };
 
 
-// Глобальный контейнер существ
+// Р“Р»РѕР±Р°Р»СЊРЅС‹Р№ РєРѕРЅС‚РµР№РЅРµСЂ СЃСѓС‰РµСЃС‚РІ
 
 
 std::vector<std::shared_ptr<Rabbit>> rabbits;
@@ -766,5 +858,5 @@ std::vector<std::shared_ptr<Bush>> bushes;
 std::vector<std::shared_ptr<Eagle>> eagles;
 std::vector<std::shared_ptr<Rat>> rats;
 std::vector<std::shared_ptr<Grass>> grass;
-
+std::vector<std::shared_ptr<Berry>> berrys;
 

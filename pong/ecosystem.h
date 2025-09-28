@@ -32,6 +32,7 @@ void ProcessCreatures(PopulationManager& pop) {
     int dead_bushes = 0;
     int dead_rats = 0;
     int dead_grass = 0;
+    int dead_berrys = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
@@ -39,12 +40,14 @@ void ProcessCreatures(PopulationManager& pop) {
     std::vector<std::shared_ptr<Eagle>> new_eagles;
     std::vector<std::shared_ptr<Rat>> new_rats;
     std::vector<std::shared_ptr<Grass>> new_grass;
+    std::vector<std::shared_ptr<Berry>> new_berrys;
     
 
     
     for (auto& tree : trees) tree->process(new_trees, pop);
-    for (auto& bush : bushes) bush->process(new_bushes, pop);
+    for (auto& bush : bushes) bush->process(new_bushes,new_berrys, pop);
     for (auto& gras : grass) gras->process(new_grass, pop);
+    for (auto& berry : berrys) berry->process(new_berrys, pop);
 
     for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, pop);
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, pop);
@@ -79,6 +82,7 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(bushes, dead_bushes);
     remove_dead(eagles, dead_eagles);
     remove_dead(rats, dead_rats);
+    remove_dead(berrys, dead_berrys);
     //remove_dead(grass, dead_grass);
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -96,7 +100,8 @@ void ProcessCreatures(PopulationManager& pop) {
         static_cast<int>(new_bushes.size()) - dead_bushes,
         static_cast<int>(new_eagles.size()) - dead_eagles,
         static_cast<int>(new_rats.size()) - dead_rats,
-        static_cast<int>(new_grass.size()) - dead_grass
+        static_cast<int>(new_grass.size()) - dead_grass,
+        static_cast<int>(new_berrys.size()) - dead_berrys
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolves, new_wolfs);
@@ -105,6 +110,7 @@ void ProcessCreatures(PopulationManager& pop) {
     add_new_entities(eagles, new_eagles);
     add_new_entities(rats, new_rats);
     add_new_entities(grass, new_grass);
+    add_new_entities(berrys, new_berrys);
 
 }
 //инициализация игры
@@ -150,6 +156,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(24, L"Debug/speed.png");
     Textures::LoadTextureFromFile(25, L"Debug/speed2.png");
     Textures::LoadTextureFromFile(26, L"Debug/speed3.png");
+    Textures::LoadTextureFromFile(27, L"Debug/Ягода.png");
     // Начальные растения
     for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
@@ -405,6 +412,8 @@ void mouse()
                 tree->y = Wrap(Camera::state.mouseY, base_rangey);
                 tree->x = Wrap(Camera::state.mouseX, base_rangex);
                 tree->age = 0;
+                plant_id += 1;
+                tree->id = plant_id;
                 tree->updateChunk();
                 new_trees.push_back(tree);
                 population.tree_count++;
@@ -420,6 +429,8 @@ void mouse()
                 gras->y = Wrap(Camera::state.mouseY, base_rangey);
                 gras->x = Wrap(Camera::state.mouseX, base_rangex);
                 gras->age = 0;
+                plant_id += 1;
+                gras->id = plant_id;
                 gras->updateChunk();
                 new_grass.push_back(gras);
                 population.grass_count++;
@@ -435,6 +446,8 @@ void mouse()
                 bush->y = Wrap(Camera::state.mouseY, base_rangey);
                 bush->x = Wrap(Camera::state.mouseX, base_rangex);
                 bush->age = 0;
+                plant_id += 1;
+                bush->id = plant_id;
                 new_bushes.push_back(bush);
                 population.bush_count++;
             }
@@ -716,7 +729,8 @@ void ShowRacketAndBallFromVectors(
     const std::vector<std::shared_ptr<Bush>>& bushes,
     const std::vector<std::shared_ptr<Eagle>>& eagles,
     const std::vector<std::shared_ptr<Rat>>& rats,
-    const std::vector<std::shared_ptr<Grass>>& grass)
+    const std::vector<std::shared_ptr<Grass>>& grass,
+    const std::vector<std::shared_ptr<Berry>>& berrys)
 {
     Shaders::vShader(0);
     Shaders::pShader(0);
@@ -729,11 +743,13 @@ void ShowRacketAndBallFromVectors(
 
     // Рисуем: напрямую из векторов
     DrawSimpleCreatures<Rabbit>(2, rabbits, SIZERABBITS);   
-    DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);        
+    DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);
+    
 
     DrawAnimalsByGender<Eagle>(eagle_arr, eagles, SIZEAGLES);
     DrawPlantsBySize<Tree>(tree_arr, trees, SIZETREES);      
     DrawPlantsBySize<Bush>(bush_arr, bushes, SIZEBUSHES);    
+    DrawSimpleCreatures<Berry>(27, berrys, SIZEBERRYS);
     DrawPlantsBySize<Grass>(grass_arr, grass, SIZEGRASS);    
     DrawInfectCheck<Rat>(rat_arr, rats, SIZERATS);           
 }
