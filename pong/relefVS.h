@@ -70,12 +70,15 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float4 pos = float4(p, 0, 1);
 
     // высота
-    float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    float heightScale = height * 7;
-    pos.z += height * heightScale * heightScale * heightScale;
+    float height = heightMap.SampleLevel(sampLinear, uv, 0).r;
+    float heightScale = 700;
+    output.height = height;
+    height -= 0.5;
+    pos.z += height * height* height * heightScale;
+    height = pos.z;
     output.wpos = pos.xy; // пробрасываем мировые XY отдельно
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.uv = uv / 2;
-    output.height = height;
+    
     return output;
 }

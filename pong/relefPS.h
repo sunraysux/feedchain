@@ -5,7 +5,10 @@ struct VS_OUTPUT
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
 };
-
+cbuffer drawer : register(b5)
+{
+    float4 gConst[32]; 
+};
 // ==== палитра по высоте ====
 float3 heightPalette(float h)
 {
@@ -79,7 +82,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float n = fbm(worldPos * 0.8 + erosion * 0.5) * 0.1 - 0.05;
     h = saturate(h + n);
 
-    float3 color = heightPalette(h);
+    float3 color = heightPalette(h-gConst[1].z);
 
     float erosionEffect = 0.9 + erosion * 0.2;
     color *= erosionEffect;

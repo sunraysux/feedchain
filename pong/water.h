@@ -25,7 +25,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
 {
     float scale = 1024.0;
     float2 uv = (input.wpos.xy + float2(scale, scale)) / (2.0 * scale);
-    float terrainHeight = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
+    float terrainHeight = heightMap.SampleLevel(sampLinear, uv , 0).r;
 
     float depth = input.height - terrainHeight;
 

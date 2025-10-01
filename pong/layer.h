@@ -39,20 +39,20 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
         float3(1, -1, 1), float3(1, 1, 1), float3(-1, 1, 1),
 
     // Передняя грань (y = -1) - против часовой стрелки
-        float3(-1, -1, 0), float3(1, -1, 0), float3(-1, -1, 1),
-        float3(1, -1, 0), float3(1, -1, 1), float3(-1, -1, 1),
+        float3(-1, -1,  -1), float3(1, -1,  -1), float3(-1, -1, 1),
+        float3(1, -1,  -1), float3(1, -1, 1), float3(-1, -1, 1),
         
         // Задняя грань (y = 1) - по часовой стрелке
-        float3(-1,  1, 0), float3(-1,  1, 1), float3(1,  1, 0),
-        float3(1,  1, 0), float3(-1,  1, 1), float3(1,  1, 1),
+        float3(-1,  1,  -1), float3(-1,  1, 1), float3(1,  1, -1),
+        float3(1,  1,  -1), float3(-1,  1, 1), float3(1,  1, 1),
         
         // Левая грань (x = -1) - против часовой стрелки
-        float3(-1, -1, 0), float3(-1, -1, 1), float3(-1,  1, 0),
-        float3(-1,  1, 0), float3(-1, -1, 1), float3(-1,  1, 1),
+        float3(-1, -1,  -1), float3(-1, -1, 1), float3(-1,  1, -1),
+        float3(-1,  1,  -1), float3(-1, -1, 1), float3(-1,  1, 1),
         
         // Правая грань (x = 1) - по часовой стрелке
-        float3(1, -1, 0), float3(1,  1, 0), float3(1, -1, 1),
-        float3(1, -1, 1), float3(1,  1, 0), float3(1,  1, 1)
+        float3(1, -1,  -1), float3(1,  1,  -1), float3(1, -1, 1),
+        float3(1, -1, 1), float3(1,  1,  -1), float3(1,  1, 1)
     };
     // Нормали для каждой грани
     float3 normals[5] = {
@@ -66,7 +66,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float scale = 1024.0;
     float waterWorldHeight = gConst[0].x;
     float heightScale = waterWorldHeight * 7;
-    float waterZ = waterWorldHeight * heightScale * heightScale * heightScale;
+    float waterZ = waterWorldHeight  * heightScale * heightScale;
     // Масштабируем и позиционируем вершины
     float3 vertexPos = positions[vID];
     float3 worldPos = float3(vertexPos.xy * scale, vertexPos.z * waterZ);

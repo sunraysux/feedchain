@@ -109,7 +109,7 @@ void Loop() {
 	Shaders::pShader(3);
 
 	ConstBuf::global[0] = XMFLOAT4(128, 128, 0, 0);
-	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
+	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, waterLevel, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(10, 0, vertex);
@@ -190,7 +190,7 @@ void Looppause() {
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
 	Draw::NullDrawer(5);
 	//Depth::ResetRasterizer();
-	waterLevel = 0.6;
+	waterLevel = 0;
 	Draw::Present();
 
 }
