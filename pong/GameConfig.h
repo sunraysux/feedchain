@@ -52,6 +52,17 @@ inline float Wrap(float x, float range) {
     return x;
 }
 
+inline int GetChunk(float x) {
+    const float WORLD_HALF = 2048.0f * 8; // 16384
+    const float CHUNK_SIZE = 2048.0f;
+    const int TOTAL_CHUNKS = 16;
+
+    float normalized = x + WORLD_HALF;
+    int chunk = static_cast<int>(normalized / CHUNK_SIZE);
+    chunk = chunk % TOTAL_CHUNKS;
+    if (chunk < 0) chunk += TOTAL_CHUNKS;
+    return chunk;
+}
 
 
 inline float WrapXcam(float x)

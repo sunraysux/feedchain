@@ -1,12 +1,10 @@
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float2 uv : TEXCOORD0;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
 };
 
-// ==== палитра по высоте ====
 float3 heightPalette(float h)
 {
     // Приглушённые, "грязные" цвета с зелёным оттенком
@@ -26,7 +24,7 @@ float3 heightPalette(float h)
         c = lerp(mud, darkGrass, smoothstep(0.45, 0.55, h));
     else if (h < 0.65)
         c = lerp(darkGrass, grass, smoothstep(0.55, 0.65, h));
-    else 
+    else
         c = grass;
 
     return c;
@@ -75,8 +73,12 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float h = input.height;
     float2 worldPos = input.wpos.xy;
 
-    float erosion = fbm(worldPos * 0.3);
-    float n = fbm(worldPos * 0.8 + erosion * 0.5) * 0.1 - 0.05;
+    // Добавляем смещение к мировым координатам для шума
+    float2 noiseOffset = float2(1000.0, 1000.0); // Большое смещение чтобы избежать центра
+    float2 noisePos = worldPos + noiseOffset;
+
+    float erosion = fbm(noisePos * 0.3);
+    float n = fbm(noisePos * 0.8 + erosion * 0.5) * 0.1 - 0.05;
     h = saturate(h + n);
 
     float3 color = heightPalette(h);
@@ -86,12 +88,12 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     float textureNoise;
     if (h < 0.4)
-        textureNoise = fbm(worldPos * 1.5) * 0.1; 
+        textureNoise = fbm(noisePos * 1.5) * 0.1;
     else if (h < 0.6)
-        textureNoise = fbm(worldPos * 4.0) * 0.15; 
+        textureNoise = fbm(noisePos * 4.0) * 0.15;
     else
-        textureNoise = fbm(worldPos * 8.0) * 0.2; 
-    
+        textureNoise = fbm(noisePos * 8.0) * 0.2;
+
     color *= (0.85 + textureNoise);
 
     return float4(color, 1.0f);

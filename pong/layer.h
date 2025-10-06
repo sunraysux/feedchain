@@ -63,7 +63,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
         float3(1, 0, 0)     // Право
     };
 
-    float scale = 1024.0;
+    float scale = 1024.0*3;
     float waterWorldHeight = gConst[0].x;
     float heightScale = waterWorldHeight * 7;
     float waterZ = waterWorldHeight * heightScale * heightScale * heightScale;

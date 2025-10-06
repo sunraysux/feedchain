@@ -16,7 +16,6 @@ cbuffer drawer : register(b5)
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float2 uv : TEXCOORD0;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
 };
@@ -29,9 +28,14 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     int gridY = gConst[0].y;
     int base_rangex = gConst[1].x;
     int base_rangey = gConst[1].y;
+    int centerChunkX = gConst[0].z; // центральный чанк камеры
+    int centerChunkY = gConst[0].w;
 
     int quadID = vID / 6;
     int localVertex = vID % 6;
+
+    int tileX = iID % 3 - 1; // -1, 0, 1
+    int tileY = iID / 3 - 1; // -1, 0, 1
 
     int x = quadID % gridX;
     int y = quadID / gridX;
@@ -44,38 +48,36 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(1, 1);
     else offset = float2(0, 1);
 
-    float CHUNK_SIZE = 4;
+    // Смещение чанка относительно центра [-1024, 1024]
+    float2 chunkWorldOffset = float2(tileX * 2048.0, tileY * 2048.0); // ±2048 единиц
 
-    // ширина одной сетки (одного "мира") в юнитах
-    float worldSizeX = gridX * CHUNK_SIZE;
-    float worldSizeY = gridY * CHUNK_SIZE;
+    float2 normalizedPos = float2(
+        (x + offset.x) / gridX,
+        (y + offset.y) / gridY
+    );
 
-    // нормализуем тайл в [0 .. worldSize]
-    float2 p = float2(x * CHUNK_SIZE, y * CHUNK_SIZE) + offset * CHUNK_SIZE;
+    // Преобразуем в мировые координаты с учетом смещения чанка
+    float2 p = float2(
+        (normalizedPos.x - 0.5) * 2.0 * base_rangex + chunkWorldOffset.x,
+        (normalizedPos.y - 0.5) * 2.0 * base_rangey + chunkWorldOffset.y
+    );
 
-    // --- смещение инстанса ---
-   // int tilesPerSide = 3;
-   // int instX = iID % tilesPerSide - tilesPerSide / 2; // -1,0,1
-   // int instY = iID / tilesPerSide - tilesPerSide / 2;
+    // Вычисляем координаты текстуры с враппингом
+    int textureTileX = (centerChunkX + tileX + 16) % 16;
+    int textureTileY = (centerChunkY + tileY + 16) % 16;
 
-    // теперь центрируем так, чтобы вся сетка укладывалась в [-2*base .. +2*base]
-   // p += float2(instX * worldSizeX, instY * worldSizeY);
+    float2 textureTileOffset = float2(textureTileX, textureTileY);
+    float tileSize = 1.0 / 16; // Текстура 16x16 тайлов
 
-    // масштабируем в диапазон [-2*base, +2*base]
-    p.x = (p.x / worldSizeX - 0.5) * (2.0 * base_rangex);
-    p.y = (p.y / worldSizeY - 0.5) * (2.0 * base_rangey);
+    // Финальные UV
+    float2 regionUV = (normalizedPos * tileSize) + (textureTileOffset * tileSize);
 
-
-    float2 uv = (p.xy + float2(base_rangex, base_rangey)) / float2(2.0f * base_rangex, 2.0f * base_rangey);
     float4 pos = float4(p, 0, 1);
-
-    // высота
-    float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    float heightScale = height * 7;
-    pos.z += height * heightScale * heightScale * heightScale;
-    output.wpos = pos.xy; // пробрасываем мировые XY отдельно
+    float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
+    float heightScale = 100;
+    pos.z += exp(height * 2.5) * heightScale;
+    output.wpos = pos.xy;
     output.pos = mul(pos, mul(view[0], proj[0]));
-    output.uv = uv / 2;
     output.height = height;
     return output;
 }

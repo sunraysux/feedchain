@@ -1179,6 +1179,8 @@ namespace Camera
 		// Числовые копии позиции (используются внешним кодом)
 		float camX = 100.0f;
 		float camY = 100.0f;
+		int camXChunk = 0;
+		int camYChunk = 0;
 	} static state;
 
 
@@ -1374,7 +1376,12 @@ namespace Camera
 			state.mouseY = XMVectorGetY(hit);
 		}
 	}
-
+	inline void WrapChunks()
+	{
+		const int TOTAL_CHUNKS = 16;
+		state.camXChunk = (state.camXChunk % TOTAL_CHUNKS + TOTAL_CHUNKS) % TOTAL_CHUNKS;
+		state.camYChunk = (state.camYChunk % TOTAL_CHUNKS + TOTAL_CHUNKS) % TOTAL_CHUNKS;
+	}
 
 	void Update()
 	{
@@ -1399,8 +1406,17 @@ namespace Camera
 		// Wrap (как в твоём коде)
 		float ox = XMVectorGetX(state.position);
 		float oy = XMVectorGetY(state.position);
-		ox = Wrap(ox, 2048 * 4);
-		oy = Wrap(oy, 2048 * 4);
+		if (ox > 1024)
+			state.camXChunk += 1;
+		if (oy > 1024)
+			state.camYChunk += 1;
+		if (ox < -1024)
+			state.camXChunk -= 1;
+		if (oy < -1024)
+			state.camYChunk -= 1;
+		WrapChunks();
+		ox = Wrap(ox, 1024);
+		oy = Wrap(oy, 1024);
 		state.position = XMVectorSet(ox, oy, XMVectorGetZ(state.position), 0.0f);
 
 		// target — позиция + направление

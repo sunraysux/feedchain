@@ -7,7 +7,7 @@
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::wireframe);
 	Shaders::vShader(1);
 	Shaders::pShader(1);
 	ConstBuf::ConstToVertex(4);
@@ -108,12 +108,12 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4(128, 128, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4(128, 128, Camera::state.camXChunk, Camera::state.camYChunk);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(10, 0, vertex);
-	Draw::NullDrawer(32768 /2);
+	Draw::NullDrawer(32768 /2,9);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);
