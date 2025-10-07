@@ -35,25 +35,29 @@ float4 PS(PS_INPUT input) : SV_Target
 {
     const float HEIGHT_SCALE = 100.0;
 
-// получаем реальную высоту рельефа под пикселем
-float terrainHeight = heightMap.SampleLevel(sampLinear, input.uv, 0).r * HEIGHT_SCALE;
-
-// глубина воды над рельефом
-float depth = saturate((input.wpos.z - terrainHeight) / 100.0);
-
-// базовый цвет воды
-float3 waterColor = float3(0.07,0.11,0.13);
-
-// шум и мелкие блики
-float2 noiseUV = input.wpos.xy / 20.0 + time.x * 0.1;
-float noiseValue = waterNoise(floor(noiseUV * 10.0) / 10.0);
-waterColor *= (0.9 + noiseValue * 0.2);
-
-float specular = pow(noiseValue,4.0) * 0.1;
-waterColor += float3(specular * 0.5,specular * 0.7,specular);
-
-// **альфа по реальной глубине**
-float alpha = depth * 0.8;
-
-return float4(waterColor, alpha);
+    // получаем высоту и глубину рельефа
+    float terrainHeight = heightMap.SampleLevel(sampLinear, input.uv, 0).r * HEIGHT_SCALE;
+    float terrainDepth = heightMap.SampleLevel(sampLinear, input.uv, 0).g * 40;
+    
+    // нижн€€ граница рельефа (дно)
+    float bottom = terrainHeight - terrainDepth;
+    
+    // глубина воды над рельефом
+    float depth = saturate((input.wpos.z - bottom) / 100.0);
+    
+    // базовый цвет воды
+    float3 waterColor = float3(0.07, 0.11, 0.13);
+    
+    // шум и блики
+    float2 noiseUV = input.wpos.xy / 20.0 + time.x * 0.1;
+    float noiseValue = waterNoise(floor(noiseUV * 10.0) / 10.0);
+    waterColor *= (0.9 + noiseValue * 0.2);
+    
+    float specular = pow(noiseValue, 4.0) * 0.1;
+    waterColor += float3(specular * 0.5, specular * 0.7, specular);
+    
+    // прозрачность по глубине
+    float alpha = depth * 0.8;
+    
+    return float4(waterColor, alpha);
 }

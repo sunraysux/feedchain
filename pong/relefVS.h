@@ -10,11 +10,12 @@ cbuffer camera : register(b3)
 
 cbuffer drawer : register(b5)
 {
-    float4 gConst[32];
+    float4 gConst[4002];
 };
 
 struct VS_OUTPUT
 {
+
     float4 pos : SV_POSITION;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
@@ -87,7 +88,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float heightScale = 100;
     float depthScale = 40;
     pos.z += exp(height * 1.5) * heightScale;
-    pos.z -= exp(depth * 1.5) * heightScale;
+    pos.z -= exp(depth * 1.5) * depthScale;
 
     output.wpos = pos.xy;
     output.pos = mul(pos, mul(view[0], proj[0]));

@@ -626,16 +626,20 @@ auto isVisible = [&](float x, float y) -> bool {
 int BATCH_SIZE = 4000;
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
-    Textures::TextureToShader(10, 0, vertex);
+    
     context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
     for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
         size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
 
-        // Копируем порцию данных в ConstBuf::global
-        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global);
+       
+        const int OFFSET = 8; 
+        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global + OFFSET);
+
+        ConstBuf::global[0] = XMFLOAT4(Camera::state.camXChunk, Camera::state.camYChunk, 0, 0);
 
         ConstBuf::Update(5, ConstBuf::global);
         ConstBuf::ConstToVertex(5);
+        Textures::TextureToShader(1, 0, vertex);
         Draw::NullDrawer(1, static_cast<int>(count));
     }
 }

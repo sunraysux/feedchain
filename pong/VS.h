@@ -1,12 +1,10 @@
 Texture2D heightMap : register(t0);
 SamplerState sampLinear : register(s0);
 
-
 cbuffer global : register(b5)
 {
-    float4 gConst[32];
+    float4 gConst[4010]; // Увеличиваем размер буфера
 };
-
 
 cbuffer camera : register(b3)
 {
@@ -15,41 +13,62 @@ cbuffer camera : register(b3)
     float4x4 proj[2];
 };
 
-
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD0;
 };
 
-
-
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    float x = gConst[iID].x;      // Фиксированная X-координата нижнего левого угла
-    float y = gConst[iID].y;      // Фиксированная Y-координата нижнего левого угла
-    float sz = gConst[iID].z;     // Ширина (размер по X)
 
+    // Данные инстанса
+    float x = gConst[iID+8].x;      // X координата
+    float y = gConst[iID+8].y;      // Y координата
+    float sz = gConst[iID+8].z;     // Размер билборда
+    float billboardHeight = gConst[iID].w; // Высота билборда
 
-    float base_rangex = 1024.0f;
-    float base_rangey = 1024.0f;
-    // Вершины квада (два треугольника)
+    // Параметры из константного буфера (как в рельефе)
+    int centerChunkX = gConst[0].x; 
+    int centerChunkY = gConst[0].y;  
+    int gridX = 64;
+    int gridY = 64;
+    int base_rangex = 1024;
+    int base_rangey = 1024;
 
-    float3 p = float3(x, y, 0);
-    float2 uv = (p.xy + float2(base_rangex, base_rangey)) / float2(2.0f * base_rangex, 2.0f * base_rangey);
+    const int TILE_COUNT = 8;
+    const float CHUNK_SIZE = 2048.0;
+    float halfChunk = CHUNK_SIZE * 0.5;
 
-    // высота
-    float height = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
-    float heightScale = height * 7;
-    p.z = height * heightScale * heightScale * heightScale;
-    //p.z = height * heightScale ;
+    // Нормализуем позицию существа внутри чанка (0..1)
+    float2 normalizedPos = (float2(x, y) + halfChunk) / CHUNK_SIZE;
+
+    // Выбираем тот же тайл, что и у террейна (центр камеры)
+    int textureTileX = (centerChunkX + TILE_COUNT) % TILE_COUNT;
+    int textureTileY = (centerChunkY + TILE_COUNT) % TILE_COUNT;
+
+    float tileSize = 1.0 / TILE_COUNT;
+    float2 tileOffset = float2(textureTileX, textureTileY);
+
+    float2 regionUV = normalizedPos * tileSize + tileOffset * tileSize;
+
+    // 6) sample высоты (как в terrain)
+    float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
+    float depth = heightMap.SampleLevel(sampLinear, regionUV, 0).g;
+
+    float heightScale = 100;
+    float depthScale = 40;
+    float worldZ = exp(height * 1.5) * heightScale - exp(depth * 1.5) * depthScale;
+
+    // Базовая позиция билборда
+    float3 p = float3(x, y, worldZ);
 
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0,0,gConst[iID].w); // Z - это высота
+    float3 cameraUp = float3(0, 0, gConst[iID+8].w); // Z - это высота
 
-    float3 bottomLeft = p + cameraRight * sz ;
-    float3 bottomRight = p - cameraRight * sz ;
+    float3 bottomLeft = p + cameraRight * sz;
+    float3 bottomRight = p - cameraRight * sz;
     float3 topLeft = p + cameraRight * sz + cameraUp * sz;
     float3 topRight = p - cameraRight * sz + cameraUp * sz;
 

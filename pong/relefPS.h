@@ -1,5 +1,6 @@
 struct VS_OUTPUT
 {
+
     float4 pos : SV_POSITION;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;

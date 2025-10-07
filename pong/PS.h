@@ -21,7 +21,7 @@ struct VS_OUTPUT
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    
+
     float4 color = tex.Sample(samplerState, input.uv);
 
     // если фон чЄрный Ч отбросить пиксель

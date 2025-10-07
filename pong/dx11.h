@@ -693,7 +693,7 @@ namespace ConstBuf
 {
 	ID3D11Buffer* buffer[6];
 
-#define constCount 4000
+#define constCount 4010
 
 	//b0 - use "params" label in shader
 	float drawerV[constCount];//update per draw call

@@ -64,11 +64,11 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float2 tileOffset = float2(textureTileX, textureTileY) * tileSize;
     float2 regionUV = localPos * tileSize + tileOffset;
 
-    float4 worldPos = float4(worldXY.x, worldXY.y, waterLevel * 100, 1.0);
+    float4 worldPos = float4(worldXY.x, worldXY.y, waterLevel*300, 1.0);
 
     output.pos = mul(worldPos, mul(view[0], proj[0]));
     output.uv = regionUV;
-    output.wpos = float3(worldXY, waterLevel * 100);
+    output.wpos = float3(worldXY, waterLevel*40);
 
     return output;
 }
