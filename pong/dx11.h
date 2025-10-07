@@ -1378,7 +1378,7 @@ namespace Camera
 	}
 	inline void WrapChunks()
 	{
-		const int TOTAL_CHUNKS = 16;
+		const int TOTAL_CHUNKS = 8;
 		state.camXChunk = (state.camXChunk % TOTAL_CHUNKS + TOTAL_CHUNKS) % TOTAL_CHUNKS;
 		state.camYChunk = (state.camYChunk % TOTAL_CHUNKS + TOTAL_CHUNKS) % TOTAL_CHUNKS;
 	}

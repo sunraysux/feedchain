@@ -7,7 +7,7 @@
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::wireframe);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
 	Shaders::vShader(1);
 	Shaders::pShader(1);
 	ConstBuf::ConstToVertex(4);
@@ -59,6 +59,7 @@ void Loop() {
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
+	Rasterizer::Cull(Rasterizer::cullmode::off);
 	ticloop++;
 	switch (gameSpeed) {
 	case 1: // 0.25x → раз в 4 кадра
@@ -108,26 +109,26 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4(128, 128, Camera::state.camXChunk, Camera::state.camYChunk);
+	ConstBuf::global[0] = XMFLOAT4(64, 64, Camera::state.camXChunk, Camera::state.camYChunk);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
-	Textures::TextureToShader(10, 0, vertex);
-	Draw::NullDrawer(32768 /2,9);
+	Textures::TextureToShader(1, 0, vertex);
+	Draw::NullDrawer(32768/8 ,130);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);
 	//Depth::SetWaterRasterizer();
 
 
-	Textures::TextureToShader(10, 0, pixel);
+	Textures::TextureToShader(1, 0);
 	Shaders::vShader(4);
 	Shaders::pShader(4);
 
-	ConstBuf::global[0] = XMFLOAT4(waterLevel, 0, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4(waterLevel, Camera::state.camXChunk, Camera::state.camYChunk, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Draw::NullDrawer(5);
+	Draw::NullDrawer(1);
 	//Depth::ResetRasterizer();
 	waterLevel = 0.6;
 	Draw::Present();

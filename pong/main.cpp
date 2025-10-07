@@ -101,7 +101,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             timer::frameBeginTime = timer::GetCounter();
             drawWorld();
             //mainLoop();
-            
+            //terraloop();
             
             timer::frameEndTime = timer::GetCounter();
             timer::frameRenderingDuration = timer::frameEndTime - timer::frameBeginTime;

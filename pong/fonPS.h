@@ -6,7 +6,7 @@ struct VS_OUTPUT
 
 #define PI 3.14159265359
 
-// --- UTILS ---
+
 float fade(float t) { return t * t * t * (t * (t * 6 - 15) + 10); }
 
 float hash33_to_1(int3 p)
@@ -65,7 +65,7 @@ float fbm3D(float3 p, int octaves, float lacunarity, float gain)
     return sum / max(0.00001, ampSum);
 }
 
-// --- MAPPING ---
+
 float3 uvToTorus(float2 uv, float R, float r)
 {
     float theta = 2.0 * PI * uv.x;
@@ -75,7 +75,7 @@ float3 uvToTorus(float2 uv, float R, float r)
     return float3((R + r * cp) * ct, (R + r * cp) * st, r * sp);
 }
 
-// --- COLOR PALETTE ---
+
 float3 heightPalette(float h)
 {
     float3 low = float3(0.05, 0.12, 0.03);
@@ -84,7 +84,7 @@ float3 heightPalette(float h)
     return (h < 0.4) ? lerp(low, mid, h / 0.4) : lerp(mid, high, (h - 0.4) / 0.6);
 }
 
-// --- DOMAIN WARP ---
+
 float3 domainWarp(float3 p)
 {
     float3 w;
@@ -94,27 +94,82 @@ float3 domainWarp(float3 p)
     return w * 0.35;
 }
 
-// --- MAIN PIXEL SHADER ---
+float ridgeNoise3D(float3 p)
+{
+    float n = valueNoise3D(p);
+    n = abs(n);         
+    n = 1.0 - n;        
+    return n * n;       
+}
+
+float ridgeFBM3D(float3 p, int octaves, float lacunarity, float gain)
+{
+    float sum = 0.0;
+    float amp = 0.5;
+    float freq = 1.0;
+    float prev = 1.0;
+
+    [unroll]
+        for (int i = 0; i < octaves; ++i)
+        {
+            float n = ridgeNoise3D(p * freq);
+            sum += n * amp * prev;
+            prev = n;
+            freq *= lacunarity;
+            amp *= gain;
+        }
+
+    return saturate(sum);
+}
+
+
 float4 PS(VS_OUTPUT IN) : SV_Target
 {
-    const float R = 2.0;
-    const float r = 0.9;
-    const float baseScale = 0.8;
 
-    float2 uv = frac(IN.uv);
-    float3 p = uvToTorus(uv, R, r) * baseScale;
+    float3 periodicP = float3(
+        cos(2 * PI * IN.uv.x) + 0.5 * sin(2 * PI * IN.uv.y),
+        sin(2 * PI * IN.uv.x) + 0.5 * cos(2 * PI * IN.uv.y),
+        sin(2 * PI * IN.uv.y)
+    );
 
-    // Warp
-    p += domainWarp(p);
+    float3 p = periodicP;
 
-    // Terrain base and details
-    float low = fbm3D(p * 0.4, 5, 2.0, 0.5);
-    float detail = fbm3D(p * 2.0, 4, 2.0, 0.5);
-    float ridged = pow(saturate(1.0 - abs(detail)), 1.5);
 
-    float h_raw = low * 0.75 + ridged * 0.25;
-    float h = saturate(smoothstep(-0.3, 0.9, h_raw));
+    p += domainWarp(p * 1.5) * 0.3;
 
-    float3 color = heightPalette(h);
-    return float4(color, 1.0);
+
+    float ridgeMain = ridgeFBM3D(p * float3(0.7, 0.35, 0.7), 4, 2.0, 0.6);
+    ridgeMain = pow(ridgeMain + 0.1, 1.2);
+
+    float ridgeAlt = ridgeFBM3D(p * float3(0.6, 0.9, 0.8), 3, 1.9, 0.5) * 0.3; 
+    float detail = fbm3D(p * 8.0, 2, 2.0, 0.5) * 0.03; 
+
+    float edgeBlend = smoothstep(0.0, 0.05, IN.uv.x) * smoothstep(0.0, 0.05, IN.uv.y) *
+                      smoothstep(0.0, 0.05, 1.0 - IN.uv.x) * smoothstep(0.0, 0.05, 1.0 - IN.uv.y);
+    float centerGrad = fbm3D(p * 0.8, 2, 2.0, 0.6) * edgeBlend;
+
+    float heightRaw = ridgeMain + ridgeAlt + detail + centerGrad;
+    float height = pow(saturate(heightRaw + 0.05), 1.15);
+
+
+    float3 pDepth = p + float3(5.7, 3.3, 7.1);
+
+    float ridgeMainD = ridgeFBM3D(pDepth * float3(1.0, 0.6, 0.9), 3, 2.0, 0.5);
+    ridgeMainD = pow(ridgeMainD + 0.02, 0.95);
+
+    float ridgeAltD = ridgeFBM3D(pDepth * float3(0.5, 0.8, 0.7), 2, 2.0, 0.5) * 0.2;
+    float detailD = fbm3D(pDepth * 6.0, 2, 2.0, 0.5) * 0.02;
+
+    float edgeBlendD = smoothstep(0.0, 0.05, IN.uv.x) * smoothstep(0.0, 0.05, IN.uv.y) *
+                       smoothstep(0.0, 0.05, 1.0 - IN.uv.x) * smoothstep(0.0, 0.05, 1.0 - IN.uv.y);
+    float centerGradD = fbm3D(pDepth * 0.6, 2, 2.0, 0.6) * edgeBlendD;
+
+    float depthRaw = ridgeMainD + ridgeAltD + detailD + centerGradD;
+
+
+    float waterThreshold = 0.45;
+    float depth = height > waterThreshold ? 0.0 : (waterThreshold - height) * 1.5;
+    depth = saturate(depth);
+
+    return float4(height, depth, 0.0, 1.0);
 }
