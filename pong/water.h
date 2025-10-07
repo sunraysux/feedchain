@@ -1,50 +1,59 @@
 Texture2D heightMap : register(t0);
 SamplerState sampLinear : register(s0);
 
-cbuffer frameBuffer : register(b4)
+cbuffer camera : register(b3)
 {
-    float4 time;
-    float4 aspect;
+    float4x4 world[2];
+    float4x4 view[2];
+    float4x4 proj[2];
 };
 
-struct VS_OUTPUT
+cbuffer drawer : register(b5)
+{
+    float4 gConst[32];
+};
+
+
+struct PS_INPUT
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD0;
-    float height : TEXCOORD1;
-    float3 wpos : TEXCOORD2;
+    float3 wpos : TEXCOORD1;
 };
 
-// Простая функция шума для воды
+cbuffer frameBuffer : register(b4)
+{
+    float4 time;
+};
+
 float waterNoise(float2 p)
 {
     return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float4 PS(VS_OUTPUT input) : SV_Target
+float4 PS(PS_INPUT input) : SV_Target
 {
-    float scale = 1024.0;
-    float2 uv = (input.wpos.xy + float2(scale, scale)) / (2.0 * scale);
-    float terrainHeight = heightMap.SampleLevel(sampLinear, uv / 4, 0).r;
+    const float HEIGHT_SCALE = 100.0;
 
-    float depth = input.height - terrainHeight;
+// получаем реальную высоту рельефа под пикселем
+float terrainHeight = heightMap.SampleLevel(sampLinear, input.uv, 0).r * HEIGHT_SCALE;
 
-    // Приглушенные цвета воды
-    float3 waterBaseColor = float3(0.07, 0.11, 0.13);
+// глубина воды над рельефом
+float depth = saturate((input.wpos.z - terrainHeight) / 100.0);
 
-    // Шумовая текстура для воды
-    float2 noiseUV = input.wpos.xy / 20.0 + time.x * 0.1;
-    float noiseValue = waterNoise(floor(noiseUV * 10.0) / 10.0);
+// базовый цвет воды
+float3 waterColor = float3(0.07,0.11,0.13);
 
-    // Добавляем небольшие вариации цвета на основе шума
-    float3 waterColor = waterBaseColor * (0.9 + noiseValue * 0.2);
+// шум и мелкие блики
+float2 noiseUV = input.wpos.xy / 20.0 + time.x * 0.1;
+float noiseValue = waterNoise(floor(noiseUV * 10.0) / 10.0);
+waterColor *= (0.9 + noiseValue * 0.2);
 
-    // Прозрачность зависит от глубины
-    float alpha = saturate(depth * 8.0) * 0.8;
+float specular = pow(noiseValue,4.0) * 0.1;
+waterColor += float3(specular * 0.5,specular * 0.7,specular);
 
-    // Добавляем небольшие блики на основе шума
-    float specular = pow(noiseValue, 4.0) * 0.1;
-    waterColor += float3(specular * 0.5, specular * 0.7, specular);
+// **альфа по реальной глубине**
+float alpha = depth * 0.8;
 
-    return float4(waterColor, alpha);
+return float4(waterColor, alpha);
 }

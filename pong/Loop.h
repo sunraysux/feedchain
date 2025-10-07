@@ -118,7 +118,7 @@ void Loop() {
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);
-	//Depth::SetWaterRasterizer();
+	//Depth::SetWaterRasterizer(); 
 
 
 	Textures::TextureToShader(1, 0);
@@ -128,7 +128,7 @@ void Loop() {
 	ConstBuf::global[0] = XMFLOAT4(waterLevel, Camera::state.camXChunk, Camera::state.camYChunk, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Draw::NullDrawer(1);
+	Draw::NullDrawer(1,130);
 	//Depth::ResetRasterizer();
 	waterLevel = 0.6;
 	Draw::Present();
