@@ -166,30 +166,29 @@ void Looppause() {
 
 
 
-	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4((float)CHUNKS_PER_SIDEX*2, (float)CHUNKS_PER_SIDEY*4, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4(64, 64, Camera::state.camXChunk, Camera::state.camYChunk);
 	ConstBuf::global[1] = XMFLOAT4(base_rangex, base_rangey, 0, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(5, ConstBuf::global);
-	Textures::TextureToShader(10, 0, vertex);
-	Draw::NullDrawer(32768 *16);
+	Textures::TextureToShader(1, 0, vertex);
+	Draw::NullDrawer(32768 / 8, 81);
 
 	//Depth::Depth(Depth::depthmode::readonly);
-	//Textures::RenderTarget(0, 0);3
-	//Depth::SetWaterRasterizer();
+	//Textures::RenderTarget(0, 0);
+	//Depth::SetWaterRasterizer(); 
 
 
-	Textures::TextureToShader(10, 0, pixel);
+	Textures::TextureToShader(1, 0);
 	Shaders::vShader(4);
 	Shaders::pShader(4);
 
-	ConstBuf::global[0] = XMFLOAT4(waterLevel, 0, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4(waterLevel, Camera::state.camXChunk, Camera::state.camYChunk, 0);
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Draw::NullDrawer(5);
+	Draw::NullDrawer(1, 81);
 	//Depth::ResetRasterizer();
 	waterLevel = 0.6;
 	Draw::Present();
