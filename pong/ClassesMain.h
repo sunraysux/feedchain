@@ -3,8 +3,9 @@ public:
     Plnt(type_ t) : Creature(t) {}
 
 
-    virtual std::shared_ptr<Plnt> createOffspring() const = 0;
-    virtual bool canAdd(const PopulationManager& pop, size_t newSize) const = 0;
+    virtual std::shared_ptr<Plnt> createOffspring() = 0;
+    virtual bool canAdd(PopulationManager& pop, size_t newSize) = 0;
+    void eat(std::vector<std::shared_ptr<Creature>>& creatures) {}
     bool shouldDie() const override {
         return dead || age > age_limit;
     }
@@ -24,10 +25,10 @@ protected:
         const UINT texH = static_cast<UINT>(heightMap.size.y);
         for (int s = 0; s < seeds; s++) {
             if (type == type_::tree) {
-                const float a = Random::Float(0.0f, 2.0f * 3.14159265f);
-                const float dist = Random::Float(5.0f, 40.0f);
-                const float dx = cosf(a) * dist;
-                const float dy = sinf(a) * dist;
+                float a = Random::Float(0.0f, 2.0f * 3.14159265f);
+                float dist = Random::Float(5.0f, 40.0f);
+                float dx = cosf(a) * dist;
+                float dy = sinf(a) * dist;
                 float seedlingx = x + dx;
                 float seedlingy = y + dy;
                 seedlingx = Wrap(seedlingx, base_rangex);
@@ -45,11 +46,11 @@ protected:
                 int xc = coord_to_chunkx(seedlingx);
                 int yc = coord_to_chunky(seedlingy);
 
-                const float radius = 15.0f;
-                const float radius2 = radius * radius;
+                float radius = 15.0f;
+                float radius2 = radius * radius;
 
                 int totalGrass = 0;
-                const int MAX_PLANTS_PER_CHUNK = 1;
+                int MAX_PLANTS_PER_CHUNK = 1;
                 for (int i = -5; i < 5; i++) {
                     for (int j = -5; j < 5; j++) {
                         xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
@@ -142,7 +143,7 @@ protected:
     template <typename T>
     void process(
         std::vector<std::shared_ptr<T>>& new_plants,
-        const PopulationManager& pop) {
+        PopulationManager& pop) {
         if (shouldDie()) return;
         age++;
         if (type == type_::berry && !isRotten && age > age_limit * 0.5) {
@@ -163,10 +164,10 @@ public:
     Animal(type_ t) : Creature(t) {}
 
     virtual type_ getFoodType() const = 0;
-    virtual std::shared_ptr<Animal> createOffspring() const = 0;
-    virtual bool canAdd(const PopulationManager& pop, size_t newSize) const = 0;
-    virtual const std::vector<std::weak_ptr<Creature>>& getMateContainer(const Chunk& chunk) const = 0;
-    virtual const std::vector<std::weak_ptr<Creature>>& getFoodContainer(const Chunk& chunk) const = 0;
+    virtual std::shared_ptr<Animal> createOffspring() = 0;
+    virtual bool canAdd(PopulationManager& pop, size_t newSize) = 0;
+    virtual std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) = 0;
+    virtual std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& chunk) = 0;
     int stepsTick = 0;
     float dirX = 0.0f, dirY = 0.0f;
     int remainingSteps = 0;
@@ -186,7 +187,7 @@ protected:
     void process(
         std::vector<std::shared_ptr<T>>& creatures,
         std::vector<std::shared_ptr<T>>& new_creatures,
-        const PopulationManager& pop) {
+        PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
         if (type == type_::rat) {
@@ -205,13 +206,13 @@ protected:
     }
 
 protected:
-    void move(const PopulationManager& pop) {
+    void move(PopulationManager& pop) {
         const float avoidance_radius = 10.0f;
         const float avoidanceStrength = 0.5f;
 
-       const bool isHunger = hunger > hunger_limit / 2;
+        bool isHunger = hunger > hunger_limit / 2;
 
-       const bool isMaturity = (age >= maturity_age) &&
+        bool isMaturity = (age >= maturity_age) &&
             (tick - birth_tick > MATURITY_TICKS) &&
             !isHunger;
         //  избегание соседей 
