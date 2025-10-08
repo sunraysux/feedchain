@@ -9,6 +9,7 @@ struct Chunk {
     std::vector<std::weak_ptr<Creature>> berrys;
     std::vector<std::weak_ptr<Creature>> eagles;
     std::vector<std::weak_ptr<Creature>> rats;
+    
     //Grass grass;
     bool water;
     // Поиск ближайшего существа указанного типа
@@ -25,6 +26,79 @@ struct Chunk {
         default: return { -5000.0f, -5000.0f };
         }
     }
+
+    std::pair<float, float> nearest_creature_combined(
+        const std::vector<type_>& creatureTypes,
+        float x, float y,
+        bool matureOnly,
+        gender_ gender) const {
+
+        // Создаем временный контейнер для объединения
+        std::vector<std::weak_ptr<Creature>> combined;
+
+        // Переносим weak_ptr из указанных контейнеров
+        for (type_ creatureType : creatureTypes) {
+            switch (creatureType) {
+            case type_::rabbit:
+                transfer_valid_weak_ptrs(rabbits, combined);
+                break;
+            case type_::wolf:
+                transfer_valid_weak_ptrs(wolves, combined);
+                break;
+            case type_::tree:
+                transfer_valid_weak_ptrs(trees, combined);
+                break;
+            case type_::bush:
+                transfer_valid_weak_ptrs(bushes, combined);
+                break;
+            case type_::eagle:
+                transfer_valid_weak_ptrs(eagles, combined);
+                break;
+            case type_::rat:
+                transfer_valid_weak_ptrs(rats, combined);
+                break;
+            case type_::grass:
+                transfer_valid_weak_ptrs(grass, combined);
+                break;
+            case type_::berry:
+                transfer_valid_weak_ptrs(berrys, combined);
+                break;
+            }
+        }
+
+        // Ищем в объединенном контейнере
+        float best_dx = 0, best_dy = 0;
+        float best_dist2 = 100000000;
+        bool found = false;
+
+        for (auto& w : combined) {
+            if (auto c = w.lock()) {
+                if (matureOnly) {
+                    if (c->age < c->maturity_age ||
+                        gender == c->gender ||
+                        (tick - c->birth_tick) < 200.0f) {
+                        continue;
+                    }
+                }
+
+                float dx = torusDelta(x, c->x, base_rangex);
+                float dy = torusDelta(y, c->y, base_rangey);
+                float dist2 = dx * dx + dy * dy;
+
+                if (dist2 > 0.0f && dist2 < best_dist2) {
+                    best_dx = dx;
+                    best_dy = dy;
+                    best_dist2 = dist2;
+                    found = true;
+                }
+            }
+        }
+
+        // Контейнер автоматически очистится при выходе из функции
+        return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-5000.0f, -5000.0f);
+    }
+
+
     const int killBerrys(float x, float y, int id) {
         float best_dx = 0, best_dy = 0;
         float best_dist2 = 100000000;
@@ -137,57 +211,21 @@ struct Chunk {
         return count;
     }
 
-    //bool Grassneightboor() {
-    //    return grass.growth > 80;
-    //}
-    //
-    //void UpdateGrassGrowth(int x, int y) {
-    //    float growthSpeed = 1.0f;
-    //    int N = 0;
-    //    if (grass.growth <= 0) {
-    //        // Получаем мировые координаты центра текущего чанка
-    //        float world_center_x = (x + 0.5f) * CHUNK_SIZE - base_rangex;
-    //        float world_center_y = (y + 0.5f) * CHUNK_SIZE - base_rangey;
-    //
-    //        for (int i = -1; i <= 1; ++i) {
-    //            for (int j = -1; j <= 1; ++j) {
-    //                // Пропускаем текущий чанк
-    //                if (i == 0 && j == 0) continue;
-    //                if (i == 1 && j == 1) continue;
-    //                if (i == -1 && j == -1) continue;
-    //                if (i == -1 && j == 1) continue;
-    //                if (i == 1 && j == -1) continue;
-    //                // Вычисляем мировые координаты соседнего чанка
-    //                float neighbor_x = world_center_x + i * CHUNK_SIZE;
-    //                float neighbor_y = world_center_y + j * CHUNK_SIZE;
-    //
-    //                // Оборачиваем координаты, если они выходят за границы мира
-    //                neighbor_x = Wrap(neighbor_x, base_rangex);
-    //                neighbor_y = Wrap(neighbor_y, base_rangey);
-    //
-    //                // Преобразуем мировые координаты в индексы чанков
-    //                int ncx = coord_to_chunkx(neighbor_x);
-    //                int ncy = coord_to_chunky(neighbor_y);
-    //
-    //                // Проверяем, что индексы в пределах массива
-    //                if (ncx >= 0 && ncx < CHUNKS_PER_SIDEX &&
-    //                    ncy >= 0 && ncy < CHUNKS_PER_SIDEY) {
-    //
-    //                    if (chunk_grid[ncx][ncy].Grassneightboor()) {
-    //                        N += 1;
-    //                    }
-    //                }
-    //            }
-    //        }
-    //
-    //        grass.growth += growthSpeed * N;
-    //        return;
-    //    }
-    //
-    //    if (grass.growth < grass.maxGrowth && grass.growth>0) grass.growth += growthSpeed;
-    //
-    //}
+private:
+    // Вспомогательная функция для переноса валидных weak_ptr
+    void transfer_valid_weak_ptrs(
+        const std::vector<std::weak_ptr<Creature>>& source,
+        std::vector<std::weak_ptr<Creature>>& destination) const {
+
+        for (const auto& weak_ptr : source) {
+            if (!weak_ptr.expired()) {
+                destination.push_back(weak_ptr);
+            }
+        }
+    }
 };
+
+
 // Функция для проверки и уничтожения существ в радиусе от курсора
 void kill_creatures_in_radius(float center_x, float center_y, float radius) {
     // Определяем, какие чанки попадают в радиус
@@ -295,3 +333,64 @@ std::pair<float, float> searchNearestCreature(
     return { targetX, targetY };
 }
 
+
+std::pair<float, float> searchNearestCreatureCombined(
+    float x, float y,
+    const std::vector<type_>& creatureTypes,
+    int max_chunk_radius,
+    bool matureOnly,
+    gender_ gender) {
+    int center_cx = coord_to_chunkx(x);
+    int center_cy = coord_to_chunky(y);
+
+    float best_dx = 0.0f, best_dy = 0.0f;
+    float best_dist2 = 1e18f;
+    bool found = false;
+
+    auto checkChunk = [&](const Chunk& chunk) {
+        auto p = chunk.nearest_creature_combined(creatureTypes, x, y, matureOnly, gender);
+        float dx = p.first;
+        float dy = p.second;
+
+        if (dx != -5000.0f) {
+            float dist2 = dx * dx + dy * dy;
+            if (dist2 < best_dist2) {
+                best_dist2 = dist2;
+                best_dx = dx;
+                best_dy = dy;
+                found = true;
+            }
+        }
+        };
+    checkChunk(chunk_grid[center_cx][center_cy]);
+
+    // Кольца вокруг центра
+    for (int ring = 1; ring <= max_chunk_radius; ++ring) {
+        int R = CHUNK_SIZE * ring;
+        float angle_step = 360.0f / (8 * ring);
+
+        for (float angle = 0.0f; angle < 360.0f; angle += angle_step) {
+            float rad = angle * (PI / 180.0f);
+            int dotX = Wrap(x + R * cos(rad), base_rangex);
+            int dotY = Wrap(y + R * sin(rad), base_rangey);
+            int cx = coord_to_chunkx(dotX);
+            int cy = coord_to_chunky(dotY);
+
+            checkChunk(chunk_grid[cx][cy]);
+            if (found) {
+                float targetX = Wrap(x + best_dx, base_rangex);
+                float targetY = Wrap(y + best_dy, base_rangey);
+                return { targetX, targetY };
+            }
+
+
+        }
+    }
+
+    if (!found)
+        return { -5000.0f, -5000.0f };
+
+    float targetX = Wrap(x + best_dx, base_rangex);
+    float targetY = Wrap(y + best_dy, base_rangey);
+    return { targetX, targetY };
+}
