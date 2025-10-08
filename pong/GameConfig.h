@@ -282,6 +282,7 @@ public:
     bool isUsedInfection = false;
     bool isRotten = false;
     int id;
+    int cont=2;
     Creature(type_ t) : type(t) {}
 
 
@@ -289,28 +290,24 @@ public:
         if (current_chunk_x < 0 || current_chunk_y < 0) return;
 
         auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
-        auto& container = getChunkContainer(chunk);
+        for (int i = 1;i < cont;i++) {
+
+
+            auto& container = getChunkContainer(chunk, i);
+
+            // Удаляем weak_ptr, указывающий на текущий объект
+            container.erase(
+                std::remove_if(container.begin(), container.end(),
+                    [this](const std::weak_ptr<Creature>& wp) {
+                        auto sp = wp.lock();
+                        return !sp || sp.get() == this;
+                    }),
+                container.end()
+            );
+        }
 
         // Удаляем weak_ptr, указывающий на текущий объект
-        container.erase(
-            std::remove_if(container.begin(), container.end(),
-                [this](const std::weak_ptr<Creature>& wp) {
-                    auto sp = wp.lock();
-                    return !sp || sp.get() == this;
-                }),
-            container.end()
-        );
-        auto& container2 = getChunkContainer2(chunk);
 
-        // Удаляем weak_ptr, указывающий на текущий объект
-        container2.erase(
-            std::remove_if(container2.begin(), container2.end(),
-                [this](const std::weak_ptr<Creature>& wp) {
-                    auto sp = wp.lock();
-                    return !sp || sp.get() == this;
-                }),
-            container2.end()
-        );
         current_chunk_x = -1;
         current_chunk_y = -1;
     }
@@ -333,8 +330,7 @@ public:
 
 protected:
     // Виртуальный метод для получения нужного контейнера в чанке
-    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) = 0;
-    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) = 0;
+    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, int i) = 0;
     // Виртуальный метод для добавления в чанк (уже объявлен)
     virtual void addToChunk(Chunk& chunk) = 0;
 };

@@ -23,6 +23,7 @@ public:
         age = 0;
         maturity_age = 100;
         age_limit = 500;
+        cont = 1;
     }
     std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Berry>(); }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
@@ -35,15 +36,12 @@ public:
     }
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.berrys;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.berrys;
     }
     void addToChunk(Chunk& chunk) override {
         chunk.berrys.push_back(weak_from_this());
-        chunk.Plants.push_back(weak_from_this());
     }
 };
 
@@ -68,11 +66,11 @@ public:
     
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.grass;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.grass;
+        else if (i == 2)
+            return chunk.Plants;
     }
     void addToChunk(Chunk& chunk) override {
         chunk.grass.push_back(weak_from_this());
@@ -102,11 +100,11 @@ public:
     }
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.trees;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.trees;
+        else if (i == 2)
+            return chunk.Plants;
     }
 
     void addToChunk(Chunk& chunk) override {
@@ -194,11 +192,11 @@ public:
     }
  
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.bushes;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.bushes;
+        else if (i == 2)
+            return chunk.Plants;
     }
     void addToChunk(Chunk& chunk) override {
         chunk.bushes.push_back(weak_from_this());
@@ -252,11 +250,11 @@ public:
 
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.rabbits;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.rabbits;
+        else if (i == 2)
+            return chunk.Animals;
     }
 
     void addToChunk(Chunk& chunk) override {
@@ -308,11 +306,11 @@ public:
 
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.wolves;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.wolves;
+        else if (i == 2)
+            return chunk.Animals;
     }
 
     void addToChunk(Chunk& chunk) override {
@@ -368,11 +366,11 @@ public:
     }
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.rats;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.rats;
+        else if (i == 2)
+            return chunk.Animals;
     }
 
     void addToChunk(Chunk& chunk) override {
@@ -420,11 +418,11 @@ public:
     
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.eagles;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk,const int i) override {
+        if (i == 1)
+            return chunk.eagles;
+        else if (i == 2)
+            return chunk.Animals;
     }
 
     void addToChunk(Chunk& chunk) override {
