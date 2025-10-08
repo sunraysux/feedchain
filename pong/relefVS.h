@@ -15,7 +15,6 @@ cbuffer drawer : register(b5)
 
 struct VS_OUTPUT
 {
-
     float4 pos : SV_POSITION;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
@@ -35,22 +34,63 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     int quadID = vID / 6;
     int localVertex = vID % 6;
 
-    //  Определяем слой кольца и размер слоя 
-    int layerOffsets[3] = {1, 3, 5}; // три кольца
+    int layerStartID[5] = { 0, 1, 9, 25, 49 }; 
     int layer = 0;
 
-    int layerStartID[5] = { 0, 1, 9, 25, 49 }; // центр + 4 кольца
-    if (iID >= 1 && iID < 9) layer = 1;       // 1-е кольцо
-    else if (iID >= 9 && iID < 25) layer = 2; // 2-е кольцо
-    else if (iID >= 25 && iID < 49) layer = 3; // 3-е кольцо
-    else if (iID >= 49) layer = 4;            // 4-е кольцо
+    for (int i = 4; i >= 0; i--)
+    {
+        if (iID >= layerStartID[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+
     int size = layer * 2 + 1;
     int half = size / 2;
     int localID = iID - layerStartID[layer];
-    int tileX = (localID % size) - half;
-    int tileY = (localID / size) - half;
 
-    //  Вершины квадрата 
+    int tileX, tileY;
+
+    if (layer == 0)
+    {
+        
+        tileX = 0;
+        tileY = 0;
+    }
+    else
+    {
+        
+        int sideLength = size - 1; 
+        int totalSide = size * 4 - 4; 
+
+        if (localID < sideLength)
+        {
+            
+            tileX = localID - half;
+            tileY = -half;
+        }
+        else if (localID < sideLength * 2)
+        {
+            
+            tileX = half;
+            tileY = (localID - sideLength) - half;
+        }
+        else if (localID < sideLength * 3)
+        {
+            
+            tileX = half - (localID - sideLength * 2);
+            tileY = half;
+        }
+        else
+        {
+            
+            tileX = -half;
+            tileY = half - (localID - sideLength * 3);
+        }
+    }
+
+    
     float2 offset;
     if (localVertex == 0) offset = float2(0, 0);
     else if (localVertex == 1) offset = float2(1, 0);
@@ -59,7 +99,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(1, 1);
     else offset = float2(0, 1);
 
-    //  Смещение чанка относительно центра 
+    // Смещение чанка относительно центра 
     float2 chunkWorldOffset = float2(tileX * 2048.0, tileY * 2048.0);
 
     float2 normalizedPos = float2(
@@ -72,7 +112,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
         (normalizedPos.y - 0.5) * 2.0 * base_rangey + chunkWorldOffset.y
     );
 
-    //  UV текстуры 
+    // UV текстуры 
     int textureTileX = (centerChunkX + tileX + 8) % 8;
     int textureTileY = (centerChunkY + tileY + 8) % 8;
     float2 tileOffset = float2(textureTileX, textureTileY);
@@ -80,7 +120,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     float2 regionUV = (normalizedPos * tileSize) + tileOffset * tileSize;
 
-    //  Высота 
+    // Высота 
     float4 pos = float4(p, 0, 1);
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
     float depth = heightMap.SampleLevel(sampLinear, regionUV, 0).g;
@@ -92,7 +132,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     output.wpos = pos.xy;
     output.pos = mul(pos, mul(view[0], proj[0]));
-    output.height = (height*100 - depth*40)/90;
+    output.height = (height * 100 - depth * 40) / 90;
 
     return output;
 }

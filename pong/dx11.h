@@ -1438,7 +1438,7 @@ namespace Camera
 
 		// Матрицы и константные буфера
 		XMMATRIX view = XMMatrixLookAtLH(state.position, state.target, state.upDirection);
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 1.0f, 10000.0f);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 1.0f, 10000000.0f);
 		state.viewMatrix = view;
 		state.projMatrix = proj;
 
