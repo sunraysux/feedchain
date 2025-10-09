@@ -163,11 +163,11 @@ class Animal : public Creature {
 public:
     Animal(type_ t) : Creature(t) {}
 
-    virtual type_ getFoodType() const = 0;
+    virtual std::vector<type_> getFoodTypes() const = 0;
     virtual std::shared_ptr<Animal> createOffspring() = 0;
     virtual bool canAdd(PopulationManager& pop, size_t newSize) = 0;
     virtual std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) = 0;
-    virtual std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& chunk) = 0;
+    virtual void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) = 0;
     int stepsTick = 0;
     float dirX = 0.0f, dirY = 0.0f;
     int remainingSteps = 0;
@@ -240,7 +240,7 @@ protected:
         }
         if (remainingSteps <= 0 || tick - stepsTick > 10) {
             if (isHunger) {
-                auto bush = searchNearestCreature(x, y, getFoodType(), 10, false, gender);
+                auto bush = searchNearestCreatureCombined(x, y, getFoodTypes(), 10, false, gender);
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
                     float dy = torusDelta(y, bush.second, base_rangey);
@@ -383,8 +383,9 @@ protected:
         int base_cx = coord_to_chunkx(x);
         int base_cy = coord_to_chunky(y);
         Chunk& chunk = chunk_grid[base_cx][base_cy];
-
-        for (auto& w : getFoodContainer(chunk_grid[base_cx][base_cy])) {
+        std::vector<std::weak_ptr<Creature>> foodPool;
+        getFoodContainers(chunk, foodPool);
+        for (auto& w : foodPool) {
             if (auto partner = w.lock()) {
                 if (partner->dead) continue;
 

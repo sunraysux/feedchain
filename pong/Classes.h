@@ -230,8 +230,12 @@ public:
     float speed = 1.0f;
     int MATURITY_TICKS = 200;
 
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.grass; }
-    type_ getFoodType() const override { return type_::grass; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.grass) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::grass}; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddRabbit(static_cast<int>(newSize));
     }
@@ -286,8 +290,12 @@ public:
     int remainingSteps = 0;
     float speed = 2.0f;
     int MATURITY_TICKS = 75;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.rabbits; }
-    type_ getFoodType() const override { return type_::rabbit; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.rabbits) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::rabbit }; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddWolf(static_cast<int>(newSize));
     }
@@ -347,8 +355,12 @@ public:
     int remainingSteps = 0;
     float speed = 1.0f;
     int MATURITY_TICKS = 25;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.berrys; }
-    type_ getFoodType() const override { return type_::berry; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.berrys) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::berry}; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddRat(static_cast<int>(newSize));
     }
@@ -397,8 +409,12 @@ public:
     float nextPositionX = 0;
     float nextPositionY = 0;
     float birth_tick = 0.0f;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.rats; }
-    type_ getFoodType() const override { return type_::rat; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.rats) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::rat}; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddEagle(static_cast<int>(newSize));
     }
@@ -448,8 +464,16 @@ public:
     float nextPositionX = 0;
     float nextPositionY = 0;
     float birth_tick = 0.0f;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.rabbits; }
-    type_ getFoodType() const override { return type_::bear; }
+
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.rabbits) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+        for (auto& weak : c.berrys) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return {type_::berry,type_::rabbit};}
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddBear(static_cast<int>(newSize));
     }
