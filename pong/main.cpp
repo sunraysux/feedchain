@@ -181,6 +181,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case '6': currentType = type_::rat;slot_number = 6;       break;
             case '7': currentType = type_::grass;slot_number = 7; break;
             case '8': currentType = type_::lightning;slot_number = 8; break;
+            case '9': currentType = type_::bear; slot_number = 9; break;
 
             break;
             case VK_ESCAPE:
@@ -214,6 +215,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case 6: currentType = type_::rat; break;
             case 7: currentType = type_::grass; break;
             case 8: currentType = type_::lightning; break;
+            case 9: currentType = type_::bear; break;
             default:
                 break;
             }

@@ -9,6 +9,7 @@ struct Chunk {
     std::vector<std::weak_ptr<Creature>> berrys;
     std::vector<std::weak_ptr<Creature>> eagles;
     std::vector<std::weak_ptr<Creature>> rats;
+    std::vector<std::weak_ptr<Creature>> bears;
     
     //Grass grass;
     bool water;
@@ -23,6 +24,7 @@ struct Chunk {
         case type_::rat: return nearest_mature_creature(rats, x, y, matureOnly, gender);
         case type_::grass: return nearest_mature_creature(grass, x, y, matureOnly, gender);
         case type_::berry: return nearest_mature_creature(berrys, x, y, matureOnly, gender);
+        case type_::bear: return nearest_mature_creature(bears, x, y, matureOnly, gender);
         default: return { -5000.0f, -5000.0f };
         }
     }
@@ -62,6 +64,9 @@ struct Chunk {
                 break;
             case type_::berry:
                 transfer_valid_weak_ptrs(berrys, combined);
+                break;
+            case type_::bear:
+                transfer_valid_weak_ptrs(bears, combined);
                 break;
             }
         }
@@ -200,6 +205,7 @@ struct Chunk {
         case type_::rat: return nearly_creature_square(rats, x, y, half_side);
         case type_::grass: return nearly_creature_square(grass, x, y, half_side);
         case type_::berry: return nearly_creature_square(berrys, x, y, half_side);
+        case type_::bear: return nearly_creature_square(bears, x, y, half_side);
         }
     }
     

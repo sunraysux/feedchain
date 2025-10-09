@@ -33,6 +33,7 @@ void ProcessCreatures(PopulationManager& pop) {
     int dead_rats = 0;
     int dead_grass = 0;
     int dead_berrys = 0;
+    int dead_bears = 0;
     std::vector<std::shared_ptr<Wolf>> new_wolfs;
     std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
     std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
@@ -41,6 +42,7 @@ void ProcessCreatures(PopulationManager& pop) {
     std::vector<std::shared_ptr<Rat>> new_rats;
     std::vector<std::shared_ptr<Grass>> new_grass;
     std::vector<std::shared_ptr<Berry>> new_berrys;
+    std::vector<std::shared_ptr<Bear>> new_bears;
     
 
     
@@ -53,6 +55,7 @@ void ProcessCreatures(PopulationManager& pop) {
     for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, pop);
     for (auto& rat : rats) rat->process(rats, new_rats, pop);
     for (auto& eagle : eagles) eagle->process(eagles, new_eagles, pop);
+    for (auto& bear : bears) bear->process(bears, new_bears, pop);
     
 
     auto remove_dead = [](auto& container, int& counter) {
@@ -83,6 +86,7 @@ void ProcessCreatures(PopulationManager& pop) {
     remove_dead(eagles, dead_eagles);
     remove_dead(rats, dead_rats);
     remove_dead(berrys, dead_berrys);
+    remove_dead(bears, dead_bears);
     //remove_dead(grass, dead_grass);
     // 3.  добавления новых существ
     auto add_new_entities = [](auto& dest, auto& src) {
@@ -101,7 +105,8 @@ void ProcessCreatures(PopulationManager& pop) {
         static_cast<int>(new_eagles.size()) - dead_eagles,
         static_cast<int>(new_rats.size()) - dead_rats,
         static_cast<int>(new_grass.size()) - dead_grass,
-        static_cast<int>(new_berrys.size()) - dead_berrys
+        static_cast<int>(new_berrys.size()) - dead_berrys,
+        static_cast<int>(new_bears.size()) - dead_bears
     );
     add_new_entities(rabbits, new_rabbits);
     add_new_entities(wolves, new_wolfs);
@@ -111,6 +116,7 @@ void ProcessCreatures(PopulationManager& pop) {
     add_new_entities(rats, new_rats);
     add_new_entities(grass, new_grass);
     add_new_entities(berrys, new_berrys);
+    add_new_entities(bears, new_bears);
 
 }
 //инициализация игры
@@ -157,72 +163,73 @@ void InitGame() {
     Textures::LoadTextureFromFile(25, L"Debug/speed2.png");
     Textures::LoadTextureFromFile(26, L"Debug/speed3.png");
     Textures::LoadTextureFromFile(27, L"Debug/Ягода.png");
+    Textures::LoadTextureFromFile(28, L"Debug/bear.png");
     // Начальные растения
-    for (int i = 0; i < 0; i++) {
-        auto tree = std::make_shared<Tree>();
-        tree-> y = Random::Int(-base_rangey, base_rangey);
-        tree-> x = Random::Int(-base_rangex, base_rangex);
-        tree->age = 0;
-        tree->updateChunk();
-        trees.push_back(tree);
-        population.tree_count++;
-    }
-    for (int i = 0; i < 0; i++) {
-        auto bush = std::make_shared<Bush>();
-        bush-> y = Random::Int(-100, 100);
-        bush-> x = Random::Int(-100, 100);
-        bush->age = Random::Int(0, 1000);
-        bush->updateChunk();
-        bushes.push_back(bush);
-        population.bush_count++;
-    }
-   // Начальные кролики
-   for (int i = 0; i < 0; i++) {
-       auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-100, 100);
-       rabbit->x = Random::Int(-100, 100);
-       rabbit->hunger = Random::Int(0, 100);
-       rabbit->age = Random::Int(0, 100);
-       rabbits.push_back(rabbit);
-       population.rabbit_count++;
-   }
-   for (int i = 0; i < 0; i++) {
-       auto wolf = std::make_shared<Wolf>();
-       wolf->y = Random::Int(-100, 100);
-       wolf->x = Random::Int(-100, 100);
-       wolf->hunger = Random::Int(0, 500);
-       wolf->age = Random::Int(0, 500);
-       wolves.push_back(wolf);
-       population.wolf_count++;
-   }
+   // for (int i = 0; i < 0; i++) {
+   //     auto tree = std::make_shared<Tree>();
+   //     tree-> y = Random::Int(-base_rangey, base_rangey);
+   //     tree-> x = Random::Int(-base_rangex, base_rangex);
+   //     tree->age = 0;
+   //     tree->updateChunk();
+   //     trees.push_back(tree);
+   //     population.tree_count++;
+   // }
+   // for (int i = 0; i < 0; i++) {
+   //     auto bush = std::make_shared<Bush>();
+   //     bush-> y = Random::Int(-100, 100);
+   //     bush-> x = Random::Int(-100, 100);
+   //     bush->age = Random::Int(0, 1000);
+   //     bush->updateChunk();
+   //     bushes.push_back(bush);
+   //     population.bush_count++;
+   // }
+   //// Начальные кролики
+   //for (int i = 0; i < 0; i++) {
+   //    auto rabbit = std::make_shared<Rabbit>();
+   //    rabbit->y = Random::Int(-100, 100);
+   //    rabbit->x = Random::Int(-100, 100);
+   //    rabbit->hunger = Random::Int(0, 100);
+   //    rabbit->age = Random::Int(0, 100);
+   //    rabbits.push_back(rabbit);
+   //    population.rabbit_count++;
+   //}
+   //for (int i = 0; i < 0; i++) {
+   //    auto wolf = std::make_shared<Wolf>();
+   //    wolf->y = Random::Int(-100, 100);
+   //    wolf->x = Random::Int(-100, 100);
+   //    wolf->hunger = Random::Int(0, 500);
+   //    wolf->age = Random::Int(0, 500);
+   //    wolves.push_back(wolf);
+   //    population.wolf_count++;
+   //}
 
-   for (int i = 0; i < 0; i++) {
-       auto eagle = std::make_shared<Eagle>();
-       eagle->y = Random::Int(-100, 100);
-       eagle->x = Random::Int(-100, 100);
-       eagle->hunger = Random::Int(0, 500);
-       eagle->age = Random::Int(0, 500);
-       eagles.push_back(eagle);
-       population.eagle_count++;
-   }
-   for (int i = 0; i < 0; i++) {
-       auto rat = std::make_shared<Rat>();
-       rat->y = Random::Int(-100, 100);
-       rat->x = Random::Int(-100, 100);
-       rat->hunger = Random::Int(0, 100);
-       rat->age = Random::Int(0, 100);
-       rats.push_back(rat);
-       population.rat_count++;
-   }
-   for (int i = 0; i < 0; i++) {
-       auto gras = std::make_shared<Grass>();
-       gras->y = Random::Int(-base_rangey, base_rangey);
-       gras->x = Random::Int(-base_rangex, base_rangex);
-       gras->age = 0;
-       gras->updateChunk();
-       grass.push_back(gras);
-       population.grass_count++;
-   }
+   //for (int i = 0; i < 0; i++) {
+   //    auto eagle = std::make_shared<Eagle>();
+   //    eagle->y = Random::Int(-100, 100);
+   //    eagle->x = Random::Int(-100, 100);
+   //    eagle->hunger = Random::Int(0, 500);
+   //    eagle->age = Random::Int(0, 500);
+   //    eagles.push_back(eagle);
+   //    population.eagle_count++;
+   //}
+   //for (int i = 0; i < 0; i++) {
+   //    auto rat = std::make_shared<Rat>();
+   //    rat->y = Random::Int(-100, 100);
+   //    rat->x = Random::Int(-100, 100);
+   //    rat->hunger = Random::Int(0, 100);
+   //    rat->age = Random::Int(0, 100);
+   //    rats.push_back(rat);
+   //    population.rat_count++;
+   //}
+   //for (int i = 0; i < 0; i++) {
+   //    auto gras = std::make_shared<Grass>();
+   //    gras->y = Random::Int(-base_rangey, base_rangey);
+   //    gras->x = Random::Int(-base_rangex, base_rangex);
+   //    gras->age = 0;
+   //    gras->updateChunk();
+   //    grass.push_back(gras);
+   //    population.grass_count++;
+   //}
 }
 
 type_ currentType = type_::wolf; // по умолчанию волк
@@ -268,6 +275,9 @@ void drawCursor()
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
             break;
+        case type_::bear:
+            texture = Textures::Texture[28].TextureResView;
+            break;
 
         }
 
@@ -308,6 +318,9 @@ void drawCursor()
             break;
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
+            break;
+        case type_::bear:
+            texture = Textures::Texture[28].TextureResView;
             break;
 
         }
@@ -372,6 +385,7 @@ void mouse()
         std::vector<std::shared_ptr<Eagle>> new_eagles;
         std::vector<std::shared_ptr<Rat>> new_rats;
         std::vector<std::shared_ptr<Grass>> new_grass;
+        std::vector<std::shared_ptr<Bear>> new_bears;
 
         auto add_new_entities = [](auto& dest, auto& src) {
             dest.reserve(dest.size() + src.size());
@@ -498,6 +512,21 @@ void mouse()
             seed += 1;
             break;
         }
+        case type_::bear: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
+            if (population.canAddBear(static_cast<int>(new_bears.size()))) {
+                auto bear = std::make_shared<Bear>();
+                bear->y = Wrap(Camera::state.mouseY, base_rangey);
+                bear->x = Wrap(Camera::state.mouseX, base_rangex);
+                bear->hunger = 0;
+                bear->age = 0;
+                new_bears.push_back(bear);
+                population.bear_count++;
+            }
+            break;
+        }
         }
         
         add_new_entities(grass, new_grass);
@@ -507,6 +536,7 @@ void mouse()
         add_new_entities(bushes, new_bushes);
         add_new_entities(eagles, new_eagles);
         add_new_entities(rats, new_rats);
+        add_new_entities(bears, new_bears);
     }
     //if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
     //    currentType = type_::lightning;
@@ -744,7 +774,8 @@ void ShowRacketAndBallFromVectors(
     const std::vector<std::shared_ptr<Eagle>>& eagles,
     const std::vector<std::shared_ptr<Rat>>& rats,
     const std::vector<std::shared_ptr<Grass>>& grass,
-    const std::vector<std::shared_ptr<Berry>>& berrys)
+    const std::vector<std::shared_ptr<Berry>>& berrys,
+    const std::vector<std::shared_ptr<Bear>>& bears)
 {
     Shaders::vShader(0);
     Shaders::pShader(0);
@@ -758,6 +789,7 @@ void ShowRacketAndBallFromVectors(
     // Рисуем: напрямую из векторов
     DrawSimpleCreatures<Rabbit>(2, rabbits, SIZERABBITS);   
     DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);
+    DrawSimpleCreatures<Bear>(28, bears, SIZEBEARS);
     
 
     DrawAnimalsByGender<Eagle>(eagle_arr, eagles, SIZEAGLES);
