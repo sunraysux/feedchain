@@ -297,7 +297,7 @@ public:
         if (current_chunk_x < 0 || current_chunk_y < 0) return;
 
         auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
-        for (int i = 1;i < cont;i++) {
+        for (int i = 1;i <= cont;i++) {
 
 
             auto& container = getChunkContainer(chunk, i);
