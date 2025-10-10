@@ -20,7 +20,7 @@ protected:
         int seeds = Random::Int(1, 5);
         float seedlingx = x;
         float seedlingy = y;
-        auto& heightMap = Textures::Texture[10];
+        auto& heightMap = Textures::Texture[1];
         const UINT texW = static_cast<UINT>(heightMap.size.x);
         const UINT texH = static_cast<UINT>(heightMap.size.y);
         for (int s = 0; s < seeds; s++) {
@@ -240,7 +240,7 @@ protected:
         }
         if (remainingSteps <= 0 || tick - stepsTick > 10) {
             if (isHunger) {
-                auto bush = searchNearestCreatureCombined(x, y, getFoodTypes(), 10, false, gender);
+                auto bush = searchNearestCreature(x, y, type, 10, false, gender);
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
                     float dy = torusDelta(y, bush.second, base_rangey);

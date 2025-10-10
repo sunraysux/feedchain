@@ -1259,7 +1259,7 @@ namespace Camera
 	// Получение высоты (оставил как есть)
 	float GetHeightAt(float worldX, float worldY)
 	{
-		auto& heightMap = Textures::Texture[10];
+		auto& heightMap = Textures::Texture[1];
 		float normalizedX = (worldX + base_rangex) / (2.0f * base_rangex);
 		float normalizedY = (worldY + base_rangey) / (2.0f * base_rangey);
 		float u = normalizedX / 4.0f;

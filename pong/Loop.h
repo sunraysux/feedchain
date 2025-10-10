@@ -212,7 +212,7 @@ void drawWorld()
 			Textures::LoadTextureFromFile(31, L"Debug/start.png");
 			Textures::LoadTextureFromFile(32, L"Debug/exit.png");
 			Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-			Textures::ReadTextureToCPU(10);
+			Textures::ReadTextureToCPU(1);
 			initmenu = true;
 		}
 		ShowCursor(true);
