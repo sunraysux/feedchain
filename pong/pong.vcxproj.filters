@@ -113,6 +113,39 @@
     <Image Include="Debug\Трава3.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\speed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed025.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\Ягода.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\statBTN.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\trueSpeedBar.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\pause.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
@@ -217,8 +250,19 @@
     <ClInclude Include="slotVS.h">
       <Filter>shaders</Filter>
     </ClInclude>
+    <ClInclude Include="ClassesMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pong.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

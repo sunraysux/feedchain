@@ -9,8 +9,16 @@ struct VS_OUTPUT
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
+
     float4 color = tex.Sample(samplerState, input.uv);
-    float4 color1 =float4(1,1,1,1);
-    return color;
+
+// если фон чЄрный Ч отбросить пиксель
+if (color.r < 0.0001 && color.g < 0.0001 && color.b < 0.0001)
+    discard;
+float4 color2 = float4(0.09, 0.09, 0.09, 0.09);
+return color + color2;
 
 }
+
+
+

@@ -152,36 +152,56 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 
                 break;
             case VK_SPACE:
-                if (gameState == gameState_::game)
+                if (gameState == gameState_::game) {
                     gameState = gameState_::pause;
-                else if (gameState == gameState_::pause)
+                    oldGameSpeed = gameSpeed;
+                    gameSpeed = 6;
+                }
+                else if (gameState == gameState_::pause) {
                     gameState = gameState_::game;
+                    gameSpeed = oldGameSpeed;
+                }
                 break;
 
             case '1':
                 if (shiftHeld) gameSpeed = 1;
-                else currentType = type_::wolf, slot_number = 1;
+                else {
+                    if (typeSelect == 1) currentType = type_::lightning;
+                    if (typeSelect == 2) currentType = type_::rabbit;
+                    if (typeSelect == 3) currentType = type_::wolf;
+                    if (typeSelect == 4) currentType = type_::tree;
+                    slot_number = -4;
+                }
                 break;
             case '2':
                 if (shiftHeld) gameSpeed = 2;
-                else currentType = type_::rabbit, slot_number = 2;
+                else {
+                    if (typeSelect == 2) currentType = type_::rat;
+                    if (typeSelect == 3) currentType = type_::eagle;
+                    if (typeSelect == 4) currentType = type_::bush;
+                    slot_number = -3;
+                }
                 break;
             case '3':
                 if (shiftHeld) gameSpeed = 3;
-                else currentType = type_::tree, slot_number = 3;
+                else {
+                    if (typeSelect == 3) currentType = type_::bear;
+                    if (typeSelect == 4) currentType = type_::grass;
+                    slot_number = -2;
+                }
                 break;
             case '4':
                 if (shiftHeld) gameSpeed = 4;
-                else currentType = type_::bush, slot_number = 4;
+                /*else currentType = type_::bush, slot_number = 4;*/
                 break;
             case '5':
                 if (shiftHeld) gameSpeed = 5;
-                else currentType = type_::eagle, slot_number = 5;
+                /*else currentType = type_::eagle, slot_number = 5;*/
                 break;
-            case '6': currentType = type_::rat;slot_number = 6;       break;
+            /*case '6': currentType = type_::rat;slot_number = 6;       break;
             case '7': currentType = type_::grass;slot_number = 7; break;
             case '8': currentType = type_::lightning;slot_number = 8; break;
-            case '9': currentType = type_::bear; slot_number = 9; break;
+            case '9': currentType = type_::bear; slot_number = 9; break;*/
 
             break;
             case VK_ESCAPE:
@@ -194,31 +214,133 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN: {
         if ((lParam & 0x40000000) == 0) {
-            float barPositions = -0.35;
+            float barPositions = -0.85;
             float barHeights = -0.85;
             float barBottom = -1;
             float barTop = barHeights;
 
-            for (int slot = 1; slot < 9; slot++) {
-                if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
-                    (barPositions - 0.1 + slot * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + slot * 0.1)) {
-                    slot_number = slot;
+            float typeBarX = -1;
+            float typeBarY = -0.2;
+            float typeBarW = 0.11;
+            float typeBarH = 0.8;
+
+            /*0.75f, -0.9f, 0.1f, 0.25f*/
+            float speedBarX = 0.54;
+            float speedBarY = -0.8;
+            float speedBarW = 0.42;
+            float speedBarH = 0.2;
+
+            if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights)&&
+                (barPositions - 0.1 + 1 * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 3 * 0.1)) {
+
+                for (int slot = 1; slot < 4; slot++) {
+                    if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+                        (barPositions - 0.1 + slot * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + slot * 0.1)) {
+                        slot_number = slot;
+                    }
+                }
+                switch (slot_number)
+                {
+                case 1:
+                    if (typeSelect == 1) {
+                        currentType = type_::lightning, slot_number = -4; break;
+                    }
+                    if (typeSelect == 2) {
+                        currentType = type_::rabbit, slot_number = -4; break;
+                    }
+                    if (typeSelect == 3) {
+                        currentType = type_::wolf, slot_number = -4; break;
+                    }
+                    if (typeSelect == 4) {
+                        currentType = type_::tree, slot_number = -4; break;
+                    }
+                case 2: 
+                    if (typeSelect == 1) {
+                        break;
+                    }
+                    if (typeSelect == 2) {
+                        currentType = type_::rat, slot_number = -3; break;
+                    }
+                    if (typeSelect == 3) {
+                        currentType = type_::eagle, slot_number = -3; break;
+                    }
+                    if (typeSelect == 4) {
+                        currentType = type_::bush, slot_number = -3; break;
+                    }
+
+                case 3: 
+                    if (typeSelect == 1) {
+                        break;
+                    }
+                    if (typeSelect == 2) {
+                        break;
+                    }
+                    if (typeSelect == 3) {
+                        currentType = type_::bear, slot_number = -2; break;
+                    }
+                    if (typeSelect == 4) {
+                        currentType = type_::grass, slot_number = -2; break;
+                    }
+
+                default:
+                    break;
                 }
             }
-            switch (slot_number)
-            {
-            case 1: currentType = type_::wolf; break;
-            case 2: currentType = type_::rabbit; break;
-            case 3: currentType = type_::tree; break;
-            case 4: currentType = type_::bush; break;
-            case 5: currentType = type_::eagle; break;
-            case 6: currentType = type_::rat; break;
-            case 7: currentType = type_::grass; break;
-            case 8: currentType = type_::lightning; break;
-            case 9: currentType = type_::bear; break;
-            default:
-                break;
+
+            if ((Camera::state.mousendcX >= typeBarX && Camera::state.mousendcX <= typeBarX + typeBarW) &&
+                (Camera::state.mousendcY <= typeBarY && Camera::state.mousendcY >= typeBarY - typeBarH)) {
+
+                for (int type = 1; type < 5; type++) {
+                    float segmentTop = typeBarY - (type - 1) * (typeBarH / 4);    // Верх сегмента
+                    float segmentBottom = typeBarY - type * (typeBarH / 4);      // Низ сегмента
+
+                    // ⭐ ПРАВИЛЬНАЯ ПРОВЕРКА ПО Y ⭐
+                    if (Camera::state.mousendcY <= segmentTop && Camera::state.mousendcY >= segmentBottom) {
+                        if (typeSelect != type) {
+                            typeSelect = type;
+                            slot_number = -4;
+                            if (type == 1) currentType = type_::lightning;
+                            if (type == 2) currentType = type_::rabbit;
+                            if (type == 3) currentType = type_::wolf;
+                            if (type == 4) currentType = type_::tree;
+                        }
+                        break; // Выходим после нахождения
+                    }
+                }
             }
+            if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
+                (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH))
+            {
+                for (int speed = 1; speed < 7; speed++) {
+                    float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 6);    // Верх сегмента
+                    float segmentRight = speedBarX + speed * (speedBarW / 6);      // Низ сегмента
+
+                    // ⭐ ПРАВИЛЬНАЯ ПРОВЕРКА ПО x ⭐
+                    if (Camera::state.mousendcX >= segmentLeft && Camera::state.mousendcX <= segmentRight) {
+                        if (speed < 3) {
+                            gameSpeed = speed;
+                        }
+                        if (speed == 3) {
+                            if (gameState != gameState_::pause) {
+                                oldGameSpeed = gameSpeed;
+                                gameState = gameState_::pause;
+                                gameSpeed = 6;
+                            }
+                            else {
+                                gameState = gameState_::game;
+                                gameSpeed = oldGameSpeed;
+                            }
+                        }
+
+                        if (speed > 3) {
+                            gameSpeed = speed - 1;
+                        }
+                        break; // Выходим после нахождения
+                    }
+                
+                }
+            }
+
         }
     }
     break;

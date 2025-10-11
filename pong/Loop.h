@@ -51,6 +51,9 @@ void StartMenu() {
 	Draw::Present();
 
 }
+void ShowUI() {
+
+}
 
 void Loop() {
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
@@ -136,6 +139,7 @@ void Loop() {
 }
 
 void Looppause() {
+
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 	Camera::Update();
 	frameConst();

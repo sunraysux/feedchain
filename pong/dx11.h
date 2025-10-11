@@ -1086,7 +1086,7 @@ namespace Draw
 
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
 	}
-	void dravslot(int slot, int tex_i)
+	void drawslot(int slot, int tex_i)
 	{
 		Textures::TextureToShader(tex_i, 0, pixel);
 		Shaders::vShader(9);
@@ -1097,6 +1097,17 @@ namespace Draw
 			slot,
 			0
 		);
+		ConstBuf::Update(5, ConstBuf::global);
+		ConstBuf::ConstToVertex(5);
+		Draw::NullDrawer(1);
+	}
+	void DrawUIimage(int textureIndex,float coordX,float coordY,float Hwidth,float Hheigh)
+	{
+		Shaders::vShader(7);
+		Shaders::pShader(7);
+
+		context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+		ConstBuf::global[0] = XMFLOAT4(Hwidth, Hheigh, coordX, coordY);
 		ConstBuf::Update(5, ConstBuf::global);
 		ConstBuf::ConstToVertex(5);
 		Draw::NullDrawer(1);
