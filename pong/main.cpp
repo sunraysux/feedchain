@@ -317,9 +317,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                     // ⭐ ПРАВИЛЬНАЯ ПРОВЕРКА ПО x ⭐
                     if (Camera::state.mousendcX >= segmentLeft && Camera::state.mousendcX <= segmentRight) {
-                        if (speed < 3) {
-                            gameSpeed = speed;
-                        }
                         if (speed == 3) {
                             if (gameState != gameState_::pause) {
                                 oldGameSpeed = gameSpeed;
@@ -330,10 +327,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 gameState = gameState_::game;
                                 gameSpeed = oldGameSpeed;
                             }
+                            break;
+                        }
+                        if (gameSpeed == 6) {
+                            gameState = gameState_::game;
+                        }
+                        if (speed < 3) {
+                            gameSpeed = speed;
+                            break;
                         }
 
                         if (speed > 3) {
                             gameSpeed = speed - 1;
+                            break;
                         }
                         break; // Выходим после нахождения
                     }

@@ -380,6 +380,11 @@ void mouse()
     float typeBarW = 0.11;
     float typeBarH = 0.8;
 
+    float speedBarX = 0.54;
+    float speedBarY = -0.8;
+    float speedBarW = 0.42;
+    float speedBarH = 0.2;
+
     
         if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
             (barPositions < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 0.3)) {
@@ -387,6 +392,10 @@ void mouse()
         }
         if ((Camera::state.mousendcX >= typeBarX && Camera::state.mousendcX <= typeBarX + typeBarW) &&
             (Camera::state.mousendcY <= typeBarY && Camera::state.mousendcY >= typeBarY - typeBarH)) {
+            return;
+        }
+        if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
+            (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH)) {
             return;
         }
     
