@@ -20,6 +20,14 @@ struct VS_OUTPUT
     float2 wpos : TEXCOORD2;
 };
 
+// Функция для зацикливания координат
+inline float Wrap(float x, float range) {
+    float size = range * 2.0f; // полный размер мира
+    while (x >= range) x -= size;
+    while (x < -range) x += size;
+    return x;
+}
+
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
@@ -28,69 +36,32 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     int gridY = gConst[0].y;
     int base_rangex = gConst[1].x;
     int base_rangey = gConst[1].y;
-    int centerChunkX = gConst[0].z;
-    int centerChunkY = gConst[0].w;
+    float2 cameraPos = float2(gConst[0].z, gConst[0].w);
 
     int quadID = vID / 6;
     int localVertex = vID % 6;
 
-    int layerStartID[5] = { 0, 1, 9, 25, 49 }; 
-    int layer = 0;
+    const float AREA_SIZE = 32768.0;
+    const float CHUNK_SIZE = AREA_SIZE / 8.0;
 
-    for (int i = 4; i >= 0; i--)
-    {
-        if (iID >= layerStartID[i])
-        {
-            layer = i;
-            break;
-        }
-    }
+    int quadsPerChunk = gridX * gridY;
+    int chunkID = quadID / quadsPerChunk;
+    int localQuadID = quadID % quadsPerChunk;
 
-    int size = layer * 2 + 1;
-    int half = size / 2;
-    int localID = iID - layerStartID[layer];
+    int tileX = chunkID % 8;
+    int tileY = chunkID / 8;
 
-    int tileX, tileY;
+    // ФИКС: ВЫРАВНИВАЕМ КАМЕРУ И СМЕЩАЕМ ДЛЯ ЦЕНТРИРОВАНИЯ
+    float2 alignedCameraPos;
+    alignedCameraPos.x = floor(cameraPos.x / CHUNK_SIZE) * CHUNK_SIZE;
+    alignedCameraPos.y = floor(cameraPos.y / CHUNK_SIZE) * CHUNK_SIZE;
 
-    if (layer == 0)
-    {
-        
-        tileX = 0;
-        tileY = 0;
-    }
-    else
-    {
-        
-        int sideLength = size - 1; 
-        int totalSide = size * 4 - 4; 
+    // ФИКС: СМЕЩАЕМ ТАК, ЧТОБЫ ЦЕНТРАЛЬНЫЙ ЧАНК БЫЛ (0,0)
+    // tileX от 0 до 7, tileY от 0 до 7
+    // Хотим чтобы камера была в центре области (чанки -3.5 до +3.5)
+    float2 chunkOffset = float2(tileX - 3.5, tileY - 3.5) * CHUNK_SIZE;
 
-        if (localID < sideLength)
-        {
-            
-            tileX = localID - half;
-            tileY = -half;
-        }
-        else if (localID < sideLength * 2)
-        {
-            
-            tileX = half;
-            tileY = (localID - sideLength) - half;
-        }
-        else if (localID < sideLength * 3)
-        {
-            
-            tileX = half - (localID - sideLength * 2);
-            tileY = half;
-        }
-        else
-        {
-            
-            tileX = -half;
-            tileY = half - (localID - sideLength * 3);
-        }
-    }
-
-    
+    // Смещение внутри чанка
     float2 offset;
     if (localVertex == 0) offset = float2(0, 0);
     else if (localVertex == 1) offset = float2(1, 0);
@@ -99,36 +70,33 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(1, 1);
     else offset = float2(0, 1);
 
-    // Смещение чанка относительно центра 
-    float2 chunkWorldOffset = float2(tileX * 2048.0, tileY * 2048.0);
-
+    // Позиция внутри чанка
     float2 normalizedPos = float2(
-        (quadID % gridX + offset.x) / gridX,
-        (quadID / gridX + offset.y) / gridY
+        (localQuadID % gridX + offset.x) / gridX,
+        (localQuadID / gridX + offset.y) / gridY
     );
 
-    float2 p = float2(
-        (normalizedPos.x - 0.5) * 2.0 * base_rangex + chunkWorldOffset.x,
-        (normalizedPos.y - 0.5) * 2.0 * base_rangey + chunkWorldOffset.y
-    );
+    // Мировая позиция
+    float2 localXY = chunkOffset + (normalizedPos - 0.5) * CHUNK_SIZE;
+    float2 worldXY = alignedCameraPos + localXY;
 
-    // UV текстуры 
-    int textureTileX = (centerChunkX + tileX + 8) % 8;
-    int textureTileY = (centerChunkY + tileY + 8) % 8;
-    float2 tileOffset = float2(textureTileX, textureTileY);
-    float tileSize = 1.0 / 8;
+    // ЗАЦИКЛИВАЕМ КООРДИНАТЫ ДЛЯ UV
+    float2 wrappedWorldXY;
+    wrappedWorldXY.x = Wrap(worldXY.x, 16384.0);
+    wrappedWorldXY.y = Wrap(worldXY.y, 16384.0);
 
-    float2 regionUV = (normalizedPos * tileSize) + tileOffset * tileSize;
+    // Преобразуем зацикленные координаты в UV
+    float2 regionUV = (wrappedWorldXY + 16384.0) / 32768.0;
 
-    // Высота 
-    float4 pos = float4(p, 0, 1);
+    // Высота
+    float4 pos = float4(worldXY, 0, 1);
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
     float depth = heightMap.SampleLevel(sampLinear, regionUV, 0).g;
 
-    float heightScale = 100;
-    float depthScale = 40;
-    pos.z += exp(height * 1.5) * heightScale;
-    pos.z -= exp(depth * 1.5) * depthScale;
+    float heightScale = 200;
+    float depthScale = 80;
+    pos.z += exp(height * 2) * heightScale;
+    pos.z -= exp(depth * 2) * depthScale;
 
     output.wpos = pos.xy;
     output.pos = mul(pos, mul(view[0], proj[0]));

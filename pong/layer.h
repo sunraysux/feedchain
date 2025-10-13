@@ -25,91 +25,36 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
 
-    const float CHUNK_SIZE = 2048.0;
-    const int TILE_COUNT = 8;
-
     float waterLevel = gConst[0].x;
-    int centerChunkX = (int)gConst[0].y;
-    int centerChunkY = (int)gConst[0].z;
 
-    
-    int layerStartID[5] = { 0,1,9,25,49 };
-    int layer = 0;
-    for (int i = 4; i >= 0; i--)
-    {
-        if (iID >= layerStartID[i])
-        {
-            layer = i;
-            break;
-        }
-    }
+    // 9 регионов
+    int regionID = iID;
+    int regionX = regionID % 3 - 1;
+    int regionY = regionID / 3 - 1;
 
-    int size = layer * 2 + 1;
-    int half = size / 2;
-    int localID = iID - layerStartID[layer];
-    int tileX, tileY;
-
-    if (layer == 0)
-    {
-        
-        tileX = 0;
-        tileY = 0;
-    }
-    else
-    {
-      
-        int sideLength = size - 1; 
-        int totalSide = size * 4 - 4; 
-
-        if (localID < sideLength)
-        {
-            
-            tileX = localID - half;
-            tileY = -half;
-        }
-        else if (localID < sideLength * 2)
-        {
-           
-            tileX = half;
-            tileY = (localID - sideLength) - half;
-        }
-        else if (localID < sideLength * 3)
-        {
-            
-            tileX = half - (localID - sideLength * 2);
-            tileY = half;
-        }
-        else
-        {
-           
-            tileX = -half;
-            tileY = half - (localID - sideLength * 3);
-        }
-    }
-
-    
+    // Позиции вершин
     float2 positions[6] = {
         float2(0,0), float2(1,0), float2(0,1),
         float2(1,0), float2(1,1), float2(0,1)
     };
     float2 localPos = positions[vID];
 
-    
-    float2 chunkOffset = float2(tileX, tileY) * CHUNK_SIZE;
-    float2 worldXY = chunkOffset + (localPos - 0.5) * CHUNK_SIZE;
+    const float REGION_SIZE = 32768.0;
 
-    
-    float tileSize = 1.0 / TILE_COUNT;
-    int textureTileX = (centerChunkX + tileX + TILE_COUNT) % TILE_COUNT;
-    int textureTileY = (centerChunkY + tileY + TILE_COUNT) % TILE_COUNT;
-    float2 tileOffset = float2(textureTileX, textureTileY) * tileSize;
-    float2 regionUV = localPos * tileSize + tileOffset;
+    // Смещение региона
+    float2 regionOffset = float2(regionX * REGION_SIZE, regionY * REGION_SIZE);
 
-    float4 worldPos = float4(worldXY.x, worldXY.y, waterLevel*300, 1.0);
+    // Мировые координаты
+    float2 worldXY = regionOffset + (localPos - 0.5) * REGION_SIZE;
+
+    // ФИКС: ПРОСТО ИСПОЛЬЗУЕМ localPos ДЛЯ UV
+    float2 regionUV = localPos;
+
+    float4 worldPos = float4(worldXY.x, worldXY.y, waterLevel, 1.0);
 
     output.pos = mul(worldPos, mul(view[0], proj[0]));
     output.uv = regionUV;
-    output.wpos = float3(worldXY, waterLevel*40);
+    output.wpos = float3(worldXY, waterLevel);
 
     return output;
 }

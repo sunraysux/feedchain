@@ -145,7 +145,7 @@ namespace Textures
 		XMFLOAT2 size;
 		bool mipMaps;
 		bool depth;
-		std::vector<float> cpuData;
+		std::vector<XMFLOAT4> cpuData;
 
 	} textureDesc;
 
@@ -213,45 +213,6 @@ namespace Textures
 		tex.depth = false;
 		tex.format = tFormat::u8;
 	}
-	void CreateDepthForTexture(int i)
-	{
-		auto& tex = Texture[i];
-
-		if (!tex.pTexture) return; // текстура должна существовать
-
-		D3D11_TEXTURE2D_DESC depthDesc = {};
-		depthDesc.Width = (UINT)tex.size.x;
-		depthDesc.Height = (UINT)tex.size.y;
-		depthDesc.MipLevels = 1;
-		depthDesc.ArraySize = 1;
-		depthDesc.Format = DXGI_FORMAT_R32_TYPELESS; // тип без конкретного формата
-		depthDesc.SampleDesc.Count = 1;
-		depthDesc.SampleDesc.Quality = 0;
-		depthDesc.Usage = D3D11_USAGE_DEFAULT;
-		depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-
-		HRESULT hr = device->CreateTexture2D(&depthDesc, nullptr, &tex.pDepth);
-		if (FAILED(hr)) throw std::runtime_error("Failed to create depth texture");
-
-		// DSV
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		dsvDesc.Texture2D.MipSlice = 0;
-
-		hr = device->CreateDepthStencilView(tex.pDepth, &dsvDesc, &tex.DepthStencilView[0]);
-		if (FAILED(hr)) throw std::runtime_error("Failed to create DSV");
-
-		// SRV для шейдера
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-
-		hr = device->CreateShaderResourceView(tex.pDepth, &srvDesc, &tex.DepthResView);
-		if (FAILED(hr)) throw std::runtime_error("Failed to create depth SRV");
-	}
 
 	void ReadTextureToCPU(int index) {
 		if (index < 0 || index >= max_tex) return;
@@ -272,18 +233,23 @@ namespace Textures
 		device->CreateTexture2D(&desc, nullptr, &stagingTex);
 		context->CopyResource(stagingTex, tex.pTexture);
 
-		// Маппим данные
+	
 		D3D11_MAPPED_SUBRESOURCE mapped;
 		context->Map(stagingTex, 0, D3D11_MAP_READ, 0, &mapped);
 
-		// Преобразуем данные в float
+	
 		tex.cpuData.resize(desc.Width * desc.Height);
 		const unsigned char* data = static_cast<const unsigned char*>(mapped.pData);
 
 		for (UINT y = 0; y < desc.Height; y++) {
 			for (UINT x = 0; x < desc.Width; x++) {
 				const unsigned char* pixel = data + y * mapped.RowPitch + x * 4;
-				tex.cpuData[y * desc.Width + x] = pixel[0] / 255.0f; // R канал
+				tex.cpuData[y * desc.Width + x] = XMFLOAT4(
+					pixel[0] / 255.0f, 
+					pixel[1] / 255.0f, 
+					pixel[2] / 255.0f, 
+					pixel[3] / 255.0f  
+				);
 			}
 		}
 
@@ -1154,7 +1120,7 @@ namespace Camera
 		float speedMul = 1;
 
 		// Проекция / матрицы
-		float fovAngle = XMConvertToRadians(30.0f);
+		float fovAngle = XMConvertToRadians(60.0f);
 		XMMATRIX viewMatrix;
 		XMMATRIX projMatrix;
 		float width = 0.0f;
@@ -1260,17 +1226,43 @@ namespace Camera
 	float GetHeightAt(float worldX, float worldY)
 	{
 		auto& heightMap = Textures::Texture[1];
-		float normalizedX = (worldX + base_rangex) / (2.0f * base_rangex);
-		float normalizedY = (worldY + base_rangey) / (2.0f * base_rangey);
-		float u = normalizedX / 4.0f;
-		float v = normalizedY / 4.0f;
 
-		UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-		UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+		// Мир от -16384 до +16384 (всего 32768)
+		XMFLOAT2 normalizedPos;
+		normalizedPos.x = (worldX + 16384.0f) / 32768.0f;  // Преобразуем -16384..+16384 в 0..1
+		normalizedPos.y = (worldY + 16384.0f) / 32768.0f;
 
-		float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
-		float heightScale = height * 7.0f;
-		return height * heightScale * heightScale * heightScale;
+		// Ограничение координат
+		normalizedPos.x = fmaxf(0.0f, fminf(1.0f, normalizedPos.x));
+		normalizedPos.y = fmaxf(0.0f, fminf(1.0f, normalizedPos.y));
+
+		// Делим на 8 тайлов (как в шейдере)
+		float tileSize = 1.0f / 8.0f;
+
+		// Вычисляем UV внутри тайла (как в шейдере)
+		int tileX = (int)(normalizedPos.x * 8.0f);
+		int tileY = (int)(normalizedPos.y * 8.0f);
+
+		XMFLOAT2 regionUV;
+		regionUV.x = fmodf(normalizedPos.x * 8.0f, 1.0f) * tileSize + tileX * tileSize;
+		regionUV.y = fmodf(normalizedPos.y * 8.0f, 1.0f) * tileSize + tileY * tileSize;
+
+		// Безопасное чтение текстуры
+		UINT texX = static_cast<UINT>(regionUV.x * (heightMap.size.x - 1));
+		UINT texY = static_cast<UINT>(regionUV.y * (heightMap.size.y - 1));
+
+		texX = min(texX, static_cast<UINT>(heightMap.size.x - 1));
+		texY = min(texY, static_cast<UINT>(heightMap.size.y - 1));
+
+		float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
+		float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
+
+		// Тот же расчет что в шейдере
+		float heightScale = 200.0f;
+		float depthScale = 80.0f;
+		height = exp(height * 2.0f) * heightScale - exp(depth * 2.0f) * depthScale;
+
+		return height;
 	}
 
 
@@ -1299,12 +1291,13 @@ namespace Camera
 		const float minAboveGround = 0.5f;
 		float newPosZ = XMVectorGetZ(state.position) + dz;
 		float newTargetZ = XMVectorGetZ(state.target) + dz;
+		float dz1 = newPosZ - newTargetZ;
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 
-		const float maxZ = 100000.0f;
+		const float maxZ = 1200.0f;
 		newPosZ = min(newPosZ, maxZ);
-		newTargetZ = min(newTargetZ, maxZ);
+		newTargetZ = min(newTargetZ, maxZ- dz1);
 
 		state.position = XMVectorSetZ(state.position, newPosZ);
 		state.target = XMVectorSetZ(state.target, newTargetZ);
@@ -1406,17 +1399,23 @@ namespace Camera
 		// Wrap (как в твоём коде)
 		float ox = XMVectorGetX(state.position);
 		float oy = XMVectorGetY(state.position);
-		if (ox > 1024)
-			state.camXChunk += 1;
-		if (oy > 1024)
-			state.camYChunk += 1;
-		if (ox < -1024)
-			state.camXChunk -= 1;
-		if (oy < -1024)
-			state.camYChunk -= 1;
-		WrapChunks();
-		ox = Wrap(ox, 1024);
-		oy = Wrap(oy, 1024);
+
+		// Размер чанка = 2048, но мир от -8192 до +8192
+		// Всего 8x8 чанков, каждый от -8192 до +8192
+
+		// Вычисляем номер чанка для камеры
+		int chunkX = (int)floor((ox + 8192.0f) / 2048.0f);
+		int chunkY = (int)floor((oy + 8192.0f) / 2048.0f);
+
+		// Ограничиваем диапазон 0..7
+		chunkX = max(0, min(7, chunkX));
+		chunkY = max(0, min(7, chunkY));
+
+		// Обновляем состояние
+		state.camXChunk = chunkX;
+		state.camYChunk = chunkY;
+		ox = Wrap(ox, base_rangex);
+		oy = Wrap(oy, base_rangey);
 		state.position = XMVectorSet(ox, oy, XMVectorGetZ(state.position), 0.0f);
 
 		// target — позиция + направление
@@ -1438,7 +1437,7 @@ namespace Camera
 
 		// Матрицы и константные буфера
 		XMMATRIX view = XMMatrixLookAtLH(state.position, state.target, state.upDirection);
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 1.0f, 10000000.0f);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 1.0f, curZ*10.0f);
 		state.viewMatrix = view;
 		state.projMatrix = proj;
 

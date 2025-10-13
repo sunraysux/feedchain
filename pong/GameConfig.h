@@ -27,8 +27,8 @@ float SIZEAGLES = 100.0f;
 float SIZERATS = 100.0f;
 float SIZEBERRYS = 50.0f;
 float SIZEBEARS = 100.0f;
-float base_rangey = 1024.0f;
-float base_rangex = 1024.0f;
+float base_rangey = 8192*2;
+float base_rangex = 8192*2;
 float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
 POINT p;
 enum class gender_ { male, female };
@@ -43,13 +43,14 @@ float DegreesToRadians(float degrees)
 }
 float clamp(float x, float a, float b)
 {
-    return fmax(fmin(x, b), a);
+    float c=fmax(fmin(x, b), a);
+    return c;
 }
 
 inline float Wrap(float x, float range) {
     float size = range * 2.0f; // полный размер мира
-    if (x >= range) x -= size;
-    if (x < -range) x += size;
+    while (x >= range) x -= size;
+    while (x < -range) x += size;
     return x;
 }
 
@@ -100,7 +101,7 @@ inline float WrapY(float y)
     while (y > base_rangey) y -= size;
     return y;
 }
-const int CHUNK_SIZE = 8; // Размер чанка
+const int CHUNK_SIZE = 64; // Размер чанка
 const int CHUNKS_PER_SIDEX = base_rangex * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = base_rangey * 2 / CHUNK_SIZE;
 // секция данных игры  

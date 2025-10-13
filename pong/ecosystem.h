@@ -165,15 +165,15 @@ void InitGame() {
     Textures::LoadTextureFromFile(27, L"Debug/Ягода.png");
     Textures::LoadTextureFromFile(28, L"Debug/bear.png");
     // Начальные растения
-   // for (int i = 0; i < 0; i++) {
-   //     auto tree = std::make_shared<Tree>();
-   //     tree-> y = Random::Int(-base_rangey, base_rangey);
-   //     tree-> x = Random::Int(-base_rangex, base_rangex);
-   //     tree->age = 0;
-   //     tree->updateChunk();
-   //     trees.push_back(tree);
-   //     population.tree_count++;
-   // }
+   //for (int i = 0; i < 1000; i++) {
+   //    auto tree = std::make_shared<Tree>();
+   //    tree-> y = Random::Int(-base_rangey, base_rangey);
+   //    tree-> x = Random::Int(-base_rangex, base_rangex);
+   //    tree->age = 0;
+   //    tree->updateChunk();
+   //    trees.push_back(tree);
+   //    population.tree_count++;
+   //}
    // for (int i = 0; i < 0; i++) {
    //     auto bush = std::make_shared<Bush>();
    //     bush-> y = Random::Int(-100, 100);
@@ -184,10 +184,10 @@ void InitGame() {
    //     population.bush_count++;
    // }
    //// Начальные кролики
-   //for (int i = 0; i < 0; i++) {
+   //for (int i = 0; i < 100; i++) {
    //    auto rabbit = std::make_shared<Rabbit>();
-   //    rabbit->y = Random::Int(-100, 100);
-   //    rabbit->x = Random::Int(-100, 100);
+   //    rabbit->y = Random::Int(-base_rangey, base_rangey);
+   //    rabbit->x = Random::Int(-base_rangex, base_rangex);
    //    rabbit->hunger = Random::Int(0, 100);
    //    rabbit->age = Random::Int(0, 100);
    //    rabbits.push_back(rabbit);

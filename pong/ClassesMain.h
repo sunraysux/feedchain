@@ -34,13 +34,13 @@ protected:
                 seedlingx = Wrap(seedlingx, base_rangex);
                 seedlingy = Wrap(seedlingy, base_rangey);
 
-                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex) / 4; // [0,1]
-                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey) / 4; // [0,1]
+                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex); // [0,1]
+                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey); // [0,1]
 
                 UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
                 UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
-                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
                 if (height < waterLevel) continue;
 
                 int xc = coord_to_chunkx(seedlingx);
@@ -88,13 +88,13 @@ protected:
                 seedlingx = Wrap(seedlingx, base_rangex);
                 seedlingy = Wrap(seedlingy, base_rangey);
 
-                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex) / 4; // [0,1]
-                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey) / 4; // [0,1]
+                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex); // [0,1]
+                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey); // [0,1]
 
                 UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
                 UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
-                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
+                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
                 if (height < waterLevel) continue;
 
                 int xc = coord_to_chunkx(seedlingx);

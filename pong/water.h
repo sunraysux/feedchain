@@ -33,17 +33,16 @@ float waterNoise(float2 p)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-    const float HEIGHT_SCALE = 100.0;
+    const float HEIGHT_SCALE = 200.0;
 
     // получаем высоту и глубину рельефа
-    float terrainHeight = heightMap.SampleLevel(sampLinear, input.uv, 0).r * HEIGHT_SCALE;
-    float terrainDepth = heightMap.SampleLevel(sampLinear, input.uv, 0).g * 40;
-    
+    float terrainHeight = heightMap.SampleLevel(sampLinear, input.uv, 0).r ;
+    float terrainDepth = heightMap.SampleLevel(sampLinear, input.uv, 0).g ;
+    int depthScale = 80;
     // нижн€€ граница рельефа (дно)
-    float bottom = terrainHeight - terrainDepth;
-    
+    float height = exp(terrainHeight * 2) * HEIGHT_SCALE - exp(terrainDepth * 2) * depthScale;
     // глубина воды над рельефом
-    float depth = saturate((input.wpos.z - bottom) / 100.0);
+    float depth = saturate((input.wpos.z - height)/70 );
     
     // базовый цвет воды
     float3 waterColor = float3(0.07, 0.11, 0.13);
@@ -57,7 +56,7 @@ float4 PS(PS_INPUT input) : SV_Target
     waterColor += float3(specular * 0.5, specular * 0.7, specular);
     
     // прозрачность по глубине
-    float alpha = depth * 0.8;
+    float alpha = depth*0.8 ;
     
     return float4(waterColor, alpha);
 }

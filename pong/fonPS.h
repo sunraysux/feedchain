@@ -125,7 +125,6 @@ float ridgeFBM3D(float3 p, int octaves, float lacunarity, float gain)
 
 float4 PS(VS_OUTPUT IN) : SV_Target
 {
-
     float3 periodicP = float3(
         cos(2 * PI * IN.uv.x) + 0.5 * sin(2 * PI * IN.uv.y),
         sin(2 * PI * IN.uv.x) + 0.5 * cos(2 * PI * IN.uv.y),
@@ -133,42 +132,49 @@ float4 PS(VS_OUTPUT IN) : SV_Target
     );
 
     float3 p = periodicP;
-
-
     p += domainWarp(p * 1.5) * 0.3;
 
-
+    // Уменьшаем контрастность основных шумов
     float ridgeMain = ridgeFBM3D(p * float3(0.7, 0.35, 0.7), 4, 2.0, 0.6);
-    ridgeMain = pow(ridgeMain + 0.1, 1.2);
+    ridgeMain = pow(ridgeMain * 0.8 + 0.2, 1.1);
 
-    float ridgeAlt = ridgeFBM3D(p * float3(0.6, 0.9, 0.8), 3, 1.9, 0.5) * 0.3; 
-    float detail = fbm3D(p * 8.0, 2, 2.0, 0.5) * 0.03; 
+    float ridgeAlt = ridgeFBM3D(p * float3(0.6, 0.9, 0.8), 3, 1.9, 0.5) * 0.2;
+
+    float midFreq = fbm3D(p * 4.0, 3, 2.0, 0.6) * 0.15;
+    float highFreq = fbm3D(p * 12.0, 2, 2.0, 0.4) * 0.08;
+    float detail = fbm3D(p * 8.0, 2, 2.0, 0.5) * 0.02;
 
     float edgeBlend = smoothstep(0.0, 0.05, IN.uv.x) * smoothstep(0.0, 0.05, IN.uv.y) *
                       smoothstep(0.0, 0.05, 1.0 - IN.uv.x) * smoothstep(0.0, 0.05, 1.0 - IN.uv.y);
-    float centerGrad = fbm3D(p * 0.8, 2, 2.0, 0.6) * edgeBlend;
+    float centerGrad = fbm3D(p * 0.8, 2, 2.0, 0.6) * edgeBlend * 0.3;
 
-    float heightRaw = ridgeMain + ridgeAlt + detail + centerGrad;
-    float height = pow(saturate(heightRaw + 0.05), 1.15);
+    float heightRaw = ridgeMain * 0.6 + ridgeAlt * 0.2 + midFreq + highFreq + detail + centerGrad;
+    heightRaw = saturate(heightRaw);
+    float height = pow(heightRaw, 0.7) * 0.9 + 0.05;
 
-
+    // Аналогично для глубины
     float3 pDepth = p + float3(5.7, 3.3, 7.1);
 
     float ridgeMainD = ridgeFBM3D(pDepth * float3(1.0, 0.6, 0.9), 3, 2.0, 0.5);
-    ridgeMainD = pow(ridgeMainD + 0.02, 0.95);
+    ridgeMainD = pow(ridgeMainD * 0.7 + 0.25, 0.9);
 
-    float ridgeAltD = ridgeFBM3D(pDepth * float3(0.5, 0.8, 0.7), 2, 2.0, 0.5) * 0.2;
-    float detailD = fbm3D(pDepth * 6.0, 2, 2.0, 0.5) * 0.02;
+    float ridgeAltD = ridgeFBM3D(pDepth * float3(0.5, 0.8, 0.7), 2, 2.0, 0.5) * 0.15;
+
+    float midFreqD = fbm3D(pDepth * 5.0, 2, 2.0, 0.5) * 0.1;
+    float highFreqD = fbm3D(pDepth * 15.0, 2, 2.0, 0.3) * 0.05;
+
+    float detailD = fbm3D(pDepth * 6.0, 2, 2.0, 0.5) * 0.01;
 
     float edgeBlendD = smoothstep(0.0, 0.05, IN.uv.x) * smoothstep(0.0, 0.05, IN.uv.y) *
                        smoothstep(0.0, 0.05, 1.0 - IN.uv.x) * smoothstep(0.0, 0.05, 1.0 - IN.uv.y);
-    float centerGradD = fbm3D(pDepth * 0.6, 2, 2.0, 0.6) * edgeBlendD;
+    float centerGradD = fbm3D(pDepth * 0.6, 2, 2.0, 0.6) * edgeBlendD * 0.2;
 
-    float depthRaw = ridgeMainD + ridgeAltD + detailD + centerGradD;
+    float depthRaw = ridgeMainD * 0.5 + ridgeAltD + midFreqD + highFreqD + detailD + centerGradD;
+    depthRaw = saturate(depthRaw);
 
-
+    // Делаем воду более плавной
     float waterThreshold = 0.45;
-    float depth = height > waterThreshold ? 0.0 : (waterThreshold - height) * 1.5;
+    float depth = height > waterThreshold ? 0.0 : pow((waterThreshold - height) * 1.2, 1.5);
     depth = saturate(depth);
 
     return float4(height, depth, 0.0, 1.0);

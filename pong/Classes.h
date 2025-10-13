@@ -1,16 +1,41 @@
-﻿bool heightW(float x, float y) {
+﻿bool heightW(float worldX, float worldY) {
 
     auto& heightMap = Textures::Texture[1];
-    float normalizedX = (x + base_rangex) / (2.0f * base_rangex); // [0, 1]
-    float normalizedY = (y + base_rangey) / (2.0f * base_rangey); // [0, 1]
-    float u = normalizedX / 4.0f;
-    float v = normalizedY / 4.0f;
 
-    UINT texX = static_cast<UINT>(u * heightMap.size.x) % static_cast<UINT>(heightMap.size.x);
-    UINT texY = static_cast<UINT>(v * heightMap.size.y) % static_cast<UINT>(heightMap.size.y);
+    // 1. Нормализация мировых координат
+    XMFLOAT2 normalizedPos;
+    normalizedPos.x = (worldX + 16384.0f) / 32768.0f;
+    normalizedPos.y = (worldY + 16384.0f) / 32768.0f;
 
-    float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX];
-    return height < waterLevel;
+    // 2. Ограничение координат в пределах [0, 1]
+    normalizedPos.x = normalizedPos.x;
+    normalizedPos.y = normalizedPos.y;
+
+    XMFLOAT2 regionUV;
+    regionUV.x = normalizedPos.x;
+    regionUV.y = normalizedPos.y;
+
+    // 4. Безопасное вычисление текстурных координат
+    regionUV.x = fmodf(regionUV.x, 1.0f);
+    regionUV.y = fmodf(regionUV.y, 1.0f);
+
+    UINT texX = static_cast<UINT>(regionUV.x * (heightMap.size.x - 1));
+    UINT texY = static_cast<UINT>(regionUV.y * (heightMap.size.y - 1));
+
+    // 5. Проверка границ
+    texX = Wrap(texX,base_rangex);
+    texY = min(texY, static_cast<UINT>(heightMap.size.y - 1));
+
+    float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
+    float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
+
+    float heightScale = 200.0f;
+    float depthScale = 80.0f;
+    height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
+
+    return height<waterLevel;
+
+
 }
 int plant_id = 0;
 #include "ClassesMain.h"
