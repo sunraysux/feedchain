@@ -37,8 +37,9 @@ float length(float x1, float y1, float x2, float y2)
 {
     return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
-
+#include "Interface.h"
 #include "Loop.h"
+#include "Game.h"
 #define MAX_LOADSTRING 100
 // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
