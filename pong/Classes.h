@@ -23,6 +23,7 @@ public:
         age = 0;
         maturity_age = 100;
         age_limit = 500;
+        cont = 4;
     }
     std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Berry>(); }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
@@ -35,15 +36,21 @@ public:
     }
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.berrys;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.berrys;
+        else if (i == 2)
+            return chunk.rabbit_eat;
+        else if (i == 3)
+            return chunk.rat_eat;
+        else if (i == 4)
+            return chunk.bear_eat;
     }
     void addToChunk(Chunk& chunk) override {
         chunk.berrys.push_back(weak_from_this());
-        chunk.Plants.push_back(weak_from_this());
+        chunk.rabbit_eat.push_back(weak_from_this());
+        chunk.rat_eat.push_back(weak_from_this());
+        chunk.bear_eat.push_back(weak_from_this());
     }
 };
 
@@ -55,6 +62,7 @@ public:
         maturity_age = 250;
         age_limit = 500;
         age = 0;
+        cont = 4;
     }
     std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Grass>(); }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
@@ -65,18 +73,24 @@ public:
         PopulationManager& pop) {
         Plnt::process<Grass>(new_plants, pop);
     }
-    
+
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.grass;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.grass;
+        else if (i == 2)
+            return chunk.Plants;
+        else if (i == 3)
+            return chunk.rabbit_eat;
+        else if (i == 4)
+            return chunk.rat_eat;
     }
     void addToChunk(Chunk& chunk) override {
         chunk.grass.push_back(weak_from_this());
         chunk.Plants.push_back(weak_from_this());
+        chunk.rabbit_eat.push_back(weak_from_this());
+        chunk.rat_eat.push_back(weak_from_this());
     }
 };
 
@@ -102,11 +116,11 @@ public:
     }
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.trees;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.trees;
+        else if (i == 2)
+            return chunk.Plants;
     }
 
     void addToChunk(Chunk& chunk) override {
@@ -126,13 +140,14 @@ public:
         berry_count = 0;
         blossoming_age = 80;
         berry_limit = 5;
+        cont = 5;
     }
-    
+
     std::shared_ptr<Plnt> createOffspring() override { return std::make_shared<Bush>(); }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddBush(static_cast<int>(newSize));
     }
-    
+
     void blossoming(std::vector<std::shared_ptr<Berry>>& new_berrys) {
 
 
@@ -179,7 +194,7 @@ public:
         }
         age++;
 
-        
+
         if (age >= maturity_age && canAdd(pop, 0)) {
             if (tick % 5 == 0) {
                 reproduce(new_plants);
@@ -190,19 +205,28 @@ public:
                 blossoming(new_berrys);
             }
         }
-        
+
     }
- 
+
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.bushes;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Plants;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.bushes;
+        else if (i == 2)
+            return chunk.Plants;
+        else if (i == 3)
+            return chunk.rabbit_eat;
+        else if (i == 4)
+            return chunk.rat_eat;
+        else if (i == 5)
+            return chunk.bear_eat;
     }
     void addToChunk(Chunk& chunk) override {
         chunk.bushes.push_back(weak_from_this());
         chunk.Plants.push_back(weak_from_this());
+        chunk.rabbit_eat.push_back(weak_from_this());
+        chunk.rat_eat.push_back(weak_from_this());
+        chunk.bear_eat.push_back(weak_from_this());
     }
 };
 
@@ -210,7 +234,7 @@ class Rabbit : public Animal {
 public:
     Rabbit() : Animal(type_::rabbit) {
         nutritional_value = 1000;
-        gender = (Random::Int(0,1)==0) ? gender_::male : gender_::female;
+        gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
         maturity_age = 500;
@@ -224,6 +248,7 @@ public:
         nextPositionX = 0;
         nextPositionY = 0;
         move_range = 2;
+        cont = 4;
 
     }
     int stepsTick = 0;
@@ -232,8 +257,12 @@ public:
     float speed = 1.0f;
     int MATURITY_TICKS = 200;
 
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.grass; }
-    type_ getFoodType() const override { return type_::grass; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.rabbit_eat) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::grass }; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddRabbit(static_cast<int>(newSize));
     }
@@ -243,25 +272,31 @@ public:
     std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) override {
         return chunk.rabbits;
     }
-    
+
     void process(std::vector<std::shared_ptr<Rabbit>>& creature,
         std::vector<std::shared_ptr<Rabbit>>& new_creature,
         PopulationManager& pop) {
-        Animal::process<Rabbit>(creature,new_creature, pop);
+        Animal::process<Rabbit>(creature, new_creature, pop);
     }
 
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.rabbits;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.rabbits;
+        else if (i == 2)
+            return chunk.Animals;
+        else if (i == 3)
+            return chunk.bear_eat;
+        else if (i == 4)
+            return chunk.wolf_eat;
     }
 
     void addToChunk(Chunk& chunk) override {
         chunk.rabbits.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
+        chunk.bear_eat.push_back(weak_from_this());
+        chunk.wolf_eat.push_back(weak_from_this());
     }
 };
 
@@ -275,6 +310,7 @@ public:
         age_limit = 4000;
         hunger_limit = 1000;
         hunger = 0;
+        cont = 3;
     }
 
     bool isDirectionSelect = false;
@@ -288,8 +324,12 @@ public:
     int remainingSteps = 0;
     float speed = 2.0f;
     int MATURITY_TICKS = 75;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.rabbits; }
-    type_ getFoodType() const override { return type_::rabbit; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.wolf_eat) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::rabbit }; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddWolf(static_cast<int>(newSize));
     }
@@ -299,7 +339,7 @@ public:
     std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) override {
         return chunk.wolves;
     }
-    
+
     void process(std::vector<std::shared_ptr<Wolf>>& creature,
         std::vector<std::shared_ptr<Wolf>>& new_creature,
         PopulationManager& pop) {
@@ -308,16 +348,19 @@ public:
 
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.wolves;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.wolves;
+        else if (i == 2)
+            return chunk.Animals;
+        else if (i == 3)
+            return chunk.bear_eat;
     }
 
     void addToChunk(Chunk& chunk) override {
         chunk.wolves.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
+        chunk.bear_eat.push_back(weak_from_this());
     }
 };
 
@@ -325,7 +368,7 @@ class Rat : public Animal {
 public:
     Rat() : Animal(type_::rat) {
         nutritional_value = 1000;
-        gender = (Random::Int(0,1)==0) ? gender_::male : gender_::female;
+        gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
         eating_range = 2;
         age = 0;
         maturity_age = 500;
@@ -339,9 +382,10 @@ public:
         nextPositionX = 0;
         nextPositionY = 0;
         move_range = 2;
+        cont = 5;
 
     }
-    
+
     bool isUsedInfection = false;
 
     int stepsTick = 0;
@@ -349,8 +393,12 @@ public:
     int remainingSteps = 0;
     float speed = 1.0f;
     int MATURITY_TICKS = 25;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.berrys; }
-    type_ getFoodType() const override { return type_::berry; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.rat_eat) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::berry }; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddRat(static_cast<int>(newSize));
     }
@@ -368,16 +416,25 @@ public:
     }
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.rats;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.rats;
+        else if (i == 2)
+            return chunk.Animals;
+        else if (i == 3)
+            return chunk.bear_eat;
+        else if (i == 4)
+            return chunk.wolf_eat;
+        else if (i == 5)
+            return chunk.eagle_eat;
     }
 
     void addToChunk(Chunk& chunk) override {
         chunk.rats.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
+        chunk.bear_eat.push_back(weak_from_this());
+        chunk.wolf_eat.push_back(weak_from_this());
+        chunk.eagle_eat.push_back(weak_from_this());
     }
 };
 
@@ -392,6 +449,7 @@ public:
         age_limit = 4000;
         hunger_limit = 1000;
         hunger = 0;
+        cont = 3;
     }
 
     bool isDirectionSelect = false;
@@ -399,8 +457,12 @@ public:
     float nextPositionX = 0;
     float nextPositionY = 0;
     float birth_tick = 0.0f;
-    std::vector<std::weak_ptr<Creature>>& getFoodContainer(Chunk& c) override { return c.rats; }
-    type_ getFoodType() const override { return type_::rat; }
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.eagle_eat) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::rat }; }
     bool canAdd(PopulationManager& pop, size_t newSize) override {
         return pop.canAddEagle(static_cast<int>(newSize));
     }
@@ -411,24 +473,83 @@ public:
         return chunk.eagles;
     }
 
-    void process(std::vector < std::shared_ptr <Eagle>> &creature,
+    void process(std::vector < std::shared_ptr <Eagle>>& creature,
         std::vector<std::shared_ptr<Eagle>>& new_creature,
         PopulationManager& pop) {
         Animal::process<Eagle>(creature, new_creature, pop);
     }
 
-    
+
 
 protected:
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) override {
-        return chunk.eagles;
-    }
-    std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) override {
-        return chunk.Animals;
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.eagles;
+        else if (i == 2)
+            return chunk.Animals;
+        else if (i == 3)
+            return chunk.wolf_eat;
     }
 
     void addToChunk(Chunk& chunk) override {
         chunk.eagles.push_back(weak_from_this());
+        chunk.Animals.push_back(weak_from_this());
+        chunk.wolf_eat.push_back(weak_from_this());
+    }
+};
+
+class Bear : public Animal {
+public:
+    Bear() : Animal(type_::bear) {
+        gender = (Random::Int(0, 1) == 0) ? gender_::male : gender_::female;
+        eating_range = 10;
+        age = 0;
+        maturity_age = 2000;
+        age_limit = 4000;
+        hunger_limit = 1000;
+        hunger = 0;
+    }
+
+    bool isDirectionSelect = false;
+    int step = 0;
+    float nextPositionX = 0;
+    float nextPositionY = 0;
+    float birth_tick = 0.0f;
+
+    void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
+        for (auto& weak : c.bear_eat) {
+            if (!weak.expired()) output.push_back(weak);
+        }
+    }
+    std::vector<type_> getFoodTypes() const override { return { type_::berry,type_::rabbit }; }
+    bool canAdd(PopulationManager& pop, size_t newSize) override {
+        return pop.canAddBear(static_cast<int>(newSize));
+    }
+    std::shared_ptr<Animal> createOffspring() override {
+        return std::make_shared<Bear>();
+    }
+    std::vector<std::weak_ptr<Creature>>& getMateContainer(Chunk& chunk) override {
+        return chunk.bears;
+    }
+
+    void process(std::vector < std::shared_ptr <Bear>>& creature,
+        std::vector<std::shared_ptr<Bear>>& new_creature,
+        PopulationManager& pop) {
+        Animal::process<Bear>(creature, new_creature, pop);
+    }
+
+
+
+protected:
+    std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, const int i) override {
+        if (i == 1)
+            return chunk.bears;
+        else if (i == 2)
+            return chunk.Animals;
+    }
+
+    void addToChunk(Chunk& chunk) override {
+        chunk.bears.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
     }
 };
@@ -445,4 +566,5 @@ std::vector<std::shared_ptr<Eagle>> eagles;
 std::vector<std::shared_ptr<Rat>> rats;
 std::vector<std::shared_ptr<Grass>> grass;
 std::vector<std::shared_ptr<Berry>> berrys;
+std::vector<std::shared_ptr<Bear>> bears;
 

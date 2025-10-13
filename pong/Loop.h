@@ -95,7 +95,8 @@ void Loop() {
 		eagles,
 		rats,
 		grass,
-		berrys);
+		berrys,
+		bears);
 
 	Showpopulations();
 	//UpdateAllGrass();
@@ -157,7 +158,8 @@ void Looppause() {
 		eagles,
 		rats,
 		grass,
-		berrys);
+		berrys,
+		bears);
 
 	Showpopulations();
 

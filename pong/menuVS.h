@@ -17,12 +17,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     float2 pos = gConst[0].zw;
     // Правильные координаты вершин для полноэкранного квада
     float2 posc[6] = {
-        float2(pos.x-w, pos.y-h),
-        float2(pos.x-w, pos.y+h),
-        float2(pos.x+w, pos.y-h),
-        float2(pos.x+w, pos.y-h),
-        float2(pos.x-h, pos.y+h),
-        float2(pos.x+w, pos.y+h)
+        float2(pos.x - w, pos.y - h),
+        float2(pos.x - w, pos.y + h),
+        float2(pos.x + w, pos.y - h),
+        float2(pos.x + w, pos.y - h),
+        float2(pos.x - w, pos.y + h),
+        float2(pos.x + w, pos.y + h)
     };
 
     // Правильные UV-координаты

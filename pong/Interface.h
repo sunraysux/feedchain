@@ -43,6 +43,9 @@ void drawCursor()
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
             break;
+        case type_::bear:
+            texture = Textures::Texture[28].TextureResView;
+            break;
 
         }
 
@@ -83,6 +86,9 @@ void drawCursor()
             break;
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
+            break;
+        case type_::bear:
+            texture = Textures::Texture[28].TextureResView;
             break;
 
         }
@@ -128,14 +134,32 @@ void mouse()
             seed = 0; // выключить
 
     }
-    float barPositions = -0.35;
+    float barPositions = -0.85;
     float barHeights = -0.85;
     float barBottom = -1;
     float barTop = barHeights;
 
+    float typeBarX = -1;
+    float typeBarY = -0.2;
+    float typeBarW = 0.11;
+    float typeBarH = 0.8;
+
+    float speedBarX = 0.54;
+    float speedBarY = -0.8;
+    float speedBarW = 0.42;
+    float speedBarH = 0.2;
+
 
     if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
-        (barPositions < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 0.8)) {
+        (barPositions < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 0.3)) {
+        return;
+    }
+    if ((Camera::state.mousendcX >= typeBarX && Camera::state.mousendcX <= typeBarX + typeBarW) &&
+        (Camera::state.mousendcY <= typeBarY && Camera::state.mousendcY >= typeBarY - typeBarH)) {
+        return;
+    }
+    if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
+        (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH)) {
         return;
     }
 
@@ -147,6 +171,7 @@ void mouse()
         std::vector<std::shared_ptr<Eagle>> new_eagles;
         std::vector<std::shared_ptr<Rat>> new_rats;
         std::vector<std::shared_ptr<Grass>> new_grass;
+        std::vector<std::shared_ptr<Bear>> new_bears;
 
         auto add_new_entities = [](auto& dest, auto& src) {
             dest.reserve(dest.size() + src.size());
@@ -273,6 +298,21 @@ void mouse()
             seed += 1;
             break;
         }
+        case type_::bear: {
+            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+                return;
+            }
+            if (population.canAddBear(static_cast<int>(new_bears.size()))) {
+                auto bear = std::make_shared<Bear>();
+                bear->y = Wrap(Camera::state.mouseY, base_rangey);
+                bear->x = Wrap(Camera::state.mouseX, base_rangex);
+                bear->hunger = 0;
+                bear->age = 0;
+                new_bears.push_back(bear);
+                population.bear_count++;
+            }
+            break;
+        }
         }
 
         add_new_entities(grass, new_grass);
@@ -282,9 +322,14 @@ void mouse()
         add_new_entities(bushes, new_bushes);
         add_new_entities(eagles, new_eagles);
         add_new_entities(rats, new_rats);
+        add_new_entities(bears, new_bears);
     }
+    //if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+    //    currentType = type_::lightning;
+    //    kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 100.0f);
+    //
+    //}
 }
-
 
 
 
@@ -292,76 +337,103 @@ void Showpopulations() {
 
     // Визуализация популяций (две полоски)                                                                  // тут нормализуется количество существ до 1
                                                                                                              // в зависимости от лимита
-    Shaders::vShader(2);                                                                                     // и если полоса снизу доходит до края карты
-    Shaders::pShader(2);                                                                                     // то количество существ в списке достигло лимита
-    float rabbitRatio = min(                                                                                 //
-        static_cast<float>(population.rabbit_count) * 2 / population.rabbit_limit,                               //
-        2.0f                                                                                                 //
-    );                                                                                                       //
-    //
-    float treeRatio = min(                                                                                  //
-        static_cast<float>(population.tree_count) * 2 / population.tree_limit,                                 //
-        2.0f                                                                                                 //
-    );
+    //Shaders::vShader(2);                                                                                     // и если полоса снизу доходит до края карты
+    //Shaders::pShader(2);                                                                                     // то количество существ в списке достигло лимита
+    //float rabbitRatio = min(                                                                                 //
+    //    static_cast<float>(population.rabbit_count)*2 / population.rabbit_limit,                               //
+    //    2.0f                                                                                                 //
+    //);                                                                                                       //
+    //                                                                                                         //
+    //float treeRatio = min(                                                                                  //
+    //    static_cast<float>(population.tree_count)*2 / population.tree_limit,                                 //
+    //    2.0f                                                                                                 //
+    //);       
 
-    float wolfRatio = min(                                                                                  //
-        static_cast<float>(population.wolf_count) * 2 / population.wolf_limit,                                 //
-        2.0f                                                                                                 //
-    );
-    float bushRatio = min(                                                                                  //
-        static_cast<float>(population.bush_count) * 2 / population.bush_limit,                                 //
-        2.0f                                                                                                 //
-    );
-    float ratRatio = min(                                                                                  //
-        static_cast<float>(population.rat_count) * 2 / population.rat_limit,                                 //
-        2.0f                                                                                                 //
-    );
-    float eagleRatio = min(                                                                                  //
-        static_cast<float>(population.eagle_count) * 2 / population.eagle_limit,                                 //
-        2.0f                                                                                                 //
-    );
-    float grassRatio = min(                                                                                  //
-        static_cast<float>(population.grass_count) * 2 / population.grass_limit,                                 //
-        2.0f                                                                                                 //
-    );
+    //float wolfRatio = min(                                                                                  //
+    //    static_cast<float>(population.wolf_count)*2 / population.wolf_limit,                                 //
+    //    2.0f                                                                                                 //
+    //);
+    //float bushRatio = min(                                                                                  //
+    //    static_cast<float>(population.bush_count) * 2 / population.bush_limit,                                 //
+    //    2.0f                                                                                                 //
+    //);
+    //float ratRatio = min(                                                                                  //
+    //    static_cast<float>(population.rat_count) * 2 / population.rat_limit,                                 //
+    //    2.0f                                                                                                 //
+    //);
+    //float eagleRatio = min(                                                                                  //
+    //    static_cast<float>(population.eagle_count) * 2 / population.eagle_limit,                                 //
+    //    2.0f                                                                                                 //
+    //);
+    //float grassRatio = min(                                                                                  //
+    //    static_cast<float>(population.grass_count) * 2 / population.grass_limit,                                 //
+    //    2.0f                                                                                                 //
+    //);
 
-    ConstBuf::global[0] = XMFLOAT4(                                                                          //
-        rabbitRatio,                                                                                         //
-        treeRatio,
-        wolfRatio,
-        bushRatio
+    //ConstBuf::global[0] = XMFLOAT4(                                                                          //
+    //    rabbitRatio,                                                                                         //
+    //    treeRatio,
+    //    wolfRatio,
+    //    bushRatio
+    //    
+    //);
+    //ConstBuf::global[1] = XMFLOAT4(                                                          
+    //    ratRatio,                                                                            
+    //    eagleRatio,
+    //    grassRatio,
+    //    0
 
-    );
-    ConstBuf::global[1] = XMFLOAT4(
-        ratRatio,
-        eagleRatio,
-        grassRatio,
-        0
+    //);
 
-    );
+    //ConstBuf::Update(5, ConstBuf::global);
+    //ConstBuf::ConstToVertex(5);
+    //Draw::NullDrawer18(1); 
 
-    ConstBuf::Update(5, ConstBuf::global);
-    ConstBuf::ConstToVertex(5);
-    Draw::NullDrawer18(1);
+    switch (typeSelect)
+    {
+    case 1:
+        Draw::drawslot(-4, 18); break;
+    case 2:
+        Draw::drawslot(-4, 2);
+        Draw::drawslot(-3, 15);
+        break;
+    case 3:
+        Draw::drawslot(-4, 3);
+        Draw::drawslot(-3, 16);
+        Draw::drawslot(-2, 28);
+        break;
+    case 4:
+        Draw::drawslot(-4, 9);
+        Draw::drawslot(-3, 7);
+        Draw::drawslot(-2, 19);
+    default:
+        break;
+    }
+    /*Draw::drawslot(1,3);
+    Draw::drawslot(2, 2);
+    Draw::drawslot(3, 9);
+    Draw::drawslot(4, 7);
+    Draw::drawslot(5, 16);
+    Draw::drawslot(6, 15);
+    Draw::drawslot(7, 19);
+    Draw::drawslot(8, 18);
+    Draw::drawslot(9, 28);*/
 
-
-    Draw::dravslot(1, 3);
-    Draw::dravslot(2, 2);
-    Draw::dravslot(3, 9);
-    Draw::dravslot(4, 7);
-    Draw::dravslot(5, 16);
-    Draw::dravslot(6, 15);
-    Draw::dravslot(7, 19);
-    Draw::dravslot(8, 18);
     if (gameSpeed == 1)
-        Draw::dravslot(-1, 22);
+        Draw::drawslot(-1, 22);
     if (gameSpeed == 2)
-        Draw::dravslot(-1, 23);
+        Draw::drawslot(-1, 23);
     if (gameSpeed == 3)
-        Draw::dravslot(-1, 24);
+        Draw::drawslot(-1, 24);
     if (gameSpeed == 4)
-        Draw::dravslot(-1, 25);
+        Draw::drawslot(-1, 25);
     if (gameSpeed == 5)
-        Draw::dravslot(-1, 26);
+        Draw::drawslot(-1, 26);
+    if (gameSpeed == 6)
+        Draw::drawslot(-1, 43);
+
+    Draw::DrawUIimage(40, 0.9f, 0.9f, 0.075f, 0.075f);
+    Draw::DrawUIimage(41, -0.95f, -0.6f, 0.4f, 0.05f);
+    Draw::DrawUIimage(42, 0.75f, -0.9f, 0.1f, 0.25f);
 
 }

@@ -18,9 +18,12 @@ int tick = 0;
 int gameSpeed = 3;
 int slot_number = 1;
 static int ticloop = 0;
+int typeSelect = 1;
 float SIZEGRASS = 50;
+int oldGameSpeed = 1;
 float SIZEWOLFS = 100.0f;
 float SIZETREES = 100.0f;
+float SIZEBEARS = 100.0f;
 float SIZEBUSHES = 50.0f;
 float SIZERABBITS = 100.0f;
 float SIZEAGLES = 100.0f;
@@ -31,7 +34,7 @@ float base_rangex = 1024.0f;
 float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
 POINT p;
 enum class gender_ { male, female };
-enum class type_ { tree, rabbit, wolf, grass,bush, eagle,berry,rat,lightning };
+enum class type_ { tree, rabbit, wolf, grass, bush, eagle, berry, rat, lightning, bear };
 
 float TimeTic;
 
@@ -185,6 +188,7 @@ public:
     int grass_count = 0;
     int rat_count = 0;
     int berry_count = 0;
+    int bear_count = 0;
     const int grass_limit = 5000;
     const int wolf_limit = 100;
     const int rabbit_limit = 500;
@@ -193,6 +197,7 @@ public:
     const int eagle_limit = 100;
     const int rat_limit = 500;
     const int berry_limit = 2500;
+    const int bear_limit = 100;
 
     bool canAddWolf(int pending = 0) const {
         return wolf_count + pending < wolf_limit;
@@ -221,8 +226,11 @@ public:
     bool canAddBerrys(int pending = 0) const {
         return berry_count + pending < berry_limit;
     }
+    bool canAddBear(int pending = 0) const {
+        return bear_count + pending < bear_limit;
+    }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys, int delta_bears) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
@@ -231,6 +239,7 @@ public:
         rat_count += delta_rats;
         grass_count += delta_grass;
         berry_count += delta_berrys;
+        bear_count += delta_bears;
     }
 };
 
@@ -271,6 +280,7 @@ public:
     bool isUsedInfection = false;
     bool isRotten = false;
     int id;
+    int cont = 2;
     Creature(type_ t) : type(t) {}
 
 
@@ -278,28 +288,24 @@ public:
         if (current_chunk_x < 0 || current_chunk_y < 0) return;
 
         auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
-        auto& container = getChunkContainer(chunk);
+        for (int i = 1;i <= cont;i++) {
+
+
+            auto& container = getChunkContainer(chunk, i);
+
+            // Удаляем weak_ptr, указывающий на текущий объект
+            container.erase(
+                std::remove_if(container.begin(), container.end(),
+                    [this](const std::weak_ptr<Creature>& wp) {
+                        auto sp = wp.lock();
+                        return !sp || sp.get() == this;
+                    }),
+                container.end()
+            );
+        }
 
         // Удаляем weak_ptr, указывающий на текущий объект
-        container.erase(
-            std::remove_if(container.begin(), container.end(),
-                [this](const std::weak_ptr<Creature>& wp) {
-                    auto sp = wp.lock();
-                    return !sp || sp.get() == this;
-                }),
-            container.end()
-        );
-        auto& container2 = getChunkContainer2(chunk);
 
-        // Удаляем weak_ptr, указывающий на текущий объект
-        container2.erase(
-            std::remove_if(container2.begin(), container2.end(),
-                [this](const std::weak_ptr<Creature>& wp) {
-                    auto sp = wp.lock();
-                    return !sp || sp.get() == this;
-                }),
-            container2.end()
-        );
         current_chunk_x = -1;
         current_chunk_y = -1;
     }
@@ -322,8 +328,7 @@ public:
 
 protected:
     // Виртуальный метод для получения нужного контейнера в чанке
-    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk) = 0;
-    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer2(Chunk& chunk) = 0;
+    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, int i) = 0;
     // Виртуальный метод для добавления в чанк (уже объявлен)
     virtual void addToChunk(Chunk& chunk) = 0;
 };
