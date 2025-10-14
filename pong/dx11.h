@@ -1103,13 +1103,13 @@ namespace Draw
 		Draw::NullDrawer(1);
 	}
 
-	void DrawUIimage(int textureIndex, float coordX, float coordY, float Hwidth, float Hheigh)
+	void DrawUIimage(int textureIndex, float x1, float x2, float y1, float y2)
 	{
 		Shaders::vShader(7);
 		Shaders::pShader(7);
 
 		context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
-		ConstBuf::global[0] = XMFLOAT4(Hwidth, Hheigh, coordX, coordY);
+		ConstBuf::global[0] = XMFLOAT4(x1, x2, y1, y2);
 		ConstBuf::Update(5, ConstBuf::global);
 		ConstBuf::ConstToVertex(5);
 		Draw::NullDrawer(1);

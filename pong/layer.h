@@ -34,25 +34,10 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     // Вершины куба без дна (5 граней ? 6 вершин = 30 вершин)
-    float3 positions[30] = {
-        float3(-1, -1, 1), float3(1, -1, 1), float3(-1, 1, 1),
-        float3(1, -1, 1), float3(1, 1, 1), float3(-1, 1, 1),
+    float3 positions[6] = {
+        float3(-1, -1, 1), float3(-1, 1, 1), float3(1, -1, 1),
+        float3(-1, 1, 1), float3(1, 1, 1), float3(1, -1, 1),
 
-    // Передняя грань (y = -1) - против часовой стрелки
-        float3(-1, -1, 0), float3(1, -1, 0), float3(-1, -1, 1),
-        float3(1, -1, 0), float3(1, -1, 1), float3(-1, -1, 1),
-        
-        // Задняя грань (y = 1) - по часовой стрелке
-        float3(-1,  1, 0), float3(-1,  1, 1), float3(1,  1, 0),
-        float3(1,  1, 0), float3(-1,  1, 1), float3(1,  1, 1),
-        
-        // Левая грань (x = -1) - против часовой стрелки
-        float3(-1, -1, 0), float3(-1, -1, 1), float3(-1,  1, 0),
-        float3(-1,  1, 0), float3(-1, -1, 1), float3(-1,  1, 1),
-        
-        // Правая грань (x = 1) - по часовой стрелке
-        float3(1, -1, 0), float3(1,  1, 0), float3(1, -1, 1),
-        float3(1, -1, 1), float3(1,  1, 0), float3(1,  1, 1)
     };
     // Нормали для каждой грани
     float3 normals[5] = {

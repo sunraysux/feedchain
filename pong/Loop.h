@@ -11,7 +11,7 @@ void terraloop()
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::back);
 	Shaders::vShader(1);
 	Shaders::pShader(1);
 	ConstBuf::ConstToVertex(4);

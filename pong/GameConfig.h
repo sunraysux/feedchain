@@ -38,6 +38,10 @@ enum class type_ { tree, rabbit, wolf, grass, bush, eagle, berry, rat, lightning
 
 float TimeTic;
 
+
+
+
+
 #define PI 3.1415926535897932384626433832795f
 float DegreesToRadians(float degrees)
 {

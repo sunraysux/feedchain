@@ -38,11 +38,11 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     float2 offset;
     if (localVertex == 0) offset = float2(0, 0);
-    else if (localVertex == 1) offset = float2(1, 0);
-    else if (localVertex == 2) offset = float2(0, 1);
-    else if (localVertex == 3) offset = float2(1, 0);
+    else if (localVertex == 1) offset = float2(0, 1);
+    else if (localVertex == 2) offset = float2(1, 0);
+    else if (localVertex == 3) offset = float2(0, 1);
     else if (localVertex == 4) offset = float2(1, 1);
-    else offset = float2(0, 1);
+    else offset = float2(1, 0);
 
     float CHUNK_SIZE = 4;
 
