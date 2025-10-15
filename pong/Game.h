@@ -12,6 +12,8 @@ void drawWorld()
 			Textures::LoadTextureFromFile(30, L"Debug/menu.png");
 			Textures::LoadTextureFromFile(31, L"Debug/start.png");
 			Textures::LoadTextureFromFile(32, L"Debug/exit.png");
+			Textures::LoadTextureFromFile(44, L"Debug/newMenu.png");
+
 			Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(10);
 			initmenu = true;

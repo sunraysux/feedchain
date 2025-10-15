@@ -50,22 +50,20 @@ void Loop() {
 	Draw::ClearDepth();
 	ticloop++;
 	switch (gameSpeed) {
-	case 1: // 0.25x → раз в 4 кадра
-		if (ticloop >= 4) { ProcessCreatures(population);  ticloop = 0; }
+	
+	case 1: // 1x → каждый кадр
+		ProcessCreatures(population);  
+		ticloop = 0;
 		break;
-	case 2: // 0.5x → раз в 2 кадра
-		if (ticloop >= 2) { ProcessCreatures(population);  ticloop = 0; }
-		break;
-	case 3: // 1x → каждый кадр
-		ProcessCreatures(population);  ticloop = 0;
-		break;
-	case 4: // 2x → два раза за кадр
+	case 2: // 2x → два раза за кадр
 		ProcessCreatures(population); 
 		ProcessCreatures(population);
 		ticloop = 0;
 		break;
-	case 5: // 4x → четыре раза за кадр
-		for (int i = 0; i < 5; i++) { ProcessCreatures(population);  }
+	case 3: // 4x → четыре раза за кадр
+		ProcessCreatures(population); 
+		ProcessCreatures(population);
+		ProcessCreatures(population);
 		ticloop = 0;
 		break;
 	}

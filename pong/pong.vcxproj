@@ -152,6 +152,7 @@
     <Image Include="Debug\kust.png" />
     <Image Include="Debug\lightning.png" />
     <Image Include="Debug\menu.png" />
+    <Image Include="Debug\newMenu.png" />
     <Image Include="Debug\pause.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\bigTree.png" />

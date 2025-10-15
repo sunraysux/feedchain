@@ -9,6 +9,21 @@ static int prevMouseX = 0;
 static int prevMouseY = 0;
 static short mouseWheelDelta = 0;
 
+float barPositions = -0.85;
+float barHeights = -0.85;
+float barBottom = -1;
+float barTop = barHeights;
+
+float typeBarX = -1;
+float typeBarY = -0.2;
+float typeBarW = 0.11;
+float typeBarH = 0.8;
+
+float speedBarX = 0.61;
+float speedBarY = -0.8;
+float speedBarW = 0.39;
+float speedBarH = 0.2;
+
 bool mouseClickedInRect(float x1, float y1, float x2, float y2)
 {
     bool insideX = (Camera::state.mousendcX >= x1 && Camera::state.mousendcX <= x2);
@@ -47,11 +62,12 @@ void checkButtons()
 
     if (shiftHeld)
     {
+        if(gameSpeed == 6) gameState = gameState_::game;
         if (keyPressed['1']) gameSpeed = 1;
         if (keyPressed['2']) gameSpeed = 2;
         if (keyPressed['3']) gameSpeed = 3;
-        if (keyPressed['4']) gameSpeed = 4;
-        if (keyPressed['5']) gameSpeed = 5;
+        /*if (keyPressed['4']) gameSpeed = 4;
+        if (keyPressed['5']) gameSpeed = 5;*/
     }
     else
     {
@@ -106,19 +122,7 @@ void checkButtons()
     // Игра
     if (mouseLeftDown)
     {
-        float barPositions = -0.85f;
-        float barHeights = -0.85f;
-        float barBottom = -1.0f;
-
-        float typeBarX = -1.0f;
-        float typeBarY = -0.2f;
-        float typeBarW = 0.11f;
-        float typeBarH = 0.8f;
-
-        float speedBarX = 0.54f;
-        float speedBarY = -0.8f;
-        float speedBarW = 0.42f;
-        float speedBarH = 0.2f;
+        
 
         // --- Слоты ---
         if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
@@ -188,14 +192,15 @@ void checkButtons()
         if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
             (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH))
         {
-            for (int speed = 1; speed < 7; speed++)
+            for (int speed = 1; speed < 5; speed++)
             {
-                float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 6.0f);
-                float segmentRight = speedBarX + speed * (speedBarW / 6.0f);
+                float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 4.0f) - (speed-1)*0.005;
+                float segmentRight = speedBarX + speed * (speedBarW / 4.0f) - (speed - 1) * 0.005;
 
                 if (Camera::state.mousendcX >= segmentLeft && Camera::state.mousendcX <= segmentRight)
                 {
-                    if (speed == 3)
+
+                    if (speed == 1)
                     {
                         if (gameState != gameState_::pause)
                         {
@@ -210,19 +215,18 @@ void checkButtons()
                         }
                         break;
                     }
-
-                    if (gameSpeed == 6)
-                        gameState = gameState_::game;
-
-                    if (speed < 3)
-                        gameSpeed = speed;
-                    else if (speed > 3)
+                    else {
+                        if (gameSpeed == 6)
+                            gameState = gameState_::game;
                         gameSpeed = speed - 1;
+                    }
+
 
                     break;
                 }
             }
         }
+        mouseLeftDown = false;
     }
 }void drawCursor()
 {
@@ -345,20 +349,7 @@ void mouse()
             seed = 0; // выключить
 
     }
-    float barPositions = -0.85;
-    float barHeights = -0.85;
-    float barBottom = -1;
-    float barTop = barHeights;
-
-    float typeBarX = -1;
-    float typeBarY = -0.2;
-    float typeBarW = 0.11;
-    float typeBarH = 0.8;
-
-    float speedBarX = 0.54;
-    float speedBarY = -0.8;
-    float speedBarW = 0.42;
-    float speedBarH = 0.2;
+    
 
 
     if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
@@ -564,21 +555,21 @@ void Showpopulations() {
     }
 
     if (gameSpeed == 1)
-        Draw::drawslot(-1, 22);
-    if (gameSpeed == 2)
-        Draw::drawslot(-1, 23);
-    if (gameSpeed == 3)
         Draw::drawslot(-1, 24);
-    if (gameSpeed == 4)
+    if (gameSpeed == 2)
         Draw::drawslot(-1, 25);
-    if (gameSpeed == 5)
+    if (gameSpeed == 3)
         Draw::drawslot(-1, 26);
+    //if (gameSpeed == 4)
+    //    Draw::drawslot(-1, 25);
+    //if (gameSpeed == 5)
+    //    Draw::drawslot(-1, 26);
     if (gameSpeed == 6)
         Draw::drawslot(-1, 43);
 
     
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
-    Draw::DrawUIimage(42, 0.51f, 1, -1, -0.815f);
+    Draw::DrawUIimage(42, 0.61f, 1, -1, -0.815f);
     if (SSTAT)
         showStat();
     else
