@@ -1,20 +1,230 @@
 
+static bool keyPressed[256] = { 0 };
+static bool mouseLeftDown = false;
+static bool mouseRightDown = false;
+static bool mouseMiddleDown = false;
+static int mouseX = 0;
+static int mouseY = 0;
+static int prevMouseX = 0;
+static int prevMouseY = 0;
+static short mouseWheelDelta = 0;
 
-void checkButtons() {
-    if ((-0.3 < Camera::state.mousendcY && Camera::state.mousendcY < -0.1) &&
-        (-0.1 < Camera::state.mousendcX && Camera::state.mousendcX < 0.1) &&
-        GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-    {
-        ExitProcess(0);
-    }
-    if ((0 < Camera::state.mousendcY && Camera::state.mousendcY < 0.2) &&
-        (-0.1 < Camera::state.mousendcX && Camera::state.mousendcX < 0.1) &&
-        GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-    {
-        gameState = gameState_::game;
-    }
+bool mouseClickedInRect(float x1, float y1, float x2, float y2)
+{
+    bool insideX = (Camera::state.mousendcX >= x1 && Camera::state.mousendcX <= x2);
+    bool insideY = (Camera::state.mousendcY >= y1 && Camera::state.mousendcY <= y2);
+
+    bool leftPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+
+    return insideX && insideY && leftPressed;
 }
-void drawCursor()
+
+void checkButtons()
+{
+    bool shiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000);
+
+    // Клавиатура
+    if (keyPressed[VK_SHIFT])
+        Camera::state.speedMul = 10.0f;
+    else
+        Camera::state.speedMul = 1.0f;
+
+    if (keyPressed[VK_SPACE])
+    {
+        if (gameState == gameState_::game)
+        {
+            gameState = gameState_::pause;
+            oldGameSpeed = gameSpeed;
+            gameSpeed = 6;
+        }
+        else if (gameState == gameState_::pause)
+        {
+            gameState = gameState_::game;
+            gameSpeed = oldGameSpeed;
+        }
+        keyPressed[VK_SPACE] = false; 
+    }
+
+    if (shiftHeld)
+    {
+        if (keyPressed['1']) gameSpeed = 1;
+        if (keyPressed['2']) gameSpeed = 2;
+        if (keyPressed['3']) gameSpeed = 3;
+        if (keyPressed['4']) gameSpeed = 4;
+        if (keyPressed['5']) gameSpeed = 5;
+    }
+    else
+    {
+        if (keyPressed['1']) {
+            if (typeSelect == 1) currentType = type_::lightning;
+            if (typeSelect == 2) currentType = type_::rabbit;
+            if (typeSelect == 3) currentType = type_::wolf;
+            if (typeSelect == 4) currentType = type_::tree;
+            slot_number = -4;
+        }
+        if (keyPressed['2']) {
+            if (typeSelect == 2) currentType = type_::rat;
+            if (typeSelect == 3) currentType = type_::eagle;
+            if (typeSelect == 4) currentType = type_::bush;
+            slot_number = -3;
+        }
+        if (keyPressed['3']) {
+            if (typeSelect == 3) currentType = type_::bear;
+            if (typeSelect == 4) currentType = type_::grass;
+            slot_number = -2;
+        }
+    }
+
+    if (keyPressed[VK_ESCAPE])
+        PostQuitMessage(0);
+
+    // Мышь 
+    if (mouseWheelDelta != 0)
+    {
+        Camera::HandleMouseWheel(mouseWheelDelta);
+        mouseWheelDelta = 0;
+    }
+
+    // Главное меню
+    if (gameState == gameState_::MainMenu)
+    {
+        // Кнопка выхода
+        if (mouseClickedInRect(-0.1f, -0.3f, 0.1f, -0.1f))
+        {
+            ExitProcess(0);
+        }
+
+        // Кнопка начала игры
+        if (mouseClickedInRect(-0.1f, 0.0f, 0.1f, 0.2f))
+        {
+            gameState = gameState_::game;
+        }
+
+        return;
+    }
+
+    // Игра
+    if (mouseLeftDown)
+    {
+        float barPositions = -0.85f;
+        float barHeights = -0.85f;
+        float barBottom = -1.0f;
+
+        float typeBarX = -1.0f;
+        float typeBarY = -0.2f;
+        float typeBarW = 0.11f;
+        float typeBarH = 0.8f;
+
+        float speedBarX = 0.54f;
+        float speedBarY = -0.8f;
+        float speedBarW = 0.42f;
+        float speedBarH = 0.2f;
+
+        // --- Слоты ---
+        if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+            (barPositions - 0.1f + 1 * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 3 * 0.1f))
+        {
+            for (int slot = 1; slot < 4; slot++)
+            {
+                if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+                    (barPositions - 0.1f + slot * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + slot * 0.1f))
+                {
+                    slot_number = slot;
+                }
+            }
+
+            switch (slot_number)
+            {
+            case 1:
+                if (typeSelect == 1) currentType = type_::lightning;
+                if (typeSelect == 2) currentType = type_::rabbit;
+                if (typeSelect == 3) currentType = type_::wolf;
+                if (typeSelect == 4) currentType = type_::tree;
+                slot_number = -4;
+                break;
+
+            case 2:
+                if (typeSelect == 2) currentType = type_::rat;
+                if (typeSelect == 3) currentType = type_::eagle;
+                if (typeSelect == 4) currentType = type_::bush;
+                slot_number = -3;
+                break;
+
+            case 3:
+                if (typeSelect == 3) currentType = type_::bear;
+                if (typeSelect == 4) currentType = type_::grass;
+                slot_number = -2;
+                break;
+            }
+        }
+
+        // --- Панель типов ---
+        if ((Camera::state.mousendcX >= typeBarX && Camera::state.mousendcX <= typeBarX + typeBarW) &&
+            (Camera::state.mousendcY <= typeBarY && Camera::state.mousendcY >= typeBarY - typeBarH))
+        {
+            for (int type = 1; type < 5; type++)
+            {
+                float segmentTop = typeBarY - (type - 1) * (typeBarH / 4.0f);
+                float segmentBottom = typeBarY - type * (typeBarH / 4.0f);
+
+                if (Camera::state.mousendcY <= segmentTop && Camera::state.mousendcY >= segmentBottom)
+                {
+                    if (typeSelect != type)
+                    {
+                        typeSelect = type;
+                        slot_number = -4;
+
+                        if (type == 1) currentType = type_::lightning;
+                        if (type == 2) currentType = type_::rabbit;
+                        if (type == 3) currentType = type_::wolf;
+                        if (type == 4) currentType = type_::tree;
+                    }
+                    break;
+                }
+            }
+        }
+
+        // --- Панель скорости ---
+        if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
+            (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH))
+        {
+            for (int speed = 1; speed < 7; speed++)
+            {
+                float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 6.0f);
+                float segmentRight = speedBarX + speed * (speedBarW / 6.0f);
+
+                if (Camera::state.mousendcX >= segmentLeft && Camera::state.mousendcX <= segmentRight)
+                {
+                    if (speed == 3)
+                    {
+                        if (gameState != gameState_::pause)
+                        {
+                            oldGameSpeed = gameSpeed;
+                            gameState = gameState_::pause;
+                            gameSpeed = 6;
+                        }
+                        else
+                        {
+                            gameState = gameState_::game;
+                            gameSpeed = oldGameSpeed;
+                        }
+                        break;
+                    }
+
+                    if (gameSpeed == 6)
+                        gameState = gameState_::game;
+
+                    if (speed < 3)
+                        gameSpeed = speed;
+                    else if (speed > 3)
+                        gameSpeed = speed - 1;
+
+                    break;
+                }
+            }
+        }
+    }
+}void drawCursor()
 {
     ID3D11ShaderResourceView* texture = nullptr;
     switch (gameState) {
@@ -113,7 +323,6 @@ void drawCursor()
 
 void mouse()
 {
-    //  HandleCreatureSelection(); // обновляем текущий выбор
     drawCursor(); // отрисовываем курсор с текстурой выбранного животного
 
     if (seed > 0) {
@@ -326,11 +535,6 @@ void mouse()
         add_new_entities(rats, new_rats);
         add_new_entities(bears, new_bears);
     }
-    //if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
-    //    currentType = type_::lightning;
-    //    kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 100.0f);
-    //
-    //}
 }
 
 
@@ -372,11 +576,13 @@ void Showpopulations() {
     if (gameSpeed == 6)
         Draw::drawslot(-1, 43);
 
-    Draw::DrawUIimage(40, 0.825f, 0.975f, 0.825f, 0.975f);
+    
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
-    Draw::DrawUIimage(42, 0.71f, 0.81f, -1.065f, -0.815f);
+    Draw::DrawUIimage(42, 0.51f, 1, -1, -0.815f);
     if (SSTAT)
         showStat();
+    else
+        Draw::DrawUIimage(40, 0.825f, 0.975f, 0.825f, 0.975f);
 
 }
 

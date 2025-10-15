@@ -13,6 +13,6 @@ void showStat() {
 		else
 			SSTAT = false;
 	if (SSTAT) {
-		Draw::DrawUIimage(5, 1, 1, 1, 1);
+		Draw::DrawUIimage(5, 0.8, 1, 0.8, 1);
 	}
 }

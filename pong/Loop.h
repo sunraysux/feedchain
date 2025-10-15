@@ -29,29 +29,14 @@ void StartMenu() {
 	Draw::ClearDepth();
 	drawCursor();
 
-	Shaders::vShader(7);
-	Shaders::pShader(7);
 
-	context->PSSetShaderResources(0, 1, &Textures::Texture[30].TextureResView);
-	ConstBuf::global[0] = XMFLOAT4(0.1, 0.1, 0, 0.5);
-	ConstBuf::Update(5, ConstBuf::global);
-	ConstBuf::ConstToVertex(5);
-	Draw::NullDrawer(1);
+	Draw::DrawUIimage(30, -0.1, 0.1, 0.3, 0.5);
 
 
-	context->PSSetShaderResources(0, 1, &Textures::Texture[31].TextureResView);
-	ConstBuf::global[0] = XMFLOAT4(0.1, 0.1, 0, 0.1);
-	ConstBuf::Update(5, ConstBuf::global);
-	ConstBuf::ConstToVertex(5);
-	Draw::NullDrawer(1);
+	Draw::DrawUIimage(31, -0.1, 0.1, 0, 0.2);
 
 
-	context->PSSetShaderResources(0, 1, &Textures::Texture[32].TextureResView);
-	ConstBuf::global[0] = XMFLOAT4(0.1, 0.1, 0, -0.2);
-	ConstBuf::Update(5, ConstBuf::global);
-	ConstBuf::ConstToVertex(5);
-	Draw::NullDrawer(1);
-	checkButtons();
+	Draw::DrawUIimage(32, -0.1, 0.1, -0.3, -0.1);
 	Draw::Present();
 
 }

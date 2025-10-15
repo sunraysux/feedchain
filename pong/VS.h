@@ -48,10 +48,10 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
     float3 cameraUp = float3(0,0,gConst[iID].w); // Z - это высота
 
-    float3 bottomLeft = p + cameraRight * sz ;
-    float3 bottomRight = p - cameraRight * sz ;
-    float3 topLeft = p + cameraRight * sz + cameraUp * sz;
-    float3 topRight = p - cameraRight * sz + cameraUp * sz;
+    float3 bottomLeft = p - cameraRight * sz ;
+    float3 bottomRight = p + cameraRight * sz ;
+    float3 topLeft = p - cameraRight * sz + cameraUp * sz;
+    float3 topRight = p + cameraRight * sz + cameraUp * sz;
 
     float3 quad[6] = {
         bottomLeft, bottomRight, topLeft,
