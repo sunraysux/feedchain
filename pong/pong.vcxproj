@@ -152,6 +152,7 @@
     <Image Include="Debug\kust.png" />
     <Image Include="Debug\lightning.png" />
     <Image Include="Debug\menu.png" />
+    <Image Include="Debug\pause.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\bigTree.png" />
     <Image Include="Debug\rat.png" />
@@ -165,6 +166,9 @@
     <Image Include="Debug\standartBush.png" />
     <Image Include="Debug\standartTree.png" />
     <Image Include="Debug\start.png" />
+    <Image Include="Debug\statBTN.png" />
+    <Image Include="Debug\trueSpeedBar.png" />
+    <Image Include="Debug\typeBar.png" />
     <Image Include="Debug\wolf.png" />
     <Image Include="Debug\Трава1.png" />
     <Image Include="Debug\Трава2.png" />
