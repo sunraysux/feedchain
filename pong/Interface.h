@@ -1,4 +1,5 @@
 
+
 static bool keyPressed[256] = { 0 };
 static bool mouseLeftDown = false;
 static bool mouseRightDown = false;
@@ -66,8 +67,7 @@ void checkButtons()
         if (keyPressed['1']) gameSpeed = 1;
         if (keyPressed['2']) gameSpeed = 2;
         if (keyPressed['3']) gameSpeed = 3;
-        /*if (keyPressed['4']) gameSpeed = 4;
-        if (keyPressed['5']) gameSpeed = 5;*/
+
     }
     else
     {
@@ -91,8 +91,11 @@ void checkButtons()
         }
     }
 
-    if (keyPressed[VK_ESCAPE])
-        PostQuitMessage(0);
+    if (keyPressed[VK_ESCAPE] && gameState != gameState_::MainMenu) {
+        keyPressed[VK_ESCAPE] = false;
+        settings = false;
+        gameState = gameState_::MainMenu;
+    }
 
     // Мышь 
     if (mouseWheelDelta != 0)
@@ -104,16 +107,39 @@ void checkButtons()
     // Главное меню
     if (gameState == gameState_::MainMenu)
     {
-        // Кнопка выхода
-        if (mouseClickedInRect(-0.1f, -0.3f, 0.1f, -0.1f))
-        {
-            ExitProcess(0);
+        if (!settings) {
+            if (keyPressed['W']) {
+                if (currentStartButton > 1) {
+                    currentStartButton -= 1;
+                }
+                cursorY1 = -0.35 - (0.16 * (currentStartButton - 1));
+                cursorY2 = -0.38 - (0.16 * (currentStartButton - 1));
+                keyPressed['W'] = false;
+            }
+            if (keyPressed['S']) {
+                if (currentStartButton < 3) {
+                    currentStartButton += 1;
+                }
+                cursorY1 = -0.35 - (0.16 * (currentStartButton - 1));
+                cursorY2 = -0.38 - (0.16 * (currentStartButton - 1));
+                keyPressed['S'] = false;
+            }
         }
-
-        // Кнопка начала игры
-        if (mouseClickedInRect(-0.1f, 0.0f, 0.1f, 0.2f))
-        {
-            gameState = gameState_::game;
+        if (keyPressed[VK_RETURN]) {
+            switch (currentStartButton)
+            {
+            case 1:
+                gameState = gameState_::game;
+            case 2:
+                if (settings) settings = false;
+                else settings = true;
+            default:
+                break;
+            }
+            keyPressed[VK_RETURN] = false;
+        }
+        if (keyPressed[VK_ESCAPE]) {
+            PostQuitMessage(0);
         }
 
         return;
@@ -321,7 +347,12 @@ void checkButtons()
         Draw::Cursor();
         break;
     case gameState_::MainMenu:
-        ShowCursor(true);
+        if (settings) {
+            ShowCursor(true);
+        }
+        else {
+            ShowCursor(false);
+        }
     }
 }
 

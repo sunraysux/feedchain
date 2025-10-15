@@ -1,7 +1,6 @@
 ﻿
 
 
-
 void terraloop()
 {
 	InputAssembler::IA(InputAssembler::topology::triList);
@@ -27,16 +26,21 @@ void StartMenu() {
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 1,1,1,0 });
 	Draw::ClearDepth();
-	drawCursor();
+	
 
 
-	Draw::DrawUIimage(30, -0.1, 0.1, 0.3, 0.5);
+
+	Draw::DrawUIimage(45, -0.56, -0.58, cursorY1, cursorY2);
+
+	if (settings) {
+		drawCursor();
+		Draw::DrawUIimage(46, -0.5, 0.5, -0.5, 0.5);
+	}
 
 
-	Draw::DrawUIimage(31, -0.1, 0.1, 0, 0.2);
+	Draw::DrawUIimage(44, -1, 1, -1, 1);
 
-
-	Draw::DrawUIimage(32, -0.1, 0.1, -0.3, -0.1);
+	
 	Draw::Present();
 
 }

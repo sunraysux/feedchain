@@ -141,6 +141,7 @@
     <Image Include="Debug\animal.png" />
     <Image Include="Debug\bear.png" />
     <Image Include="Debug\bigBush.png" />
+    <Image Include="Debug\cursor.png" />
     <Image Include="Debug\eagleFemale.png" />
     <Image Include="Debug\eagleMale.png" />
     <Image Include="Debug\exit.png" />
@@ -157,6 +158,7 @@
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\bigTree.png" />
     <Image Include="Debug\rat.png" />
+    <Image Include="Debug\settings.png" />
     <Image Include="Debug\smallBush.png" />
     <Image Include="Debug\smallTree.png" />
     <Image Include="Debug\speed.png" />
