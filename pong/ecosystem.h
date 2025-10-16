@@ -212,7 +212,7 @@ void InitGame() {
    }
 }
 
-type_ currentType = type_::wolf; 
+type_ currentType = type_::lightning; 
 
 
 auto isVisible = [&](float x, float y) -> bool {

@@ -13,18 +13,33 @@ gameState_  gameState = gameState_::MainMenu;
 float x=0;
 float y=0;
 float z=0;
+
 int seed = 0;
 int tick = 0;
-int gameSpeed = 1;
-int slot_number = 1;
 static int ticloop = 0;
-int typeSelect = 1;
-float SIZEGRASS = 50;
+
+int herbivoresTick = 150;
+int hunterTick = 250;
+int deadTick = 250;
+
+int rabbitSpawnTick = -1000;
+int ratSpawnTick = -1000;
+int wolfSpawnTick = -1000;
+int eagleSpawnTick = -1000;
+int bearSpawnTick = -1000;
+int lightingSpawnTick = -1000;
+
+int gameSpeed = 1;
 int oldGameSpeed = 1;
+
 int currentStartButton = 1;
 float cursorY1 = -0.35;
 float cursorY2 = -0.38;
 bool settings = false;
+int slot_number = 1;
+int typeSelect = 1;
+
+float SIZEGRASS = 50;
 float SIZEWOLFS = 100.0f;
 float SIZETREES = 100.0f;
 float SIZEBEARS = 100.0f;
@@ -33,10 +48,14 @@ float SIZERABBITS = 100.0f;
 float SIZEAGLES = 100.0f;
 float SIZERATS = 100.0f;
 float SIZEBERRYS = 50.0f;
+
 float base_rangey = 1024.0f;
 float base_rangex = 1024.0f;
+
 float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
+
 POINT p;
+
 enum class gender_ { male, female };
 enum class type_ { tree, rabbit, wolf, grass, bush, eagle, berry, rat, lightning, bear };
 
