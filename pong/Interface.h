@@ -575,36 +575,36 @@ void Showpopulations() {
     switch (typeSelect)
     {
     case 1:
-        Draw::drawslot(-4, 18); break;
+        Draw::drawslot(-4, 18, lightingSpawnTick, deadTick); break;
     case 2:
-        Draw::drawslot(-4, 2);
-        Draw::drawslot(-3, 15);
+        Draw::drawslot(-4, 2, rabbitSpawnTick, herbivoresTick);
+        Draw::drawslot(-3, 15, ratSpawnTick, herbivoresTick);
         break;
     case 3:
-        Draw::drawslot(-4, 3);
-        Draw::drawslot(-3, 16);
-        Draw::drawslot(-2, 28);
+        Draw::drawslot(-4, 3, wolfSpawnTick, hunterTick);
+        Draw::drawslot(-3, 16, eagleSpawnTick, hunterTick);
+        Draw::drawslot(-2, 28, bearSpawnTick, hunterTick);
         break;
     case 4:
-        Draw::drawslot(-4, 9);
-        Draw::drawslot(-3, 7);
-        Draw::drawslot(-2, 19);
+        Draw::drawslot(-4, 9,100,1);
+        Draw::drawslot(-3, 7, 100, 1);
+        Draw::drawslot(-2, 19, 100, 1);
     default:
         break;
     }
 
-    if (gameSpeed == 1)
-        Draw::drawslot(-1, 24);
-    if (gameSpeed == 2)
-        Draw::drawslot(-1, 25);
-    if (gameSpeed == 3)
-        Draw::drawslot(-1, 26);
-    //if (gameSpeed == 4)
-    //    Draw::drawslot(-1, 25);
-    //if (gameSpeed == 5)
-    //    Draw::drawslot(-1, 26);
-    if (gameSpeed == 6)
-        Draw::drawslot(-1, 43);
+  //  if (gameSpeed == 1)
+  //      Draw::drawslot(-1, 24);
+  //  if (gameSpeed == 2)
+  //      Draw::drawslot(-1, 25);
+  //  if (gameSpeed == 3)
+  //      Draw::drawslot(-1, 26);
+  //  //if (gameSpeed == 4)
+  //  //    Draw::drawslot(-1, 25);
+  //  //if (gameSpeed == 5)
+  //  //    Draw::drawslot(-1, 26);
+  //  if (gameSpeed == 6)
+  //      Draw::drawslot(-1, 43);
 
     
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);

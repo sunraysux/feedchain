@@ -1087,19 +1087,32 @@ namespace Draw
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
 	}
 
-	void drawslot(int slot, int tex_i)
+	void drawslot(int slot, int tex_i,int time,int timer)
 	{
 		Textures::TextureToShader(tex_i, 0, pixel);
 		Shaders::vShader(9);
 		Shaders::pShader(9);
-		ConstBuf::global[0] = XMFLOAT4(
-			slot_number,
-			gameSpeed,
-			slot,
-			0
-		);
+		if ((tick - time) > timer)
+		{
+			ConstBuf::global[0] = XMFLOAT4(
+				slot_number,
+				gameSpeed,
+				slot,
+				0.5f
+			);
+		}
+		else
+		{
+			ConstBuf::global[0] = XMFLOAT4(
+				slot_number,
+				gameSpeed,
+				slot,
+				0
+			);
+		}
 		ConstBuf::Update(5, ConstBuf::global);
 		ConstBuf::ConstToVertex(5);
+		ConstBuf::ConstToPixel(5);
 		Draw::NullDrawer(1);
 	}
 
