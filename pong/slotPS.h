@@ -32,7 +32,7 @@ if (color.r < 0.0001 && color.g < 0.0001 && color.b < 0.0001)
         return float4(0.8, gConst[0].w+0.4, 0.8, 1);
     if (input.vpos.x == -1)
         discard;
-    return float4(0.5, gConst[0].w+0.5, 0.5, 0.7);
+    return float4(0.5, gConst[0].w+0.3, 0.5, 0.7);
 }
 float4 color2 = float4(0.01, 0.01, 0.01, 0.01);
 return color + color2;
