@@ -170,6 +170,7 @@
     <Image Include="Debug\standartTree.png" />
     <Image Include="Debug\start.png" />
     <Image Include="Debug\statBTN.png" />
+    <Image Include="Debug\statistik.png" />
     <Image Include="Debug\trueSpeedBar.png" />
     <Image Include="Debug\typeBar.png" />
     <Image Include="Debug\wolf.png" />

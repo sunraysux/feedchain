@@ -143,6 +143,18 @@
     <Image Include="Debug\pause.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\cursor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\newMenu.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\settings.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\statistik.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">

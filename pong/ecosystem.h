@@ -144,6 +144,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(41, L"Debug/typeBar.png");
     Textures::LoadTextureFromFile(42, L"Debug/trueSpeedBar.png");
     Textures::LoadTextureFromFile(43, L"Debug/pause.png");
+    Textures::LoadTextureFromFile(47, L"Debug/statistik.png");
     // Начальные растения
     for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();

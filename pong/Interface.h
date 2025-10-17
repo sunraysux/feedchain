@@ -25,6 +25,17 @@ float speedBarY = -0.8;
 float speedBarW = 0.39;
 float speedBarH = 0.2;
 
+float statBTNX = 0.85f;
+float statBTNY = 0.85f;
+float statBTNW = 0.15f;
+float statBTNH = 0.15f;
+
+//Draw::DrawUIimage(47, 0.2, 1, 0, 0.8);
+float statistikX = 0.2f;
+float statistikY = 0;
+float statistikW = 0.8f;
+float statistikH = 0.8f;
+
 bool mouseClickedInRect(float x1, float y1, float x2, float y2)
 {
     bool insideX = (Camera::state.mousendcX >= x1 && Camera::state.mousendcX <= x2);
@@ -148,7 +159,7 @@ void checkButtons()
     // Игра
     if (mouseLeftDown)
     {
-        
+
 
         // --- Слоты ---
         if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
@@ -220,7 +231,7 @@ void checkButtons()
         {
             for (int speed = 1; speed < 5; speed++)
             {
-                float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 4.0f) - (speed-1)*0.005;
+                float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 4.0f) - (speed - 1) * 0.005;
                 float segmentRight = speedBarX + speed * (speedBarW / 4.0f) - (speed - 1) * 0.005;
 
                 if (Camera::state.mousendcX >= segmentLeft && Camera::state.mousendcX <= segmentRight)
@@ -249,6 +260,47 @@ void checkButtons()
 
 
                     break;
+                }
+            }
+        }
+
+        // ---Статистика---
+        if ((Camera::state.mousendcX >= statBTNX && Camera::state.mousendcX <= statBTNX + statBTNW) &&
+            (Camera::state.mousendcY <= statBTNY + statBTNH && Camera::state.mousendcY >= statBTNY)) {
+            if (!statistik) statistik = true;
+            else statistik = false;
+        }
+        if (statistik) {
+            float virtualStatY = 0.05f;
+            float virtualStatH = 0.655f;
+            float virtualStatX = 0.25f;
+            float virtualStatW = 0.21f;
+
+            for (int button = 1; button < 4; button++)
+            {
+                float segmentTop = virtualStatY + virtualStatH - (button - 1)* (virtualStatH / 3.0f);
+                float segmentBottom = virtualStatY + virtualStatH - button * (virtualStatH / 3.0f);
+
+                if ((Camera::state.mousendcY <= segmentTop && Camera::state.mousendcY >= segmentBottom) && (Camera::state.mousendcX >= virtualStatX && Camera::state.mousendcX <= virtualStatX + virtualStatW))
+                {
+                    switch (button)
+                    {
+                    case 1:
+                        if (plantStat) plantStat = false;
+                        else plantStat = true;
+                        break;
+                    case 2:
+                        if (herbivoresStat) herbivoresStat = false;
+                        else herbivoresStat = true;
+                        break;
+                    case 3:
+                        if (hunterStat) hunterStat = false;
+                        else hunterStat = true;
+                        break;
+                    default:
+                        break;
+                    }
+
                 }
             }
         }
@@ -393,6 +445,14 @@ void mouse()
     }
     if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
         (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH)) {
+        return;
+    }
+    if ((Camera::state.mousendcX >= statBTNX && Camera::state.mousendcX <= statBTNX + statBTNW) &&
+        (Camera::state.mousendcY <= statBTNY+statBTNH && Camera::state.mousendcY >= statBTNY)) {
+        return;
+    }
+    if ((Camera::state.mousendcX >= statistikX && Camera::state.mousendcX <= statistikX + statistikW) &&
+        (Camera::state.mousendcY <= statistikY + statistikH && Camera::state.mousendcY >= statistikY) && statistik) {
         return;
     }
 
@@ -609,10 +669,10 @@ void Showpopulations() {
     
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
     Draw::DrawUIimage(42, 0.61f, 1, -1, -0.815f);
-    if (SSTAT)
-        showStat();
-    else
-        Draw::DrawUIimage(40, 0.825f, 0.975f, 0.825f, 0.975f);
+    Draw::DrawUIimage(40, statBTNX, statBTNX+statBTNW, statBTNY, statBTNY+statBTNH);
+    if (statistik) {
+        Draw::DrawUIimage(47, statistikX, statistikX+statistikW, statistikY, statistikY+statistikH);
+    }
 
 }
 

@@ -20,14 +20,15 @@ static int ticloop = 0;
 
 int herbivoresTick = 150;
 int hunterTick = 250;
-int deadTick = 250;
+int deadTick = 4500;
 
 int rabbitSpawnTick = -1000;
 int ratSpawnTick = -1000;
 int wolfSpawnTick = -1000;
 int eagleSpawnTick = -1000;
 int bearSpawnTick = -1000;
-int lightingSpawnTick = -1000;
+int lightingSpawnTick = -5000;
+
 
 int gameSpeed = 1;
 int oldGameSpeed = 1;
@@ -35,9 +36,14 @@ int oldGameSpeed = 1;
 int currentStartButton = 1;
 float cursorY1 = -0.35;
 float cursorY2 = -0.38;
-bool settings = false;
 int slot_number = 1;
 int typeSelect = 1;
+
+bool settings = false;
+bool statistik = false;
+bool hunterStat = true;
+bool herbivoresStat = true;
+bool plantStat = true;
 
 float SIZEGRASS = 50;
 float SIZEWOLFS = 100.0f;
