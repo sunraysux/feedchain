@@ -1127,6 +1127,46 @@ namespace Draw
 		ConstBuf::ConstToVertex(5);
 		Draw::NullDrawer(1);
 	}
+	void DrawSTAT()
+	{
+		Shaders::vShader(2);
+		Shaders::pShader(2);
+
+		if (hunterStat) {
+			for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+			{
+				ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], 300, 1, min(tickSTAT / 60, 100));
+			}
+			ConstBuf::Update(5, ConstBuf::global);
+			ConstBuf::ConstToVertex(5);
+			if (tickSTAT / 60 >= 2)
+				Draw::NullDrawer(min(tickSTAT / 60-1, 100-1));
+		}
+
+
+		if (plantStat) {
+			for (int i = 0;i < min(tickSTAT / 60,100);i++)
+			{
+				ConstBuf::global[i] = XMFLOAT4(plants_pop[i], 6000, 0, min(tickSTAT / 60, 100));
+			}
+			ConstBuf::Update(5, ConstBuf::global);
+			ConstBuf::ConstToVertex(5);
+			if (tickSTAT / 60 >= 2)
+				Draw::NullDrawer(min(tickSTAT / 60-1, 100-1));
+		}
+
+
+		if (herbivoresStat) {
+			for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+			{
+				ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], 1000, 0.5, min(tickSTAT / 60, 100));
+			}
+			ConstBuf::Update(5, ConstBuf::global);
+			ConstBuf::ConstToVertex(5);
+			if (tickSTAT / 60 >= 2)
+				Draw::NullDrawer(min(tickSTAT / 60-1, 100-1));
+		}
+	}
 
 	void dravslot(int slot, int tex_i)
 	{
@@ -1141,6 +1181,7 @@ namespace Draw
 		);
 		ConstBuf::Update(5, ConstBuf::global);
 		ConstBuf::ConstToVertex(5);
+		ConstBuf::ConstToPixel(5);
 		Draw::NullDrawer(1);
 	}
 	void NullDrawer18(int quadCount, unsigned int instances = 1)
@@ -1176,6 +1217,7 @@ void frameConst()
 	ConstBuf::frame.time = XMFLOAT4{ (float)(tick)/2 ,0,0,0 };
 	ConstBuf::frame.aspect = XMFLOAT4{ aspect,iaspect, float(window.width), float(window.height) };
 	ConstBuf::UpdateFrame();
+
 }
 
 

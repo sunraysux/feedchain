@@ -3,90 +3,107 @@ cbuffer global : register(b5)
     float4 gConst[32];
 };
 
-cbuffer frame : register(b4)
-{
-    float4 time;
-    float4 aspect;
-};
-
-cbuffer camera : register(b3)
-{
-    float4x4 world[2];
-    float4x4 view[2];
-    float4x4 proj[2];
-};
-
-cbuffer drawMat : register(b2)
-{
-    float4x4 model;
-    float hilight;
-};
-
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float4 vpos : POSITION0;
-    float4 wpos : POSITION1;
-    float4 vnorm : NORMAL1;
     float2 uv : TEXCOORD0;
 };
-
-float3 rotY(float3 pos, float a)
-{
-    float3x3 m =
-    {
-        cos(a), 0, sin(a),
-        0, 1, 0,
-        -sin(a), 0, cos(a)
-    };
-    pos = mul(pos, m);
-    return pos;
-}
 
 VS_OUTPUT VS(uint vID : SV_VertexID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
+    float4 rect = float4(0.505, 0.924, 0.126, 0.639);
 
-    // Определяем позиции и высоты для каждой полоски
-    float barPositions[7] = { -0.99, -0.98, -0.97, -0.96, -0.95, -0.94,-0.93 };
-    float barHeights[7] = {
-        gConst[0].x - 1,  // rabbitRatio
-        gConst[0].y - 1,  // treeRatio
-        gConst[0].z - 1,  // wolfRatio
-        gConst[0].w - 1,  // bushRatio
-        gConst[1].x - 1,  // ratRatio
-        gConst[1].y - 1,
-        gConst[1].z - 1 // eagleRatio
+    int POINTCOUNT = gConst[0].w;
+    float count = vID / 6;
+
+    float maxY = gConst[0].y;
+    float h = 0.004;
+
+
+    //    // Получаем текущее и следующее значение данных
+    //    float currentValue = gConst[pointIndex].x;
+    //    float nextValue = gConst[pointIndex + 1].x;
+    //
+    int stat= gConst[count].x;
+    float statNext = gConst[count + 1].x;
+
+    //    // Нормализуем значения Y в диапазон [rect.z, rect.w]
+    //    float normalizedCurrentY = rect.z + (currentValue / maxDataValue) * (rect.w - rect.z);
+    //    float normalizedNextY = rect.z + (nextValue / maxDataValue) * (rect.w - rect.z);
+    //
+    float normalizedY = rect.z + (stat / maxY) * (rect.w - rect.z);
+    float normalizedNextY = rect.z + (statNext / maxY) * (rect.w - rect.z);
+
+
+    //    // Вычисляем позиции X для текущего сегмента
+    //    float segmentWidth = (rect.y - rect.x) / (totalPoints - 1);
+    //    float currentX = rect.x + pointIndex * segmentWidth;
+    //    float nextX = rect.x + (pointIndex + 1) * segmentWidth;
+    //
+    float rcd = rect.y - rect.x;
+    float drsd = rcd / (POINTCOUNT - 1);
+    float rc = rect.x + count * drsd;
+    float rc2 = rect.x + (count + 1) * drsd;
+
+    float4 rect2 = float4(rect.x, rect.y, rect.w, rect.w+h);
+    rect = float4(rect.x, rect.y, rect.z, rect.z+h);
+    
+    // Правильные координаты вершин для полноэкранного квада
+    float2 posc[6] = {
+        float2(rc,normalizedY+h), // лево-верх
+        float2(rc,normalizedY), // лево-низ
+        float2(rc2, normalizedNextY+h), // право-верх
+
+        float2(rc, normalizedY), // лево-низ  
+        float2(rc2, normalizedNextY), // право-низ
+        float2(rc2, normalizedNextY+h)  // право-верх
     };
 
-    // Определяем какую полоску и какой vertex в ней рисуем
-    uint barIndex = vID / 6;      // 6 вершин на полоску (2 треугольника)
-    uint vertexInBar = vID % 6;   // Номер вершины внутри полоски
+    // Соответствующие UV-координаты для CCW порядка
+    float2 uvCoords[6] = {
+        float2(0, 0),
+        float2(0, 1),
+        float2(1, 0),
 
-    if (barIndex >= 7) {
-        output.pos = float4(0, 0, 0, 1);
-        return output;
-    }
-
-    float barLeft = barPositions[barIndex] - 0.01;  // Левая граница полоски
-    float barRight = barPositions[barIndex];        // Правая граница полоски
-    float barBottom = -1;                           // Нижняя граница
-    float barTop = barHeights[barIndex];            // Верхняя граница
-
-    // Создаем геометрию для одной полоски (2 треугольника)
-    float2 vertices[6] = {
-        float2(barLeft, barBottom),   // Нижний левый
-        float2(barLeft, barTop),      // Верхний левый  
-        float2(barRight, barBottom),  // Нижний правый
-
-        float2(barRight, barBottom),  // Нижний правый
-        float2(barLeft, barTop),      // Верхний левый
-        float2(barRight, barTop)      // Верхний правый
+        float2(0, 1),
+        float2(1, 1),
+        float2(1, 0)
     };
-
-    float2 position = vertices[vertexInBar];
-    output.wpos = float4(position, 0, 1.0f);
-    output.pos = float4(position, 0, 1.0f);
+    output.pos = float4(posc[vID%6], 0.0, 1.0);  // Позиция в clip-пространстве
+    output.uv = uvCoords[vID%6];                // UV-координаты
 
     return output;
 }
+
+//    // Создаем прямоугольник для линии графика (толщина линии)
+//    float lineThickness = 0.002;
+//
+//    // Координаты вершин для линии графика (два треугольника)
+//    float2 posc[6] = {
+//        // Первый треугольник
+//        float2(currentX, normalizedCurrentY + lineThickness), // лево-низ
+//        float2(currentX, normalizedCurrentY - lineThickness), // лево-верх  
+//        float2(nextX, normalizedNextY + lineThickness),       // право-низ
+//
+//        // Второй треугольник
+//        float2(currentX, normalizedCurrentY - lineThickness), // лево-верх
+//        float2(nextX, normalizedNextY - lineThickness),       // право-верх
+//        float2(nextX, normalizedNextY + lineThickness)        // право-низ
+//    };
+//
+//    // UV координаты
+//    float2 uvCoords[6] = {
+//        float2(0, 0),
+//        float2(0, 1),
+//        float2(1, 0),
+//        float2(0, 1),
+//        float2(1, 1),
+//        float2(1, 0)
+//    };
+//
+//    output.pos = float4(posc[vID % 6], 0.0, 1.0);
+//    output.uv = uvCoords[vID % 6];
+//
+//    return output;
+//}

@@ -270,6 +270,8 @@ void checkButtons()
             if (!statistik) statistik = true;
             else statistik = false;
         }
+
+
         if (statistik) {
             float virtualStatY = 0.05f;
             float virtualStatH = 0.655f;
@@ -410,6 +412,27 @@ void checkButtons()
 
 void mouse()
 {
+    if (tick - tickSTAT >= 60) {
+        tickSTAT = tick;
+
+        if (stat_size < 100) {
+            plants_pop[stat_size] = population.bush_count + population.tree_count + population.grass_count;
+            herbivores_pop[stat_size] = population.rabbit_count + population.rat_count;
+            hunter_pop[stat_size] = population.bear_count + population.eagle_count + population.wolf_count;
+            stat_size++;
+        }
+        else {
+            for (int i = 0; i < 99; i++) {
+                plants_pop[i] = plants_pop[i + 1];
+                herbivores_pop[i] = herbivores_pop[i + 1];
+                hunter_pop[i] = hunter_pop[i + 1];
+            }
+            plants_pop[99] = population.bush_count + population.tree_count + population.grass_count;
+            herbivores_pop[99] = population.rabbit_count + population.rat_count;
+            hunter_pop[99] = population.bear_count + population.eagle_count + population.wolf_count;
+        }
+    }
+
     drawCursor(); // отрисовываем курсор с текстурой выбранного животного
 
     if (seed > 0) {
@@ -670,8 +693,10 @@ void Showpopulations() {
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
     Draw::DrawUIimage(42, 0.61f, 1, -1, -0.815f);
     Draw::DrawUIimage(40, statBTNX, statBTNX+statBTNW, statBTNY, statBTNY+statBTNH);
+    Draw::DrawSTAT();
+
     if (statistik) {
-        Draw::DrawUIimage(47, statistikX, statistikX+statistikW, statistikY, statistikY+statistikH);
+        Draw::DrawUIimage(47, statistikX, statistikX + statistikW, statistikY, statistikY + statistikH);
     }
 
 }

@@ -238,7 +238,7 @@ protected:
                 ay = (ay / len) * avoidanceStrength;
             }
         }
-        if (remainingSteps <= 0 || tick - stepsTick > 10) {
+        if (remainingSteps <= 0 || tick - stepsTick > 5) {
             if (isHunger) {
                 auto bush = searchNearestCreature(x, y, type, 10, false, gender);
                 if (bush.first != -5000.0f) {
@@ -395,11 +395,18 @@ protected:
                 float dist2 = dx * dx + dy * dy;
 
                 if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    if (partner->isRotten == true) {
+                    if (partner->nutritional_value > nutritional_value)
+                    {
                         dead = true;
                     }
-                    partner->dead = true;
+                    else {
+                        hunger -= partner->nutritional_value;
+                        if (partner->isRotten == true) {
+                            dead = true;
+                        }
+
+                        partner->dead = true;
+                    }
                 }
             }
         }

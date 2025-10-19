@@ -10,10 +10,14 @@ gameState_  gameState = gameState_::MainMenu;
 
 
 //#include "ecosystem.h"
+int tickSTAT=-1000;
 float x=0;
 float y=0;
 float z=0;
-
+int plants_pop[4000];
+int herbivores_pop[4000];
+int hunter_pop[4000];
+int stat_size=0;
 int seed = 0;
 int tick = 0;
 static int ticloop = 0;
@@ -41,9 +45,9 @@ int typeSelect = 1;
 
 bool settings = false;
 bool statistik = false;
-bool hunterStat = true;
-bool herbivoresStat = true;
-bool plantStat = true;
+bool hunterStat = false;
+bool herbivoresStat = false;
+bool plantStat = false;
 
 float SIZEGRASS = 50;
 float SIZEWOLFS = 100.0f;

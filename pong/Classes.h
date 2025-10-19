@@ -19,7 +19,7 @@ class Berry : public Plnt {
 public:
     Berry() : Plnt(type_::berry) {
         // Èíèöèàëèçàöèÿ ïàðàìåòðîâ ðàñòåíèÿ
-        nutritional_value = 50;
+        nutritional_value = 200;
         age = 0;
         maturity_age = 100;
         age_limit = 500;
@@ -58,7 +58,7 @@ class Grass : public Plnt {
 public:
     Grass() : Plnt(type_::grass) {
         // Инициализация параметров растения
-        nutritional_value = 200;
+        nutritional_value = 500;
         maturity_age = 250;
         age_limit = 500;
         age = 0;
@@ -133,7 +133,7 @@ class Bush : public Plnt {
 public:
     Bush() : Plnt(type_::bush) {
         // Инициализация параметров растения
-        nutritional_value = 200;
+        nutritional_value = 1000;
         age = 0;
         maturity_age = 500;
         age_limit = 1000;
@@ -311,6 +311,7 @@ public:
         hunger_limit = 1000;
         hunger = 0;
         cont = 3;
+        nutritional_value = 2000;
     }
 
     bool isDirectionSelect = false;
@@ -450,6 +451,7 @@ public:
         hunger_limit = 1000;
         hunger = 0;
         cont = 3;
+        nutritional_value = 1500;
     }
 
     bool isDirectionSelect = false;
@@ -508,6 +510,7 @@ public:
         age_limit = 4000;
         hunger_limit = 1000;
         hunger = 0;
+        nutritional_value = 5000;
     }
 
     bool isDirectionSelect = false;
