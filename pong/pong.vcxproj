@@ -138,6 +138,16 @@
     <Image Include="..\Debug\ball.bmp" />
     <Image Include="..\Debug\racket.bmp" />
     <Image Include="..\Debug\racket_enemy.bmp" />
+    <Image Include="Debug\0.png" />
+    <Image Include="Debug\1.png" />
+    <Image Include="Debug\2.png" />
+    <Image Include="Debug\3.png" />
+    <Image Include="Debug\4.png" />
+    <Image Include="Debug\5.png" />
+    <Image Include="Debug\6.png" />
+    <Image Include="Debug\7.png" />
+    <Image Include="Debug\8.png" />
+    <Image Include="Debug\9.png" />
     <Image Include="Debug\animal.png" />
     <Image Include="Debug\bear.png" />
     <Image Include="Debug\bigBush.png" />

@@ -155,6 +155,36 @@
     <Image Include="Debug\statistik.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\6.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\7.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\8.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\9.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
