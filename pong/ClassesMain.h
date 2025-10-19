@@ -190,13 +190,11 @@ protected:
         PopulationManager& pop) {
         if (shouldDie()) return;
         age++; hunger++;
-        if (type == type_::rat) {
-            if (!infect) {
-                infection();
-            }
-            if (infect && !isUsedInfection) {
-                usedInfection();
-            }
+        if (!infect) {
+            infection();
+        }
+        if (infect && !isUsedInfection) {
+            usedInfection();
         }
         move_range = Random::Int(1, 5);
         move(pop);
@@ -239,7 +237,8 @@ protected:
             }
         }
         if (remainingSteps <= 0 || tick - stepsTick > 5) {
-            if (isHunger) {
+            if (isHunger|| eating) {
+                eating = true;
                 auto bush = searchNearestCreature(x, y, type, 10, false, gender);
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
@@ -344,6 +343,8 @@ protected:
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
                     offspring->birth_tick = tick;
+                    offspring->infect = false;
+                    offspring->isUsedInfection = false;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
                     // Обновляем cooldown родителей
@@ -366,11 +367,6 @@ protected:
                     } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
                     partner->isDirectionSelect = true;
                     partner->step = Random::Int(5, 15);
-                    if (isUsedInfection || partner->isUsedInfection) {
-                        if (Random::Int(1, 2) == 1) {
-                            offspring->isUsedInfection = true;
-                        }
-                    }
                     new_creatures.push_back(offspring);
                     break;
                 }
@@ -401,6 +397,8 @@ protected:
                     }
                     else {
                         hunger -= partner->nutritional_value;
+                        if (hunger < hunger_limit/10)
+                            eating = false;
                         if (partner->isRotten == true) {
                             dead = true;
                         }
@@ -412,12 +410,29 @@ protected:
         }
     }
     void infection() {
-        if (Random::Int(1, 100000) == 1) {
+        int xc = 0;
+        int yc = 0;
+        virus=0;
+        for (int i = -1; i < 1; i++) {
+            for (int j = -1; j < 1; j++) {
+                xc = coord_to_chunkx(x + i * CHUNK_SIZE);
+                yc = coord_to_chunky(y + j * CHUNK_SIZE);
+                for (auto& w : getMateContainer(chunk_grid[xc][yc])) {
+                    if (auto partner = w.lock()) {
+                        virus += 1;
+
+                    }
+                }
+            }
+        }
+        
+        if (virus > 5){
+
             infect = true;
         }
     }
     void usedInfection() {
-        age_limit *= 0.8;
+        age_limit *= 0.1;
         isUsedInfection = true;
     }
 };

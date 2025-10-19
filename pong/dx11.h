@@ -1168,6 +1168,8 @@ namespace Draw
 		}
 	}
 
+	
+
 	void dravslot(int slot, int tex_i)
 	{
 		Textures::TextureToShader(tex_i, 0, pixel);

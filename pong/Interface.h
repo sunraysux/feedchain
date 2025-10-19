@@ -650,7 +650,19 @@ void mouse()
     }
 }
 
+void DrawNumber(int number, float startX, float startY, float digitWidth, float digitHeight) {
+    // Преобразуем число в строку
+    std::string numStr = std::to_string(number);
 
+    // Отображаем каждую цифру
+    for (int i = 0; i < numStr.length(); i++) {
+        int digit = numStr[i] - '0'; // получаем цифру от 0 до 9
+        float x = startX + i * digitWidth;
+
+        // Используем текстуру 100 + digit (100-109)
+        Draw::DrawUIimage(100 + digit, x, x + digitWidth, startY, startY + digitHeight);
+    }
+}
 
 void Showpopulations() {
 
@@ -693,10 +705,29 @@ void Showpopulations() {
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
     Draw::DrawUIimage(42, 0.61f, 1, -1, -0.815f);
     Draw::DrawUIimage(40, statBTNX, statBTNX+statBTNW, statBTNY, statBTNY+statBTNH);
-    Draw::DrawSTAT();
+    
 
     if (statistik) {
+        DrawNumber(plants_pop[stat_size-1], statistikX+0.05, statistikY+0.5, 0.05, 0.05);
+        DrawNumber(herbivores_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.3, 0.05, 0.05);
+        DrawNumber(hunter_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.1, 0.05, 0.05);
+        Draw::DrawSTAT();
         Draw::DrawUIimage(47, statistikX, statistikX + statistikW, statistikY, statistikY + statistikH);
+        
+        // Отображаем текущие значения массивов
+        float yOffset = 0;
+        float digitWidth = 10.0f; // ширина одной цифры
+        float digitHeight = 20.0f; // высота цифры
+
+        // Plants population
+        
+       //
+       // // Herbivores population  
+       // DrawNumber(herbivores_pop[stat_size],
+       //
+       // // Hunters population
+       // DrawNumber(hunter_pop[stat_size],
+
     }
 
 }

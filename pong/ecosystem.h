@@ -145,8 +145,18 @@ void InitGame() {
     Textures::LoadTextureFromFile(42, L"Debug/trueSpeedBar.png");
     Textures::LoadTextureFromFile(43, L"Debug/pause.png");
     Textures::LoadTextureFromFile(47, L"Debug/statistik.png");
+    Textures::LoadTextureFromFile(100, L"Debug/0.png");
+    Textures::LoadTextureFromFile(101, L"Debug/1.png");
+    Textures::LoadTextureFromFile(102, L"Debug/2.png");
+    Textures::LoadTextureFromFile(103, L"Debug/3.png");
+    Textures::LoadTextureFromFile(104, L"Debug/4.png");
+    Textures::LoadTextureFromFile(105, L"Debug/5.png");
+    Textures::LoadTextureFromFile(106, L"Debug/6.png");
+    Textures::LoadTextureFromFile(107, L"Debug/7.png");
+    Textures::LoadTextureFromFile(108, L"Debug/8.png");
+    Textures::LoadTextureFromFile(109, L"Debug/9.png");
     // Начальные растения
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < 100; i++) {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
@@ -155,7 +165,7 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < 100; i++) {
         auto bush = std::make_shared<Bush>();
         bush-> y = Random::Int(-100, 100);
         bush-> x = Random::Int(-100, 100);
@@ -202,7 +212,7 @@ void InitGame() {
        rats.push_back(rat);
        population.rat_count++;
    }
-   for (int i = 0; i < 0; i++) {
+   for (int i = 0; i < 1000; i++) {
        auto gras = std::make_shared<Grass>();
        gras->y = Random::Int(-base_rangey, base_rangey);
        gras->x = Random::Int(-base_rangex, base_rangex);

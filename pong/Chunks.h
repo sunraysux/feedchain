@@ -425,3 +425,11 @@ std::pair<float, float> searchNearestCreatureCombined(
     float targetY = Wrap(y + best_dy, base_rangey);
     return { targetX, targetY };
 }
+
+struct ChunkWorld {
+    int rabbit_eatsum;
+    int wolf_eatsum;
+    int bear_eatsum;
+    int eagle_eatsum;
+    int rat_eatsum;
+};

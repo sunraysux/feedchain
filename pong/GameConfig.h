@@ -43,6 +43,8 @@ float cursorY2 = -0.38;
 int slot_number = 1;
 int typeSelect = 1;
 
+int virus=0;
+
 bool settings = false;
 bool statistik = false;
 bool hunterStat = false;
@@ -279,7 +281,11 @@ public:
         bear_count += delta_bears;
     }
 };
-
+class ChunkWorld;
+extern std::vector<std::vector<ChunkWorld>> A(
+    32,
+    std::vector<ChunkWorld>(32)
+);
 PopulationManager population;
 class Chunk;
 extern std::vector<std::vector<Chunk>> chunk_grid(
@@ -308,6 +314,7 @@ public:
     gender_ gender;
     type_ type;
     bool dead = false;
+    bool eating;
     bool isDirectionSelect = false;
     float birth_tick;
     int berry_count;
