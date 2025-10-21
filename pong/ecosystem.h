@@ -165,24 +165,27 @@ void InitGame() {
         trees.push_back(tree);
         population.tree_count++;
     }
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1000; i++) {
         auto bush = std::make_shared<Bush>();
-        bush-> y = Random::Int(-100, 100);
-        bush-> x = Random::Int(-100, 100);
+        bush-> y = Random::Int(-base_rangey, base_rangey);
+        bush-> x = Random::Int(-base_rangex, base_rangex);
         bush->age = Random::Int(0, 1000);
         bush->updateChunk();
         bushes.push_back(bush);
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 0; i++) {
+   for (int i = 0; i < 1000; i++) {
        auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-100, 100);
-       rabbit->x = Random::Int(-100, 100);
+       rabbit->y = Random::Int(-base_rangey, base_rangey);
+       rabbit->x = Random::Int(-base_rangex, base_rangex);
        rabbit->hunger = Random::Int(0, 100);
        rabbit->age = Random::Int(0, 100);
-       rabbits.push_back(rabbit);
-       population.rabbit_count++;
+       if (!heightW(rabbit->x, rabbit->y))
+       {
+           rabbits.push_back(rabbit);
+           population.rabbit_count++;
+       }
    }
    for (int i = 0; i < 0; i++) {
        auto wolf = std::make_shared<Wolf>();
@@ -203,23 +206,31 @@ void InitGame() {
        eagles.push_back(eagle);
        population.eagle_count++;
    }
-   for (int i = 0; i < 0; i++) {
+   for (int i = 0; i < 1000; i++) {
        auto rat = std::make_shared<Rat>();
-       rat->y = Random::Int(-100, 100);
-       rat->x = Random::Int(-100, 100);
+       rat->y = Random::Int(-base_rangey, base_rangey);
+       rat->x = Random::Int(-base_rangex, base_rangex);
        rat->hunger = Random::Int(0, 100);
        rat->age = Random::Int(0, 100);
-       rats.push_back(rat);
-       population.rat_count++;
+       if (!heightW(rat->x, rat->y))
+       {
+           rats.push_back(rat);
+           population.rat_count++;
+       }
    }
-   for (int i = 0; i < 1000; i++) {
+   for (int i = 0; i < 5000; i++) {
        auto gras = std::make_shared<Grass>();
        gras->y = Random::Int(-base_rangey, base_rangey);
        gras->x = Random::Int(-base_rangex, base_rangex);
+       
+
        gras->age = 0;
-       gras->updateChunk();
-       grass.push_back(gras);
-       population.grass_count++;
+       if (!heightW(gras->x, gras->y))
+       {
+           gras->updateChunk();
+           grass.push_back(gras);
+           population.grass_count++;
+       }
    }
 }
 

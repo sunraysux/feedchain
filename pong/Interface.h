@@ -711,7 +711,7 @@ void Showpopulations() {
         DrawNumber(plants_pop[stat_size-1], statistikX+0.05, statistikY+0.5, 0.05, 0.05);
         DrawNumber(herbivores_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.3, 0.05, 0.05);
         DrawNumber(hunter_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.1, 0.05, 0.05);
-        Draw::DrawSTAT();
+        Draw::DrawSTAT(population);
         Draw::DrawUIimage(47, statistikX, statistikX + statistikW, statistikY, statistikY + statistikH);
         
         // Отображаем текущие значения массивов

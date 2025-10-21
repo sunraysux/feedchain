@@ -299,6 +299,71 @@ void kill_creatures_in_radius(float center_x, float center_y, float radius) {
         }
     }
 }
+
+bool hasCreaturesInChunk(const ChunkWorld& chunk, type_ creatureType) {
+    switch (creatureType) {
+    case type_::rabbit: return chunk.rabbit_sum > 0;
+    case type_::wolf: return chunk.wolf_sum > 0;
+    case type_::bear: return chunk.bear_sum > 0;
+    case type_::eagle: return chunk.eagle_sum > 0;
+    case type_::rat: return chunk.rat_sum > 0;
+    case type_::tree: return chunk.tree_sum > 0;
+    case type_::bush: return chunk.bush_sum > 0;
+    case type_::grass: return chunk.grass_sum > 0;
+    case type_::berry: return chunk.berry_sum > 0;
+    default: return false;
+    }
+}
+
+bool hasCreaturesInLargeChunks(float x, float y, type_ creatureType, int max_chunk_radius, bool matureOnly, gender_ gender) {
+    int large_chunk_radius = std::ceil((max_chunk_radius * CHUNK_SIZE) / static_cast<float>(LARGE_CHUNK_SIZE));
+
+    int centerLargeX = coord_to_large_chunkx(x);
+    int centerLargeY = coord_to_large_chunky(y);
+
+    for (int dx = -large_chunk_radius; dx <= large_chunk_radius; dx++) {
+        for (int dy = -large_chunk_radius; dy <= large_chunk_radius; dy++) {
+            int checkX = centerLargeX + dx;
+            int checkY = centerLargeY + dy;
+
+            if (checkX >= 0 && checkX < CHUNKS_PER_SIDE_LARGE &&
+                checkY >= 0 && checkY < CHUNKS_PER_SIDE_LARGE) {
+
+                ChunkWorld& largeChunk = population.getChunkByIndex(checkX, checkY);
+
+                // ƒЋя ѕќ»— ј ѕј–“Ќ≈–ј - всегда ищем существ того же типа
+                if (matureOnly) {
+
+                    return true;
+                    
+                }
+                // ƒЋя ѕќ»— ј ≈ƒџ - смотрим таблицу питани€
+                else {
+                    switch (creatureType) {
+                    case type_::rabbit: // кролик ест траву, €годы
+                        return largeChunk.grass_sum + largeChunk.berry_sum > 0;
+                    case type_::wolf:   // волк ест кроликов, крыс
+                        return largeChunk.rabbit_sum + largeChunk.rat_sum > 0;
+                    case type_::bear:   // медведь ест €годы, кроликов, крыс
+                        return largeChunk.berry_sum + largeChunk.rabbit_sum + largeChunk.rat_sum+ largeChunk.bush_sum+ largeChunk.wolf_sum > 0;
+                    case type_::eagle:  // орел ест кроликов, крыс
+                        return largeChunk.rat_sum > 0;
+                    case type_::rat:    // крыса ест траву, €годы
+                        return largeChunk.grass_sum + largeChunk.berry_sum > 0;
+                    case type_::tree:   return largeChunk.tree_sum > 0;
+                    case type_::bush:   return largeChunk.bush_sum > 0;
+                    case type_::grass:  return largeChunk.grass_sum > 0;
+                    case type_::berry:  return largeChunk.berry_sum > 0;
+                    default: return false;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 // возвращает абсолютные координаты ближайшего существа или (-5000,-5000) если не найдено
 std::pair<float, float> searchNearestCreature(
     float x, float y,
@@ -307,6 +372,10 @@ std::pair<float, float> searchNearestCreature(
     bool matureOnly,
     gender_ gender
 ) {
+
+    //if (!hasCreaturesInLargeChunks(x, y, creatureType, max_chunk_radius, matureOnly, gender)) {
+    //    return { -5000.0f, -5000.0f };
+    //}
     int center_cx = coord_to_chunkx(x);
     int center_cy = coord_to_chunky(y);
 
@@ -426,10 +495,3 @@ std::pair<float, float> searchNearestCreatureCombined(
     return { targetX, targetY };
 }
 
-struct ChunkWorld {
-    int rabbit_eatsum;
-    int wolf_eatsum;
-    int bear_eatsum;
-    int eagle_eatsum;
-    int rat_eatsum;
-};

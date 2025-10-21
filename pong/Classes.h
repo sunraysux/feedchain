@@ -251,6 +251,8 @@ public:
         cont = 4;
 
     }
+
+
     int stepsTick = 0;
     float dirX = 0.0f, dirY = 0.0f;
     int remainingSteps = 0;
@@ -311,6 +313,7 @@ public:
         hunger_limit = 1000;
         hunger = 0;
         cont = 3;
+        speed = 2.0f;
         nutritional_value = 2000;
     }
 
@@ -323,7 +326,6 @@ public:
     int stepsTick = 0;
     float dirX = 0.0f, dirY = 0.0f;
     int remainingSteps = 0;
-    float speed = 2.0f;
     int MATURITY_TICKS = 75;
     void getFoodContainers(Chunk& c, std::vector<std::weak_ptr<Creature>>& output) override {
         for (auto& weak : c.wolf_eat) {
@@ -452,6 +454,7 @@ public:
         hunger = 0;
         cont = 3;
         nutritional_value = 1500;
+        speed = 3.0f;
     }
 
     bool isDirectionSelect = false;
@@ -511,6 +514,7 @@ public:
         hunger_limit = 1000;
         hunger = 0;
         nutritional_value = 5000;
+        speed = 2.0f;
     }
 
     bool isDirectionSelect = false;

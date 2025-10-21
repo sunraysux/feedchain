@@ -204,6 +204,103 @@ protected:
     }
 
 protected:
+
+    bool findRichChunk() {
+        int currentChunkX = coord_to_large_chunkx(x);
+        int currentChunkY = coord_to_large_chunky(y);
+
+        ChunkWorld& currentChunk = population.getChunkByIndex(currentChunkX, currentChunkY);
+
+        // Для травоядных ищем траву, для хищников - добычу
+        int currentResource = 0;
+        int targetResource = 0;
+
+        switch (type) {
+        case type_::rabbit:
+        case type_::rat:
+            currentResource = currentChunk.grass_sum;
+            break;
+        case type_::wolf:
+            currentResource = currentChunk.rabbit_sum + currentChunk.rat_sum;
+            break;
+        case type_::bear:
+            currentResource = currentChunk.rabbit_sum+ currentChunk.bush_sum+ currentChunk.berry_sum+ currentChunk.wolf_sum+ currentChunk.rat_sum;
+            break;
+        case type_::eagle:
+            currentResource = currentChunk.rat_sum;
+            break;
+        default:
+            return false;
+        }
+
+        // Если в текущем чанке достаточно ресурсов
+        if (currentResource >= 10) {
+            float a = Random::Float(0, 2 * 3.14159265f);
+            dirX = cosf(a);
+            dirY = sinf(a);
+            return true;
+        }
+
+        // Поиск лучшего чанка
+        int bestChunkX = -1, bestChunkY = -1;
+        int maxResource = currentResource;
+
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dy = -3; dy <= 3; dy++) {
+                if (dx == 0 && dy == 0) continue;
+
+                int checkX = currentChunkX + dx;
+                int checkY = currentChunkY + dy;
+
+                if (checkX >= 0 && checkX < CHUNKS_PER_SIDE_LARGE &&
+                    checkY >= 0 && checkY < CHUNKS_PER_SIDE_LARGE) {
+
+                    ChunkWorld& neighbor = population.getChunkByIndex(checkX, checkY);
+                    int neighborResource = 0;
+
+                    switch (type) {
+                    case type_::rabbit:
+                    case type_::rat:
+                        neighborResource = neighbor.grass_sum;
+                        break;
+                    case type_::wolf:
+                        neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
+                        break;
+                    case type_::bear:
+                        neighborResource = neighbor.berry_sum + neighbor.rabbit_sum;
+                        break;
+                    case type_::eagle:
+                        neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
+                        break;
+                    }
+
+                    if (neighborResource > maxResource) {
+                        maxResource = neighborResource;
+                        bestChunkX = checkX;
+                        bestChunkY = checkY;
+                    }
+                }
+            }
+        }
+
+        if (bestChunkX != -1 && bestChunkY != -1) {
+            float targetX = (bestChunkX + 0.5f) * LARGE_CHUNK_SIZE - base_rangex;
+            float targetY = (bestChunkY + 0.5f) * LARGE_CHUNK_SIZE - base_rangey;
+
+            float dx = torusDelta(x, targetX, base_rangex);
+            float dy = torusDelta(y, targetY, base_rangey);
+            float d = std::sqrt(dx * dx + dy * dy);
+
+            if (d > 1e-6f) {
+                dirX = dx / d;
+                dirY = dy / d;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     void move(PopulationManager& pop) {
         const float avoidance_radius = 10.0f;
         const float avoidanceStrength = 0.5f;
@@ -236,7 +333,7 @@ protected:
                 ay = (ay / len) * avoidanceStrength;
             }
         }
-        if (remainingSteps <= 0 || tick - stepsTick > 5) {
+        if (remainingSteps <= 0 || tick - stepsTick > 60) {
             if (isHunger|| eating) {
                 eating = true;
                 auto bush = searchNearestCreature(x, y, type, 10, false, gender);
@@ -276,16 +373,30 @@ protected:
             }
             // если всё ещё нет направления — случайный угол
             if (remainingSteps <= 0) {
-                float a = Random::Float(0, 2 * 3.14159265f);
-                dirX = cosf(a); dirY = sinf(a);
-                remainingSteps = 20;
-                stepsTick = tick;
+                if (findRichChunk()) {
+                    // Нашли направление к чанку с травой
+                    remainingSteps = Random::Int(30, 60); // Долгий переход
+                    stepsTick = tick;
+                }
+                else {
+                    // Не нашли чанк с травой — случайное направление
+                    float a = Random::Float(0, 2 * 3.14159265f);
+                    dirX = cosf(a); dirY = sinf(a);
+                    remainingSteps = 20;
+                    stepsTick = tick;
+                }
             }
         }
 
         // вычисляем steering: основной dir + небольшое избегание
-        float steerX = dirX + ax * 0.7f; // ax,ay — из расчёта избегания соседей
-        float steerY = dirY + ay * 0.7f;
+
+        float steerX = dirX + ax * 3; // ax,ay — из расчёта избегания соседей
+        float steerY = dirY + ay * 3;
+        if (isMaturity && canAdd(pop, 0))
+        {
+            steerX = dirX;
+            steerY = dirY;
+        }
         float slen = std::sqrt(steerX * steerX + steerY * steerY);
         if (slen > 1e-6f) { steerX /= slen; steerY /= slen; }
 

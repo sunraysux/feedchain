@@ -1127,7 +1127,7 @@ namespace Draw
 		ConstBuf::ConstToVertex(5);
 		Draw::NullDrawer(1);
 	}
-	void DrawSTAT()
+	void DrawSTAT(PopulationManager& pop)
 	{
 		Shaders::vShader(2);
 		Shaders::pShader(2);
@@ -1135,7 +1135,7 @@ namespace Draw
 		if (hunterStat) {
 			for (int i = 0;i < min(tickSTAT / 60, 100);i++)
 			{
-				ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], 300, 1, min(tickSTAT / 60, 100));
+				ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], pop.huntersMAX, 1, min(tickSTAT / 60, 100));
 			}
 			ConstBuf::Update(5, ConstBuf::global);
 			ConstBuf::ConstToVertex(5);
@@ -1147,7 +1147,7 @@ namespace Draw
 		if (plantStat) {
 			for (int i = 0;i < min(tickSTAT / 60,100);i++)
 			{
-				ConstBuf::global[i] = XMFLOAT4(plants_pop[i], 6000, 0, min(tickSTAT / 60, 100));
+				ConstBuf::global[i] = XMFLOAT4(plants_pop[i], pop.plantsMAX, 0, min(tickSTAT / 60, 100));
 			}
 			ConstBuf::Update(5, ConstBuf::global);
 			ConstBuf::ConstToVertex(5);
@@ -1159,7 +1159,7 @@ namespace Draw
 		if (herbivoresStat) {
 			for (int i = 0;i < min(tickSTAT / 60, 100);i++)
 			{
-				ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], 1000, 0.5, min(tickSTAT / 60, 100));
+				ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], pop.herbivoresMAX, 0.5, min(tickSTAT / 60, 100));
 			}
 			ConstBuf::Update(5, ConstBuf::global);
 			ConstBuf::ConstToVertex(5);
