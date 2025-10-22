@@ -261,7 +261,7 @@ public:
     const int wolf_limit = 1000;
     const int rabbit_limit = 500;
     const int tree_limit = 1000;
-    const int bush_limit = 5000;
+    const int bush_limit = 2000;
     const int eagle_limit = 1000;
     const int rat_limit = 500;
     const int berry_limit = 5000;

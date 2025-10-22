@@ -218,8 +218,14 @@ protected:
 
         switch (type) {
         case type_::rabbit:
+            currentResource = currentChunk.grass_sum+currentChunk.berry_sum;
+            if (maturity_age < age)
+                currentResource += currentChunk.rabbit_sum;
+            break;
         case type_::rat:
-            currentResource = currentChunk.grass_sum;
+            currentResource = currentChunk.grass_sum + currentChunk.berry_sum;
+            if (maturity_age < age)
+                currentResource += currentChunk.rat_sum;
             break;
         case type_::wolf:
             currentResource = currentChunk.rabbit_sum + currentChunk.rat_sum;
@@ -261,8 +267,14 @@ protected:
 
                     switch (type) {
                     case type_::rabbit:
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum;
+                        if (maturity_age < age)
+                            neighborResource += neighbor.rabbit_sum;
+                        break;
                     case type_::rat:
-                        neighborResource = neighbor.grass_sum;
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum;
+                        if (maturity_age < age)
+                            neighborResource += neighbor.rat_sum;
                         break;
                     case type_::wolf:
                         neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
