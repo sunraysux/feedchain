@@ -10,14 +10,14 @@ gameState_  gameState = gameState_::MainMenu;
 
 
 //#include "ecosystem.h"
-int tickSTAT=-1000;
-float x=0;
-float y=0;
-float z=0;
+int tickSTAT = -1000;
+float x = 0;
+float y = 0;
+float z = 0;
 int plants_pop[4000];
 int herbivores_pop[4000];
 int hunter_pop[4000];
-int stat_size=0;
+int stat_size = 0;
 int seed = 0;
 int tick = 0;
 static int ticloop = 0;
@@ -43,10 +43,9 @@ float cursorY2 = -0.38;
 int slot_number = 1;
 int typeSelect = 1;
 
-int virus=0;
-
-bool settings = false;
+int virus = 0;
 bool info = false;
+bool settings = false;
 bool statistik = false;
 bool hunterStat = false;
 bool herbivoresStat = false;
@@ -289,10 +288,14 @@ public:
 
     // Обновление статистики в чанке при добавлении/удалении существа
     void addToChunkWorld(int worldX, int worldY, type_ type) {
-        auto& chunk = getChunk(worldX, worldY);
+
+        auto& chunk = getChunkByIndex(worldX, worldY);
         switch (type) {
         case type_::rabbit: chunk.rabbit_sum++; break;
-        case type_::wolf: chunk.wolf_sum++; break;
+        case type_::wolf:
+            if (chunk.wolf_sum < 0)
+                int x = 0;
+            chunk.wolf_sum++; break;
         case type_::bear: chunk.bear_sum++; break;
         case type_::eagle: chunk.eagle_sum++; break;
         case type_::rat: chunk.rat_sum++; break;
@@ -304,10 +307,14 @@ public:
     }
 
     void removeFromChunkWorld(int worldX, int worldY, type_ type) {
-        auto& chunk = getChunk(worldX, worldY);
+        auto& chunk = getChunkByIndex(worldX, worldY);
         switch (type) {
         case type_::rabbit: chunk.rabbit_sum--; break;
-        case type_::wolf: chunk.wolf_sum--; break;
+        case type_::wolf:
+            if (chunk.wolf_sum == 0)
+                int x = 0;
+            chunk.wolf_sum--; break;
+
         case type_::bear: chunk.bear_sum--; break;
         case type_::eagle: chunk.eagle_sum--; break;
         case type_::rat: chunk.rat_sum--; break;
@@ -349,7 +356,7 @@ public:
         return bear_count + pending < bear_limit;
     }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs,int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys, int delta_bears) {
+    void update(int delta_rabbits, int delta_trees, int delta_wolfs, int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys, int delta_bears) {
         rabbit_count += delta_rabbits;
         tree_count += delta_trees;
         wolf_count += delta_wolfs;
@@ -385,12 +392,14 @@ class Creature : public std::enable_shared_from_this<Creature> {
 public:
     float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value, nextPositionX, nextPositionY, move_range, step;
     int age;
+    int current_chunkWORLD_x = -1;
+    int current_chunkWORLD_y = -1;
     int current_chunk_x = -1;
     int current_chunk_y = -1;
     gender_ gender;
     type_ type;
     bool dead = false;
-    bool eating=false;
+    bool eating = false;
     bool isDirectionSelect = false;
     float birth_tick;
     int berry_count;
@@ -423,7 +432,8 @@ public:
                 container.end()
             );
         }
-        population.removeFromChunkWorld(x, y, type);
+        population.removeFromChunkWorld(current_chunkWORLD_x,
+            current_chunkWORLD_y, type);
         // Удаляем weak_ptr, указывающий на текущий объект
 
         current_chunk_x = -1;
@@ -433,17 +443,19 @@ public:
     virtual void updateChunk() {
         int new_cx = coord_to_chunkx(x);
         int new_cy = coord_to_chunky(y);
-
+        int chunkWORLD_x = coord_to_large_chunkx(x);
+        int chunkWORLD_y = coord_to_large_chunky(y);
         if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
             removeFromChunk();  // Удаляем из старого чанка
             // Добавляем в новый чанк
             current_chunk_x = new_cx;
             current_chunk_y = new_cy;
+            current_chunkWORLD_x = coord_to_large_chunkx(x);
+            current_chunkWORLD_y = coord_to_large_chunky(y);
             addToChunk(chunk_grid[new_cx][new_cy]);
-            population.addToChunkWorld(x, y, type);
         }
     }
-    
+
 
     virtual bool shouldDie() const = 0;
 

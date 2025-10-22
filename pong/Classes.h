@@ -51,6 +51,7 @@ protected:
         chunk.rabbit_eat.push_back(weak_from_this());
         chunk.rat_eat.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -91,6 +92,7 @@ protected:
         chunk.Plants.push_back(weak_from_this());
         chunk.rabbit_eat.push_back(weak_from_this());
         chunk.rat_eat.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -126,6 +128,7 @@ protected:
     void addToChunk(Chunk& chunk) override {
         chunk.trees.push_back(weak_from_this());
         chunk.Plants.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -227,6 +230,7 @@ protected:
         chunk.rabbit_eat.push_back(weak_from_this());
         chunk.rat_eat.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -299,6 +303,7 @@ protected:
         chunk.Animals.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
         chunk.wolf_eat.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -364,6 +369,7 @@ protected:
         chunk.wolves.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -438,6 +444,7 @@ protected:
         chunk.bear_eat.push_back(weak_from_this());
         chunk.wolf_eat.push_back(weak_from_this());
         chunk.eagle_eat.push_back(weak_from_this());
+        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 

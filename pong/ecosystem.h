@@ -99,29 +99,29 @@ void ProcessCreatures(PopulationManager& pop) {
 void InitGame() {
     std::random_device rd;
     std::mt19937 gen(rd()); // генератор
-    std::uniform_real_distribution<float> plant_dist(-base_rangex , base_rangey );
+    std::uniform_real_distribution<float> plant_dist(-base_rangex, base_rangey);
 
 
 
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
- //   Textures::CreateDepthForTexture(2);
+    //   Textures::CreateDepthForTexture(2);
     Textures::LoadTextureFromFile(3, L"Debug/wolf.png");
-  //  Textures::CreateDepthForTexture(3);
+    //  Textures::CreateDepthForTexture(3);
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
-  //  Textures::CreateDepthForTexture(4);
+    //  Textures::CreateDepthForTexture(4);
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
-  //  Textures::CreateDepthForTexture(5);
+    //  Textures::CreateDepthForTexture(5);
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
-  //  Textures::CreateDepthForTexture(6);
+    //  Textures::CreateDepthForTexture(6);
     Textures::LoadTextureFromFile(7, L"Debug/smallBush.png");
-   // Textures::CreateDepthForTexture(7);
+    // Textures::CreateDepthForTexture(7);
     Textures::LoadTextureFromFile(8, L"Debug/eagleMale.png");
-   // Textures::CreateDepthForTexture(8);
+    // Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/smallTree.png");
-  //  Textures::CreateDepthForTexture(9);
-   // Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-   // Textures::ReadTextureToCPU(10);
-   // Textures::CreateDepthForTexture(10);
+    //  Textures::CreateDepthForTexture(9);
+     // Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
+     // Textures::ReadTextureToCPU(10);
+     // Textures::CreateDepthForTexture(10);
     Textures::LoadTextureFromFile(11, L"Debug/standartTree.png");
     Textures::LoadTextureFromFile(12, L"Debug/bigTree.png");
     Textures::LoadTextureFromFile(13, L"Debug/standartBush.png");
@@ -156,89 +156,85 @@ void InitGame() {
     Textures::LoadTextureFromFile(108, L"Debug/8.png");
     Textures::LoadTextureFromFile(109, L"Debug/9.png");
     // Начальные растения
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 0; i++) {
         auto tree = std::make_shared<Tree>();
-        tree-> y = Random::Int(-base_rangey, base_rangey);
-        tree-> x = Random::Int(-base_rangex, base_rangex);
-        if (!heightW(tree->x, tree->y)) {
-            tree->age = 0;
-            tree->updateChunk();
-            trees.push_back(tree);
-            population.tree_count++;
-        }
+        tree->y = Random::Int(-base_rangey, base_rangey);
+        tree->x = Random::Int(-base_rangex, base_rangex);
+        tree->age = 0;
+        tree->updateChunk();
+        trees.push_back(tree);
+        population.tree_count++;
     }
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 0; i++) {
         auto bush = std::make_shared<Bush>();
-        bush-> y = Random::Int(-base_rangey, base_rangey);
-        bush-> x = Random::Int(-base_rangex, base_rangex);
-        if (!heightW(bush->x, bush->y)) {
-            bush->age = Random::Int(0, 1000);
-            bush->updateChunk();
-            bushes.push_back(bush);
-            population.bush_count++;
+        bush->y = Random::Int(-base_rangey, base_rangey);
+        bush->x = Random::Int(-base_rangex, base_rangex);
+        bush->age = Random::Int(0, 1000);
+        bush->updateChunk();
+        bushes.push_back(bush);
+        population.bush_count++;
+    }
+    // Начальные кролики
+    for (int i = 0; i < 0; i++) {
+        auto rabbit = std::make_shared<Rabbit>();
+        rabbit->y = Random::Int(-base_rangey, base_rangey);
+        rabbit->x = Random::Int(-base_rangex, base_rangex);
+        rabbit->hunger = Random::Int(0, 100);
+        rabbit->age = Random::Int(0, 100);
+        if (!heightW(rabbit->x, rabbit->y))
+        {
+            rabbits.push_back(rabbit);
+            population.rabbit_count++;
         }
     }
-   // Начальные кролики
-   for (int i = 0; i < 0; i++) {
-       auto rabbit = std::make_shared<Rabbit>();
-       rabbit->y = Random::Int(-base_rangey, base_rangey);
-       rabbit->x = Random::Int(-base_rangex, base_rangex);
-       rabbit->hunger = Random::Int(0, 100);
-       rabbit->age = Random::Int(0, 100);
-       if (!heightW(rabbit->x, rabbit->y))
-       {
-           rabbits.push_back(rabbit);
-           population.rabbit_count++;
-       }
-   }
-   for (int i = 0; i < 0; i++) {
-       auto wolf = std::make_shared<Wolf>();
-       wolf->y = Random::Int(-100, 100);
-       wolf->x = Random::Int(-100, 100);
-       wolf->hunger = Random::Int(0, 500);
-       wolf->age = Random::Int(0, 500);
-       wolves.push_back(wolf);
-       population.wolf_count++;
-   }
+    for (int i = 0; i < 0; i++) {
+        auto wolf = std::make_shared<Wolf>();
+        wolf->y = Random::Int(-100, 100);
+        wolf->x = Random::Int(-100, 100);
+        wolf->hunger = Random::Int(0, 500);
+        wolf->age = Random::Int(0, 500);
+        wolves.push_back(wolf);
+        population.wolf_count++;
+    }
 
-   for (int i = 0; i < 0; i++) {
-       auto eagle = std::make_shared<Eagle>();
-       eagle->y = Random::Int(-100, 100);
-       eagle->x = Random::Int(-100, 100);
-       eagle->hunger = Random::Int(0, 500);
-       eagle->age = Random::Int(0, 500);
-       eagles.push_back(eagle);
-       population.eagle_count++;
-   }
-   for (int i = 0; i < 0; i++) {
-       auto rat = std::make_shared<Rat>();
-       rat->y = Random::Int(-base_rangey, base_rangey);
-       rat->x = Random::Int(-base_rangex, base_rangex);
-       rat->hunger = Random::Int(0, 100);
-       rat->age = Random::Int(0, 100);
-       if (!heightW(rat->x, rat->y))
-       {
-           rats.push_back(rat);
-           population.rat_count++;
-       }
-   }
-   for (int i = 0; i < 5000; i++) {
-       auto gras = std::make_shared<Grass>();
-       gras->y = Random::Int(-base_rangey, base_rangey);
-       gras->x = Random::Int(-base_rangex, base_rangex);
-       
+    for (int i = 0; i < 0; i++) {
+        auto eagle = std::make_shared<Eagle>();
+        eagle->y = Random::Int(-100, 100);
+        eagle->x = Random::Int(-100, 100);
+        eagle->hunger = Random::Int(0, 500);
+        eagle->age = Random::Int(0, 500);
+        eagles.push_back(eagle);
+        population.eagle_count++;
+    }
+    for (int i = 0; i < 0; i++) {
+        auto rat = std::make_shared<Rat>();
+        rat->y = Random::Int(-base_rangey, base_rangey);
+        rat->x = Random::Int(-base_rangex, base_rangex);
+        rat->hunger = Random::Int(0, 100);
+        rat->age = Random::Int(0, 100);
+        if (!heightW(rat->x, rat->y))
+        {
+            rats.push_back(rat);
+            population.rat_count++;
+        }
+    }
+    for (int i = 0; i < 0; i++) {
+        auto gras = std::make_shared<Grass>();
+        gras->y = Random::Int(-base_rangey, base_rangey);
+        gras->x = Random::Int(-base_rangex, base_rangex);
 
-       gras->age = 0;
-       if (!heightW(gras->x, gras->y))
-       {
-           gras->updateChunk();
-           grass.push_back(gras);
-           population.grass_count++;
-       }
-   }
+
+        gras->age = 0;
+        if (!heightW(gras->x, gras->y))
+        {
+            gras->updateChunk();
+            grass.push_back(gras);
+            population.grass_count++;
+        }
+    }
 }
 
-type_ currentType = type_::lightning; 
+type_ currentType = type_::lightning;
 
 
 auto isVisible = [&](float x, float y) -> bool {
@@ -373,7 +369,7 @@ void DrawInfectCheck(const int arr[2], const std::vector<std::shared_ptr<T>>& ve
 }
 
 
-  
+
 void ShowRacketAndBallFromVectors(
     const std::vector<std::shared_ptr<Rabbit>>& rabbits,
     const std::vector<std::shared_ptr<Tree>>& trees,
@@ -390,8 +386,8 @@ void ShowRacketAndBallFromVectors(
 
     int tree_arr[] = { 2,9,11,12 };
     int bush_arr[] = { 1,7,13,14 };
-    int eagle_arr[] = {2, 8,16 };
-    int rat_arr[] = { 17,15 };   
+    int eagle_arr[] = { 2, 8,16 };
+    int rat_arr[] = { 17,15 };
     int grass_arr[] = { 1,19,20,21 };
 
     // Рисуем: напрямую из векторов

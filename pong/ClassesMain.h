@@ -189,8 +189,8 @@ protected:
         std::vector<std::shared_ptr<T>>& new_creatures,
         PopulationManager& pop) {
         if (shouldDie()) return;
-       age++;
-       //hunger++;
+        age++;
+        hunger++;
         if (!infect) {
             infection();
         }
@@ -211,27 +211,26 @@ protected:
         int currentChunkY = coord_to_large_chunky(y);
 
         ChunkWorld& currentChunk = population.getChunkByIndex(currentChunkX, currentChunkY);
-
         // Для травоядных ищем траву, для хищников - добычу
         int currentResource = 0;
         int targetResource = 0;
 
         switch (type) {
         case type_::rabbit:
-            currentResource = currentChunk.grass_sum+currentChunk.berry_sum;
+            currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
             if (maturity_age < age)
-                currentResource += currentChunk.rabbit_sum;
+                currentResource += currentChunk.rabbit_sum - currentChunk.wolf_sum;
             break;
         case type_::rat:
-            currentResource = currentChunk.grass_sum + currentChunk.berry_sum;
+            currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
             if (maturity_age < age)
-                currentResource += currentChunk.rat_sum;
+                currentResource += currentChunk.rat_sum - currentChunk.wolf_sum;
             break;
         case type_::wolf:
             currentResource = currentChunk.rabbit_sum + currentChunk.rat_sum;
             break;
         case type_::bear:
-            currentResource = currentChunk.rabbit_sum+ currentChunk.bush_sum+ currentChunk.berry_sum+ currentChunk.wolf_sum+ currentChunk.rat_sum;
+            currentResource = currentChunk.rabbit_sum + currentChunk.bush_sum + currentChunk.berry_sum + currentChunk.wolf_sum + currentChunk.rat_sum;
             break;
         case type_::eagle:
             currentResource = currentChunk.rat_sum;
@@ -264,20 +263,21 @@ protected:
 
                     ChunkWorld& neighbor = population.getChunkByIndex(checkX, checkY);
                     int neighborResource = 0;
-
                     switch (type) {
                     case type_::rabbit:
-                        neighborResource = neighbor.grass_sum + neighbor.berry_sum;
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 100;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rabbit_sum;
+                            neighborResource += neighbor.rabbit_sum - neighbor.wolf_sum * 100;
                         break;
                     case type_::rat:
-                        neighborResource = neighbor.grass_sum + neighbor.berry_sum;
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 100;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rat_sum;
+                            neighborResource += neighbor.rat_sum - neighbor.wolf_sum * 100;
                         break;
                     case type_::wolf:
                         neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
+                        if (maturity_age < age)
+                            neighborResource = neighbor.wolf_sum - neighbor.rabbit_sum * 100 - neighbor.rat_sum * 100;
                         break;
                     case type_::bear:
                         neighborResource = neighbor.berry_sum + neighbor.rabbit_sum;
@@ -347,7 +347,7 @@ protected:
             }
         }
         if (remainingSteps <= 0 || tick - stepsTick > 60) {
-            if (isHunger|| eating) {
+            if (isHunger || eating) {
                 eating = true;
                 auto bush = searchNearestCreature(x, y, type, 10, false, gender);
                 if (bush.first != -5000.0f) {
@@ -438,6 +438,7 @@ protected:
             // шаг возможен — совершаем его
             x = candX; y = candY;
             remainingSteps--;
+
             updateChunk();
         }
     }
@@ -521,7 +522,7 @@ protected:
                     }
                     else {
                         hunger -= partner->nutritional_value;
-                        if (hunger < hunger_limit/10)
+                        if (hunger < hunger_limit / 10)
                             eating = false;
                         if (partner->isRotten == true) {
                             dead = true;
@@ -536,7 +537,7 @@ protected:
     void infection() {
         int xc = 0;
         int yc = 0;
-        virus=0;
+        virus = 0;
         for (int i = -1; i < 1; i++) {
             for (int j = -1; j < 1; j++) {
                 xc = coord_to_chunkx(x + i * CHUNK_SIZE);
@@ -549,8 +550,8 @@ protected:
                 }
             }
         }
-        
-        if (virus > 5){
+
+        if (virus > 5) {
 
             infect = true;
         }
