@@ -46,6 +46,7 @@ int typeSelect = 1;
 int virus=0;
 
 bool settings = false;
+bool info = false;
 bool statistik = false;
 bool hunterStat = false;
 bool herbivoresStat = false;

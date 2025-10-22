@@ -26,9 +26,9 @@ float speedBarW = 0.39;
 float speedBarH = 0.2;
 
 float statBTNX = 0.85f;
-float statBTNY = 0.85f;
+float statBTNY = 0.82f;
 float statBTNW = 0.15f;
-float statBTNH = 0.15f;
+float statBTNH = 0.18f;
 
 //Draw::DrawUIimage(47, 0.2, 1, 0, 0.8);
 float statistikX = 0.2f;
@@ -91,12 +91,12 @@ void checkButtons()
         }
         if (keyPressed['2']) {
             if (typeSelect == 2) currentType = type_::rat;
-            if (typeSelect == 3) currentType = type_::eagle;
+           /* if (typeSelect == 3) currentType = type_::eagle;*/
             if (typeSelect == 4) currentType = type_::bush;
             slot_number = -3;
         }
         if (keyPressed['3']) {
-            if (typeSelect == 3) currentType = type_::bear;
+           /* if (typeSelect == 3) currentType = type_::bear;*/
             if (typeSelect == 4) currentType = type_::grass;
             slot_number = -2;
         }
@@ -128,7 +128,7 @@ void checkButtons()
                 keyPressed['W'] = false;
             }
             if (keyPressed['S']) {
-                if (currentStartButton < 3) {
+                if (currentStartButton < 4) {
                     currentStartButton += 1;
                 }
                 cursorY1 = -0.35 - (0.16 * (currentStartButton - 1));
@@ -144,6 +144,9 @@ void checkButtons()
             case 2:
                 if (settings) settings = false;
                 else settings = true;
+            case 4:
+                if (info) info = false;
+                else info = true;
             default:
                 break;
             }
@@ -186,13 +189,13 @@ void checkButtons()
 
             case 2:
                 if (typeSelect == 2) currentType = type_::rat;
-                if (typeSelect == 3) currentType = type_::eagle;
+                /*if (typeSelect == 3) currentType = type_::eagle;*/
                 if (typeSelect == 4) currentType = type_::bush;
                 slot_number = -3;
                 break;
 
             case 3:
-                if (typeSelect == 3) currentType = type_::bear;
+               /* if (typeSelect == 3) currentType = type_::bear;*/
                 if (typeSelect == 4) currentType = type_::grass;
                 slot_number = -2;
                 break;
@@ -327,9 +330,9 @@ void checkButtons()
         case type_::bush:
             texture = Textures::Texture[7].TextureResView;
             break;
-        case type_::eagle:
+        /*case type_::eagle:
             texture = Textures::Texture[8].TextureResView;
-            break;
+            break;*/
         case type_::rat:
             texture = Textures::Texture[15].TextureResView;
             break;
@@ -339,9 +342,9 @@ void checkButtons()
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
             break;
-        case type_::bear:
+        /*case type_::bear:
             texture = Textures::Texture[28].TextureResView;
-            break;
+            break;*/
 
         }
 
@@ -371,9 +374,9 @@ void checkButtons()
         case type_::bush:
             texture = Textures::Texture[7].TextureResView;
             break;
-        case type_::eagle:
+        /*case type_::eagle:
             texture = Textures::Texture[8].TextureResView;
-            break;
+            break;*/
         case type_::rat:
             texture = Textures::Texture[15].TextureResView;
             break;
@@ -383,9 +386,9 @@ void checkButtons()
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
             break;
-        case type_::bear:
+       /* case type_::bear:
             texture = Textures::Texture[28].TextureResView;
-            break;
+            break;*/
 
         }
 
@@ -581,7 +584,7 @@ void mouse()
             }
             break;
         }
-        case type_::eagle: {
+        /*case type_::eagle: {
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
@@ -596,7 +599,7 @@ void mouse()
                 eagleSpawnTick = tick;
             }
             break;
-        }
+        }*/
         case type_::rat: {
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
@@ -621,7 +624,7 @@ void mouse()
             }
             break;
         }
-        case type_::bear: {
+        /*case type_::bear: {
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
@@ -636,7 +639,7 @@ void mouse()
                 bearSpawnTick = tick;
             }
             break;
-        }
+        }*/
         }
 
         add_new_entities(grass, new_grass);
@@ -677,8 +680,8 @@ void Showpopulations() {
         break;
     case 3:
         Draw::drawslot(-4, 3, wolfSpawnTick, hunterTick);
-        Draw::drawslot(-3, 16, eagleSpawnTick, hunterTick);
-        Draw::drawslot(-2, 28, bearSpawnTick, hunterTick);
+        /*Draw::drawslot(-3, 16, eagleSpawnTick, hunterTick);
+        Draw::drawslot(-2, 28, bearSpawnTick, hunterTick);*/
         break;
     case 4:
         Draw::drawslot(-4, 9,100,1);

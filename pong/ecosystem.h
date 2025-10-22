@@ -160,19 +160,23 @@ void InitGame() {
         auto tree = std::make_shared<Tree>();
         tree-> y = Random::Int(-base_rangey, base_rangey);
         tree-> x = Random::Int(-base_rangex, base_rangex);
-        tree->age = 0;
-        tree->updateChunk();
-        trees.push_back(tree);
-        population.tree_count++;
+        if (!heightW(tree->x, tree->y)) {
+            tree->age = 0;
+            tree->updateChunk();
+            trees.push_back(tree);
+            population.tree_count++;
+        }
     }
     for (int i = 0; i < 1000; i++) {
         auto bush = std::make_shared<Bush>();
         bush-> y = Random::Int(-base_rangey, base_rangey);
         bush-> x = Random::Int(-base_rangex, base_rangex);
-        bush->age = Random::Int(0, 1000);
-        bush->updateChunk();
-        bushes.push_back(bush);
-        population.bush_count++;
+        if (!heightW(bush->x, bush->y)) {
+            bush->age = Random::Int(0, 1000);
+            bush->updateChunk();
+            bushes.push_back(bush);
+            population.bush_count++;
+        }
     }
    // Начальные кролики
    for (int i = 0; i < 0; i++) {
