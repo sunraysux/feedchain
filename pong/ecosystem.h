@@ -175,7 +175,7 @@ void InitGame() {
         population.bush_count++;
     }
    // Начальные кролики
-   for (int i = 0; i < 1000; i++) {
+   for (int i = 0; i < 0; i++) {
        auto rabbit = std::make_shared<Rabbit>();
        rabbit->y = Random::Int(-base_rangey, base_rangey);
        rabbit->x = Random::Int(-base_rangex, base_rangex);
@@ -206,7 +206,7 @@ void InitGame() {
        eagles.push_back(eagle);
        population.eagle_count++;
    }
-   for (int i = 0; i < 1000; i++) {
+   for (int i = 0; i < 0; i++) {
        auto rat = std::make_shared<Rat>();
        rat->y = Random::Int(-base_rangey, base_rangey);
        rat->x = Random::Int(-base_rangex, base_rangex);

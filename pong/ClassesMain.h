@@ -189,7 +189,8 @@ protected:
         std::vector<std::shared_ptr<T>>& new_creatures,
         PopulationManager& pop) {
         if (shouldDie()) return;
-        age++; hunger++;
+       age++;
+       //hunger++;
         if (!infect) {
             infection();
         }

@@ -22,8 +22,8 @@ int seed = 0;
 int tick = 0;
 static int ticloop = 0;
 
-int herbivoresTick = 150;
-int hunterTick = 250;
+int herbivoresTick = 5;
+int hunterTick = 50;
 int deadTick = 4500;
 
 int rabbitSpawnTick = -1000;
@@ -258,14 +258,14 @@ public:
     int berry_count = 0;
     int bear_count = 0;
     const int grass_limit = 5000;
-    const int wolf_limit = 5000;
-    const int rabbit_limit = 5000;
-    const int tree_limit = 5000;
+    const int wolf_limit = 1000;
+    const int rabbit_limit = 500;
+    const int tree_limit = 1000;
     const int bush_limit = 5000;
-    const int eagle_limit = 5000;
-    const int rat_limit = 5000;
+    const int eagle_limit = 1000;
+    const int rat_limit = 500;
     const int berry_limit = 5000;
-    const int bear_limit = 5000;
+    const int bear_limit = 1000;
     int plantsMAX = grass_limit + tree_limit + bush_limit;
     int huntersMAX = eagle_limit + bear_limit + wolf_limit;
     int herbivoresMAX = rat_limit + rabbit_limit;
@@ -389,7 +389,7 @@ public:
     gender_ gender;
     type_ type;
     bool dead = false;
-    bool eating;
+    bool eating=false;
     bool isDirectionSelect = false;
     float birth_tick;
     int berry_count;
