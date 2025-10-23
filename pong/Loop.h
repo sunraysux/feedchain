@@ -68,6 +68,12 @@ void Loop() {
 		ProcessCreatures(population); 
 		ProcessCreatures(population);
 		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ProcessCreatures(population);
 		ticloop = 0;
 		break;
 	}

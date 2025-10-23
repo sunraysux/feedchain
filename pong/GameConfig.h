@@ -267,7 +267,7 @@ public:
     const int berry_limit = 5000;
     const int bear_limit = 1000;
     int plantsMAX = grass_limit + tree_limit + bush_limit;
-    int huntersMAX = eagle_limit + bear_limit + wolf_limit;
+    int huntersMAX = wolf_limit;
     int herbivoresMAX = rat_limit + rabbit_limit;
 
 

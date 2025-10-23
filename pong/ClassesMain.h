@@ -217,9 +217,9 @@ protected:
 
         switch (type) {
         case type_::rabbit:
-            currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
+            currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 1000;
             if (maturity_age < age)
-                currentResource += currentChunk.rabbit_sum - currentChunk.wolf_sum;
+                currentResource += currentChunk.rabbit_sum*100 - currentChunk.wolf_sum*1000;
             break;
         case type_::rat:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
@@ -240,7 +240,7 @@ protected:
         }
 
         // Если в текущем чанке достаточно ресурсов
-        if (currentResource >= 10) {
+        if (currentResource >= 100) {
             float a = Random::Float(0, 2 * 3.14159265f);
             dirX = cosf(a);
             dirY = sinf(a);
@@ -265,14 +265,14 @@ protected:
                     int neighborResource = 0;
                     switch (type) {
                     case type_::rabbit:
-                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 100;
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rabbit_sum - neighbor.wolf_sum * 100;
+                            neighborResource += neighbor.rabbit_sum - neighbor.wolf_sum * 1000;
                         break;
                     case type_::rat:
-                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 100;
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rat_sum - neighbor.wolf_sum * 100;
+                            neighborResource += neighbor.rat_sum - neighbor.wolf_sum * 1000;
                         break;
                     case type_::wolf:
                         neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
