@@ -673,17 +673,21 @@ void Showpopulations() {
     switch (typeSelect)
     {
     case 1:
+        Draw::DrawUIimage(41, -1.01, -0.9, -1, -0.25);
         Draw::drawslot(-4, 18, lightingSpawnTick, deadTick); break;
     case 2:
+        Draw::DrawUIimage(51, -1.01, -0.9, -1, -0.25);
         Draw::drawslot(-4, 2, rabbitSpawnTick, herbivoresTick);
         Draw::drawslot(-3, 15, ratSpawnTick, herbivoresTick);
         break;
     case 3:
+        Draw::DrawUIimage(52, -1.01, -0.9, -1, -0.25);
         Draw::drawslot(-4, 3, wolfSpawnTick, hunterTick);
         /*Draw::drawslot(-3, 16, eagleSpawnTick, hunterTick);
         Draw::drawslot(-2, 28, bearSpawnTick, hunterTick);*/
         break;
     case 4:
+        Draw::DrawUIimage(53, -1.01, -0.9, -1, -0.25);
         Draw::drawslot(-4, 9,100,1);
         Draw::drawslot(-3, 7, 100, 1);
         Draw::drawslot(-2, 19, 100, 1);
@@ -705,7 +709,6 @@ void Showpopulations() {
   //      Draw::drawslot(-1, 43);
 
     
-    Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
     switch (gameSpeed)
     {
     case 6:
@@ -723,9 +726,12 @@ void Showpopulations() {
     default:
         break;
     }
-
-    Draw::DrawUIimage(40, statBTNX, statBTNX+statBTNW, statBTNY, statBTNY+statBTNH);
-    
+    if (statistik) {
+        Draw::DrawUIimage(40, statBTNX, statBTNX + statBTNW, statBTNY, statBTNY + statBTNH);
+    }
+    else {
+        Draw::DrawUIimage(54, statBTNX, statBTNX + statBTNW, statBTNY, statBTNY + statBTNH);
+    }
 
     if (statistik) {
         DrawNumber(plants_pop[stat_size-1], statistikX+0.05, statistikY+0.5, 0.05, 0.05);

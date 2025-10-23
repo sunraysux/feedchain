@@ -172,8 +172,12 @@
     <Image Include="Debug\standartBush.png" />
     <Image Include="Debug\standartTree.png" />
     <Image Include="Debug\statBTN.png" />
+    <Image Include="Debug\statBTNf.png" />
     <Image Include="Debug\statistik.png" />
-    <Image Include="Debug\typeBar.png" />
+    <Image Include="Debug\typeBar1.png" />
+    <Image Include="Debug\typeBar2.png" />
+    <Image Include="Debug\typeBar3.png" />
+    <Image Include="Debug\typeBar4.png" />
     <Image Include="Debug\wolf.png" />
     <Image Include="Debug\Трава1.png" />
     <Image Include="Debug\Трава2.png" />

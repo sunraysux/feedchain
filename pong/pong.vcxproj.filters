@@ -101,9 +101,6 @@
     <Image Include="Debug\statBTN.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Debug\typeBar.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Debug\cursor.png">
       <Filter>Resource Files</Filter>
     </Image>
@@ -156,6 +153,21 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\speedBar3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\statBTNf.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
