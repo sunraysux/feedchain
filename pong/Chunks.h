@@ -54,80 +54,7 @@ struct Chunk {
         }
     }
 
-    std::pair<float, float> nearest_creature_combined(
-        const std::vector<type_>& creatureTypes,
-        float x, float y,
-        bool matureOnly,
-        gender_ gender) const {
-
-        // Создаем временный контейнер для объединения
-        std::vector<std::weak_ptr<Creature>> combined;
-
-        // Переносим weak_ptr из указанных контейнеров
-        for (type_ creatureType : creatureTypes) {
-            switch (creatureType) {
-            case type_::rabbit:
-                transfer_valid_weak_ptrs(rabbits, combined);
-                break;
-            case type_::wolf:
-                transfer_valid_weak_ptrs(wolves, combined);
-                break;
-            case type_::tree:
-                transfer_valid_weak_ptrs(trees, combined);
-                break;
-            case type_::bush:
-                transfer_valid_weak_ptrs(bushes, combined);
-                break;
-            case type_::eagle:
-                transfer_valid_weak_ptrs(eagles, combined);
-                break;
-            case type_::rat:
-                transfer_valid_weak_ptrs(rats, combined);
-                break;
-            case type_::grass:
-                transfer_valid_weak_ptrs(grass, combined);
-                break;
-            case type_::berry:
-                transfer_valid_weak_ptrs(berrys, combined);
-                break;
-            case type_::bear:
-                transfer_valid_weak_ptrs(bears, combined);
-                break;
-            }
-        }
-
-        // Ищем в объединенном контейнере
-        float best_dx = 0, best_dy = 0;
-        float best_dist2 = 100000000;
-        bool found = false;
-
-        for (auto& w : combined) {
-            if (auto c = w.lock()) {
-                if (matureOnly) {
-                    if (c->age < c->maturity_age ||
-                        gender == c->gender ||
-                        (tick - c->birth_tick) < 200.0f) {
-                        continue;
-                    }
-                }
-
-                float dx = torusDelta(x, c->x, base_rangex);
-                float dy = torusDelta(y, c->y, base_rangey);
-                float dist2 = dx * dx + dy * dy;
-
-                if (dist2 > 0.0f && dist2 < best_dist2) {
-                    best_dx = dx;
-                    best_dy = dy;
-                    best_dist2 = dist2;
-                    found = true;
-                }
-            }
-        }
-
-        // Контейнер автоматически очистится при выходе из функции
-        return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-
-            00.0f, -5000.0f);
-    }
+   
 
 
     const int killBerrys(float x, float y, int id) {
@@ -369,9 +296,9 @@ bool hasCreaturesInLargeChunks(float x, float y, type_ creatureType, int max_chu
 std::pair<float, float> searchNearestCreature(
     float x, float y,
     type_ creatureType,
-    int max_chunk_radius,
     bool matureOnly,
-    gender_ gender
+    gender_ gender,
+    bool findLarge
 ) {
 
     //if (!hasCreaturesInLargeChunks(x, y, creatureType, max_chunk_radius, matureOnly, gender)) {
@@ -379,7 +306,10 @@ std::pair<float, float> searchNearestCreature(
     //}
     int center_cx = coord_to_chunkx(x);
     int center_cy = coord_to_chunky(y);
-
+    int max_chunk_radius = 10;
+    if (findLarge) {
+        max_chunk_radius += 5;
+    }
     float best_dx = 0.0f, best_dy = 0.0f;
     float best_dist2 = 1e18f;
     bool found = false;
@@ -434,65 +364,4 @@ std::pair<float, float> searchNearestCreature(
     return { targetX, targetY };
 }
 
-
-std::pair<float, float> searchNearestCreatureCombined(
-    float x, float y,
-    const std::vector<type_>& creatureTypes,
-    int max_chunk_radius,
-    bool matureOnly,
-    gender_ gender) {
-    int center_cx = coord_to_chunkx(x);
-    int center_cy = coord_to_chunky(y);
-
-    float best_dx = 0.0f, best_dy = 0.0f;
-    float best_dist2 = 1e18f;
-    bool found = false;
-
-    auto checkChunk = [&](const Chunk& chunk) {
-        auto p = chunk.nearest_creature_combined(creatureTypes, x, y, matureOnly, gender);
-        float dx = p.first;
-        float dy = p.second;
-
-        if (dx != -5000.0f) {
-            float dist2 = dx * dx + dy * dy;
-            if (dist2 < best_dist2) {
-                best_dist2 = dist2;
-                best_dx = dx;
-                best_dy = dy;
-                found = true;
-            }
-        }
-        };
-    checkChunk(chunk_grid[center_cx][center_cy]);
-
-    // Кольца вокруг центра
-    for (int ring = 1; ring <= max_chunk_radius; ++ring) {
-        int R = CHUNK_SIZE * ring;
-        float angle_step = 360.0f / (8 * ring);
-
-        for (float angle = 0.0f; angle < 360.0f; angle += angle_step) {
-            float rad = angle * (PI / 180.0f);
-            int dotX = Wrap(x + R * cos(rad), base_rangex);
-            int dotY = Wrap(y + R * sin(rad), base_rangey);
-            int cx = coord_to_chunkx(dotX);
-            int cy = coord_to_chunky(dotY);
-
-            checkChunk(chunk_grid[cx][cy]);
-            if (found) {
-                float targetX = Wrap(x + best_dx, base_rangex);
-                float targetY = Wrap(y + best_dy, base_rangey);
-                return { targetX, targetY };
-            }
-
-
-        }
-    }
-
-    if (!found)
-        return { -5000.0f, -5000.0f };
-
-    float targetX = Wrap(x + best_dx, base_rangex);
-    float targetY = Wrap(y + best_dy, base_rangey);
-    return { targetX, targetY };
-}
 

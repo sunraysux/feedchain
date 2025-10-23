@@ -349,7 +349,7 @@ protected:
         if (remainingSteps <= 0 || tick - stepsTick > 60) {
             if (isHunger || eating) {
                 eating = true;
-                auto bush = searchNearestCreature(x, y, type, 10, false, gender);
+                auto bush = searchNearestCreature(x, y, type, false, gender,findRichChunk());
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
                     float dy = torusDelta(y, bush.second, base_rangey);
@@ -367,7 +367,7 @@ protected:
                 }
             }
             else if (isMaturity && canAdd(pop, 0)) {
-                auto target = searchNearestCreature(x, y, type, 10, true, gender);
+                auto target = searchNearestCreature(x, y, type, true, gender,findRichChunk());
                 if (target.first != -5000.0f) {
                     float dx = torusDelta(x, target.first, base_rangex);
                     float dy = torusDelta(y, target.second, base_rangey);
