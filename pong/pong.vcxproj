@@ -134,10 +134,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Debug\back.bmp" />
-    <Image Include="..\Debug\ball.bmp" />
-    <Image Include="..\Debug\racket.bmp" />
-    <Image Include="..\Debug\racket_enemy.bmp" />
     <Image Include="Debug\0.png" />
     <Image Include="Debug\1.png" />
     <Image Include="Debug\2.png" />
@@ -162,26 +158,21 @@
     <Image Include="Debug\infectRat.png" />
     <Image Include="Debug\kust.png" />
     <Image Include="Debug\lightning.png" />
-    <Image Include="Debug\menu.png" />
     <Image Include="Debug\newMenu.png" />
-    <Image Include="Debug\pause.png" />
     <Image Include="Debug\plant.png" />
     <Image Include="Debug\bigTree.png" />
     <Image Include="Debug\rat.png" />
     <Image Include="Debug\settings.png" />
     <Image Include="Debug\smallBush.png" />
     <Image Include="Debug\smallTree.png" />
-    <Image Include="Debug\speed.png" />
-    <Image Include="Debug\speed025.png" />
-    <Image Include="Debug\speed05.png" />
-    <Image Include="Debug\speed2.png" />
-    <Image Include="Debug\speed3.png" />
+    <Image Include="Debug\speedBar1.png" />
+    <Image Include="Debug\speedBar2.png" />
+    <Image Include="Debug\speedBar3.png" />
+    <Image Include="Debug\speedBar4.png" />
     <Image Include="Debug\standartBush.png" />
     <Image Include="Debug\standartTree.png" />
-    <Image Include="Debug\start.png" />
     <Image Include="Debug\statBTN.png" />
     <Image Include="Debug\statistik.png" />
-    <Image Include="Debug\trueSpeedBar.png" />
     <Image Include="Debug\typeBar.png" />
     <Image Include="Debug\wolf.png" />
     <Image Include="Debug\Трава1.png" />

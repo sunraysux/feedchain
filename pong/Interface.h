@@ -20,15 +20,15 @@ float typeBarY = -0.2;
 float typeBarW = 0.11;
 float typeBarH = 0.8;
 
-float speedBarX = 0.61;
-float speedBarY = -0.8;
-float speedBarW = 0.39;
-float speedBarH = 0.2;
+float speedBarX = 0.67;
+float speedBarY = -0.86;
+float speedBarW = 0.33;
+float speedBarH = 0.14;
 
-float statBTNX = 0.85f;
-float statBTNY = 0.82f;
-float statBTNW = 0.15f;
-float statBTNH = 0.18f;
+float statBTNX = 0.88f;
+float statBTNY = 0.85f;
+float statBTNW = 0.12f;
+float statBTNH = 0.15f;
 
 //Draw::DrawUIimage(47, 0.2, 1, 0, 0.8);
 float statistikX = 0.2f;
@@ -123,16 +123,16 @@ void checkButtons()
                 if (currentStartButton > 1) {
                     currentStartButton -= 1;
                 }
-                cursorY1 = -0.35 - (0.16 * (currentStartButton - 1));
-                cursorY2 = -0.38 - (0.16 * (currentStartButton - 1));
+                cursorY1 = -0.35 - (0.158 * (currentStartButton - 1));
+                cursorY2 = -0.38 - (0.158 * (currentStartButton - 1));
                 keyPressed['W'] = false;
             }
             if (keyPressed['S']) {
                 if (currentStartButton < 4) {
                     currentStartButton += 1;
                 }
-                cursorY1 = -0.35 - (0.16 * (currentStartButton - 1));
-                cursorY2 = -0.38 - (0.16 * (currentStartButton - 1));
+                cursorY1 = -0.35 - (0.158 * (currentStartButton - 1));
+                cursorY2 = -0.38 - (0.158 * (currentStartButton - 1));
                 keyPressed['S'] = false;
             }
         }
@@ -234,8 +234,8 @@ void checkButtons()
         {
             for (int speed = 1; speed < 5; speed++)
             {
-                float segmentLeft = speedBarX - (speed - 1) * (speedBarW / 4.0f) - (speed - 1) * 0.005;
-                float segmentRight = speedBarX + speed * (speedBarW / 4.0f) - (speed - 1) * 0.005;
+                float segmentLeft = speedBarX+0.005 - (speed - 1) * (speedBarW / 4.0f) - (speed - 1) * 0.007;
+                float segmentRight = speedBarX+0.005 + speed * (speedBarW / 4.0f) - (speed - 1) * 0.007;
 
                 if (Camera::state.mousendcX >= segmentLeft && Camera::state.mousendcX <= segmentRight)
                 {
@@ -706,7 +706,24 @@ void Showpopulations() {
 
     
     Draw::DrawUIimage(41, -1, -0.9, -1, -0.25);
-    Draw::DrawUIimage(42, 0.61f, 1, -1, -0.815f);
+    switch (gameSpeed)
+    {
+    case 6:
+        Draw::DrawUIimage(42, speedBarX, 1, -1, speedBarY);
+        break;
+    case 1:
+        Draw::DrawUIimage(48, speedBarX, 1, -1, speedBarY);
+        break;
+    case 2:
+        Draw::DrawUIimage(49, speedBarX, 1, -1, speedBarY);
+        break;
+    case 3:
+        Draw::DrawUIimage(50, speedBarX, 1, -1, speedBarY);
+        break;
+    default:
+        break;
+    }
+
     Draw::DrawUIimage(40, statBTNX, statBTNX+statBTNW, statBTNY, statBTNY+statBTNH);
     
 

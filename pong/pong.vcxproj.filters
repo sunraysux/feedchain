@@ -23,18 +23,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Debug\back.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Debug\ball.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Debug\racket.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="..\Debug\racket_enemy.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Debug\animal.png">
       <Filter>Resource Files</Filter>
     </Image>
@@ -95,12 +83,6 @@
     <Image Include="Debug\exit.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Debug\start.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\menu.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Debug\lightning.png">
       <Filter>Resource Files</Filter>
     </Image>
@@ -113,21 +95,6 @@
     <Image Include="Debug\Трава3.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Debug\speed.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\speed025.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\speed05.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\speed2.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\speed3.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="Debug\Ягода.png">
       <Filter>Resource Files</Filter>
     </Image>
@@ -135,12 +102,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\typeBar.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\trueSpeedBar.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Debug\pause.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\cursor.png">
@@ -183,6 +144,18 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Debug\5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar3.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

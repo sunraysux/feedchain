@@ -125,7 +125,8 @@ struct Chunk {
         }
 
         // Контейнер автоматически очистится при выходе из функции
-        return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-5000.0f, -5000.0f);
+        return found ? std::make_pair(best_dx, best_dy) : std::make_pair(-
+            00.0f, -5000.0f);
     }
 
 
