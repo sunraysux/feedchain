@@ -91,12 +91,12 @@ void checkButtons()
         }
         if (keyPressed['2']) {
             if (typeSelect == 2) currentType = type_::rat;
+            if (typeSelect == 3) currentType = type_::bear;
            /* if (typeSelect == 3) currentType = type_::eagle;*/
             if (typeSelect == 4) currentType = type_::bush;
             slot_number = -3;
         }
         if (keyPressed['3']) {
-           /* if (typeSelect == 3) currentType = type_::bear;*/
             if (typeSelect == 4) currentType = type_::grass;
             slot_number = -2;
         }
@@ -105,6 +105,7 @@ void checkButtons()
     if (keyPressed[VK_ESCAPE] && gameState != gameState_::MainMenu) {
         keyPressed[VK_ESCAPE] = false;
         settings = false;
+        info = false;
         gameState = gameState_::MainMenu;
     }
 
@@ -118,7 +119,7 @@ void checkButtons()
     // Главное меню
     if (gameState == gameState_::MainMenu)
     {
-        if (!settings) {
+        if (!settings&&!info) {
             if (keyPressed['W']) {
                 if (currentStartButton > 1) {
                     currentStartButton -= 1;
@@ -128,7 +129,7 @@ void checkButtons()
                 keyPressed['W'] = false;
             }
             if (keyPressed['S']) {
-                if (currentStartButton < 4) {
+                if (currentStartButton < 3) {
                     currentStartButton += 1;
                 }
                 cursorY1 = -0.35 - (0.158 * (currentStartButton - 1));
@@ -144,7 +145,7 @@ void checkButtons()
             case 2:
                 if (settings) settings = false;
                 else settings = true;
-            case 4:
+            case 3:
                 if (info) info = false;
                 else info = true;
             default:
@@ -189,13 +190,14 @@ void checkButtons()
 
             case 2:
                 if (typeSelect == 2) currentType = type_::rat;
+                 if (typeSelect == 3) currentType = type_::bear;
                 /*if (typeSelect == 3) currentType = type_::eagle;*/
                 if (typeSelect == 4) currentType = type_::bush;
                 slot_number = -3;
                 break;
 
             case 3:
-               /* if (typeSelect == 3) currentType = type_::bear;*/
+               
                 if (typeSelect == 4) currentType = type_::grass;
                 slot_number = -2;
                 break;
@@ -342,9 +344,9 @@ void checkButtons()
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
             break;
-        /*case type_::bear:
+        case type_::bear:
             texture = Textures::Texture[28].TextureResView;
-            break;*/
+            break;
 
         }
 
@@ -386,9 +388,9 @@ void checkButtons()
         case type_::grass:
             texture = Textures::Texture[19].TextureResView;
             break;
-       /* case type_::bear:
+        case type_::bear:
             texture = Textures::Texture[28].TextureResView;
-            break;*/
+            break;
 
         }
 
@@ -404,7 +406,7 @@ void checkButtons()
         Draw::Cursor();
         break;
     case gameState_::MainMenu:
-        if (settings) {
+        if (settings||info) {
             ShowCursor(true);
         }
         else {
@@ -624,7 +626,7 @@ void mouse()
             }
             break;
         }
-        /*case type_::bear: {
+        case type_::bear: {
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
@@ -639,7 +641,7 @@ void mouse()
                 bearSpawnTick = tick;
             }
             break;
-        }*/
+        }
         }
 
         add_new_entities(grass, new_grass);
@@ -679,12 +681,14 @@ void Showpopulations() {
         Draw::DrawUIimage(51, -1.01, -0.9, -1, -0.25);
         Draw::drawslot(-4, 2, rabbitSpawnTick, herbivoresTick);
         Draw::drawslot(-3, 15, ratSpawnTick, herbivoresTick);
+        
         break;
     case 3:
         Draw::DrawUIimage(52, -1.01, -0.9, -1, -0.25);
         Draw::drawslot(-4, 3, wolfSpawnTick, hunterTick);
-        /*Draw::drawslot(-3, 16, eagleSpawnTick, hunterTick);
-        Draw::drawslot(-2, 28, bearSpawnTick, hunterTick);*/
+        Draw::drawslot(-3, 28, bearSpawnTick, hunterTick);
+        /*Draw::drawslot(-3, 16, eagleSpawnTick, hunterTick);*/
+        
         break;
     case 4:
         Draw::DrawUIimage(53, -1.01, -0.9, -1, -0.25);

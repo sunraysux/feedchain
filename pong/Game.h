@@ -13,12 +13,13 @@ void drawWorld()
 			Textures::LoadTextureFromFile(44, L"Debug/newMenu.png");
 			Textures::LoadTextureFromFile(45, L"Debug/cursor.png");
 			Textures::LoadTextureFromFile(46, L"Debug/settings.png");
+			Textures::LoadTextureFromFile(55, L"Debug/info.png");
 
 			Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(10);
 			initmenu = true;
 		}
-		if (settings) {
+		if (settings||info) {
 			ShowCursor(true);
 		}
 		else {

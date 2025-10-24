@@ -22,9 +22,9 @@ int seed = 0;
 int tick = 0;
 static int ticloop = 0;
 
-int herbivoresTick = 5;
+int herbivoresTick = 30;
 int hunterTick = 50;
-int deadTick = 4500;
+int deadTick = 500;
 
 int rabbitSpawnTick = -1000;
 int ratSpawnTick = -1000;

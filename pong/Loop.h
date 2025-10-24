@@ -36,6 +36,10 @@ void StartMenu() {
 		drawCursor();
 		Draw::DrawUIimage(46, -0.5, 0.5, -0.5, 0.5);
 	}
+	if (info) {
+		drawCursor();
+		Draw::DrawUIimage(55, -0.5, 0.5, -0.5, 0.5);
+	}
 
 
 	Draw::DrawUIimage(44, -1, 1, -1, 1);
