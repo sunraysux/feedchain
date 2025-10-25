@@ -258,16 +258,16 @@ public:
     int berry_count = 0;
     int bear_count = 0;
     const int grass_limit = 5000;
-    const int wolf_limit = 1000;
+    const int wolf_limit = 500;
     const int rabbit_limit = 500;
-    const int tree_limit = 1000;
+    const int tree_limit = 500;
     const int bush_limit = 2000;
     const int eagle_limit = 1000;
     const int rat_limit = 500;
     const int berry_limit = 5000;
-    const int bear_limit = 1000;
+    const int bear_limit = 500;
     int plantsMAX = grass_limit + tree_limit + bush_limit;
-    int huntersMAX = wolf_limit;
+    int huntersMAX = wolf_limit+ bear_limit;
     int herbivoresMAX = rat_limit + rabbit_limit;
 
 
