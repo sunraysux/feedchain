@@ -41,27 +41,26 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     VS_OUTPUT output;
 
     float2 quadPos[6] = {
-        float2(-1, -1), float2(1, -1), float2(-1, 1),
-        float2(1, -1), float2(1, 1), float2(-1, 1)
+        float2(-1, -1), float2(-1, 1), float2(1, -1),
+        float2(-1, 1), float2(1, 1), float2(1, -1)
     };
 
     float2 mousepos = float2(gConst[0].xy);
     float2 uvCoords[6] = {
             float2(0, 0),
-            float2(1, 0),
             float2(0, 1),
-
             float2(1, 0),
+
+            float2(0, 1),
             float2(1, 1),
-            float2(0, 1) 
+            float2(1, 0)
     };
-    float2 pos = quadPos[vID];
 
     float2 uv = mul(float4(quadPos[vID], 0.0, 1.0), proj[0]).xy;
     uv = float2(mousepos.x + uv.x * 0.01, mousepos.y - uv.y * 0.01);
 
     output.pos = float4(uv.xy, 0, 1);
-    output.uv = uvCoords[vID];  
+    output.uv = uvCoords[vID];
 
     return output;
 }

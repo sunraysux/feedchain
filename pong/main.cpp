@@ -17,14 +17,33 @@ HWND hWnd;
 #include "resource.h"
 
 #include "WICTextureLoader.h"
-#include "GameConfig.h"
-#include "Chunks.h"
+
+int tick = 0;
+float base_rangey = 8192 * 2;
+float base_rangex = 8192 * 2;
+float clamp(float x, float a, float b)
+{
+    return fmax(fmin(x, b), a);
+}
+int gameSpeed = 1;
+int oldGameSpeed = 1;
+int currentStartButton = 1;
+float cursorY1 = -0.35;
+float cursorY2 = -0.38;
+int slot_number = 1;
+int typeSelect = 1;
+inline float Wrap(float x, float range) {
+    float size = range * 2.0f; // полный размер мира
+    if (x >= range) x -= size;
+    if (x < -range) x += size;
+    return x;
+}
 
 #include "dx11.h"
+#include "GameConfig.h"
+#include "Chunks.h"
 #include "Classes.h"
 #include "ecosystem.h"
-static int prevMouseX = 0;
-static int prevMouseY = 0;
 
 
 
@@ -37,8 +56,9 @@ float length(float x1, float y1, float x2, float y2)
 {
     return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
-
+#include "Interface.h"
 #include "Loop.h"
+#include "Game.h"
 #define MAX_LOADSTRING 100
 // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
@@ -97,12 +117,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (time >= timer::nextFrameTime)
         {
             currentTime = timer::GetCounter();
-            
+
             timer::frameBeginTime = timer::GetCounter();
+
+            checkButtons();
             drawWorld();
             //mainLoop();
-            //terraloop();
-            
+
+
             timer::frameEndTime = timer::GetCounter();
             timer::frameRenderingDuration = timer::frameEndTime - timer::frameBeginTime;
             timer::nextFrameTime = timer::frameBeginTime + FRAME_LEN;
@@ -142,96 +164,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_KEYDOWN:
         if ((lParam & 0x40000000) == 0) // игнор автоповтора
-        {
-            bool shiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000);
-
-            switch (wParam)
-            {
-            case VK_SHIFT:
-                Camera::state.speedMul = 10.0f;
-                
-                break;
-            case VK_SPACE:
-                if (gameState == gameState_::game)
-                    gameState = gameState_::pause;
-                else if (gameState == gameState_::pause)
-                    gameState = gameState_::game;
-                break;
-
-            case '1':
-                if (shiftHeld) gameSpeed = 1;
-                else currentType = type_::wolf, slot_number = 1;
-                break;
-            case '2':
-                if (shiftHeld) gameSpeed = 2;
-                else currentType = type_::rabbit, slot_number = 2;
-                break;
-            case '3':
-                if (shiftHeld) gameSpeed = 3;
-                else currentType = type_::tree, slot_number = 3;
-                break;
-            case '4':
-                if (shiftHeld) gameSpeed = 4;
-                else currentType = type_::bush, slot_number = 4;
-                break;
-            case '5':
-                if (shiftHeld) gameSpeed = 5;
-                else currentType = type_::eagle, slot_number = 5;
-                break;
-            case '6': currentType = type_::rat;slot_number = 6;       break;
-            case '7': currentType = type_::grass;slot_number = 7; break;
-            case '8': currentType = type_::lightning;slot_number = 8; break;
-            case '9': currentType = type_::bear; slot_number = 9; break;
-
-            break;
-            case VK_ESCAPE:
-              //  gameState = gameState_::MainMenu;
-                PostQuitMessage(0);
-                return 0;
-            }
-        }
+            keyPressed[wParam] = true;
         break;
 
-    case WM_LBUTTONDOWN: {
-        if ((lParam & 0x40000000) == 0) {
-            float barPositions = -0.35;
-            float barHeights = -0.85;
-            float barBottom = -1;
-            float barTop = barHeights;
-
-            for (int slot = 1; slot < 9; slot++) {
-                if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
-                    (barPositions - 0.1 + slot * 0.1 < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + slot * 0.1)) {
-                    slot_number = slot;
-                }
-            }
-            switch (slot_number)
-            {
-            case 1: currentType = type_::wolf; break;
-            case 2: currentType = type_::rabbit; break;
-            case 3: currentType = type_::tree; break;
-            case 4: currentType = type_::bush; break;
-            case 5: currentType = type_::eagle; break;
-            case 6: currentType = type_::rat; break;
-            case 7: currentType = type_::grass; break;
-            case 8: currentType = type_::lightning; break;
-            case 9: currentType = type_::bear; break;
-            default:
-                break;
-            }
-        }
-    }
-    break;
     case WM_KEYUP:
-        if (wParam == VK_SHIFT) {
-            Camera::state.speedMul = 1.0f;
-        }
+        keyPressed[wParam] = false;
         break;
-    case WM_MOUSEWHEEL:
-    {
-        Camera::HandleMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam));
-        break;
-    }
+
     case WM_MOUSEMOVE:
     {
         int currentX = GET_X_LPARAM(lParam);
@@ -255,6 +194,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         prevMouseY = currentY;
         break;
     }
+
+    case WM_LBUTTONDOWN:
+        mouseLeftDown = true;
+        break;
+    case WM_LBUTTONUP:
+        mouseLeftDown = false;
+        break;
+    case WM_RBUTTONDOWN:
+        mouseRightDown = true;
+        break;
+    case WM_RBUTTONUP:
+        mouseRightDown = false;
+        break;
+    case WM_MBUTTONDOWN:
+        mouseMiddleDown = true;
+        break;
+    case WM_MBUTTONUP:
+        mouseMiddleDown = false;
+        break;
+    case WM_MOUSEWHEEL:
+        mouseWheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+        break;
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
@@ -263,10 +224,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case IDM_ABOUT:
             DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
             break;
-        case IDM_EXIT:
-            
-            DestroyWindow(hWnd);
-            break;
+            /*case IDM_EXIT:
+
+                DestroyWindow(hWnd);
+                break;*/
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }

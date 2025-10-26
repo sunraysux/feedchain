@@ -23,31 +23,25 @@ void StartMenu() {
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 1,1,1,0 });
 	Draw::ClearDepth();
-	drawCursor();
-
-	Shaders::vShader(7);
-	Shaders::pShader(7);
-
-	context->PSSetShaderResources(0, 1, &Textures::Texture[30].TextureResView);
-	ConstBuf::global[0] = XMFLOAT4(0.1, 0.1, 0, 0.5);
-	ConstBuf::Update(5, ConstBuf::global);
-	ConstBuf::ConstToVertex(5);
-	Draw::NullDrawer(1);
 
 
-	context->PSSetShaderResources(0, 1, &Textures::Texture[31].TextureResView);
-	ConstBuf::global[0] = XMFLOAT4(0.1, 0.1, 0, 0.1);
-	ConstBuf::Update(5, ConstBuf::global);
-	ConstBuf::ConstToVertex(5);
-	Draw::NullDrawer(1);
 
 
-	context->PSSetShaderResources(0, 1, &Textures::Texture[32].TextureResView);
-	ConstBuf::global[0] = XMFLOAT4(0.1, 0.1, 0, -0.2);
-	ConstBuf::Update(5, ConstBuf::global);
-	ConstBuf::ConstToVertex(5);
-	Draw::NullDrawer(1);
-	checkButtons();
+	Draw::DrawUIimage(45, -0.56, -0.58, cursorY1, cursorY2);
+
+	if (settings) {
+		drawCursor();
+		Draw::DrawUIimage(46, -0.5, 0.5, -0.5, 0.5);
+	}
+	if (info) {
+		drawCursor();
+		Draw::DrawUIimage(55, -0.5, 0.5, -0.5, 0.5);
+	}
+
+
+	Draw::DrawUIimage(44, -1, 1, -1, 1);
+
+
 	Draw::Present();
 
 }
@@ -62,22 +56,20 @@ void Loop() {
 	Rasterizer::Cull(Rasterizer::cullmode::off);
 	ticloop++;
 	switch (gameSpeed) {
-	case 1: // 0.25x → раз в 4 кадра
-		if (ticloop >= 4) { ProcessCreatures(population);  ticloop = 0; }
-		break;
-	case 2: // 0.5x → раз в 2 кадра
-		if (ticloop >= 2) { ProcessCreatures(population);  ticloop = 0; }
-		break;
-	case 3: // 1x → каждый кадр
-		ProcessCreatures(population);  ticloop = 0;
-		break;
-	case 4: // 2x → два раза за кадр
-		ProcessCreatures(population); 
+
+	case 1: // 1x → каждый кадр
 		ProcessCreatures(population);
 		ticloop = 0;
 		break;
-	case 5: // 4x → четыре раза за кадр
-		for (int i = 0; i < 5; i++) { ProcessCreatures(population);  }
+	case 2: // 2x → два раза за кадр
+		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ticloop = 0;
+		break;
+	case 3: // 4x → четыре раза за кадр
+		ProcessCreatures(population);
+		ProcessCreatures(population);
+		ProcessCreatures(population);
 		ticloop = 0;
 		break;
 	}
@@ -197,44 +189,3 @@ void Looppause() {
 
 }
 
-
-bool initgame = false;
-bool initmenu = false;
-void drawWorld()
-{
-
-	switch (gameState)
-	{
-	case gameState_::MainMenu:
-		if (!initmenu) {
-			
-			Textures::LoadTextureFromFile(30, L"Debug/menu.png");
-			Textures::LoadTextureFromFile(31, L"Debug/start.png");
-			Textures::LoadTextureFromFile(32, L"Debug/exit.png");
-			Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-			Textures::ReadTextureToCPU(1);
-			initmenu = true;
-		}
-		ShowCursor(true);
-		StartMenu();
-		// gameState = gameState_::game;
-		break;
-
-	case gameState_::game:
-		if (!initgame) {
-			InitGame();
-			initgame = true;
-		}
-		ShowCursor(false);
-		Loop();
-		break;
-	case gameState_::pause:
-		if (!initgame) {
-			InitGame();
-			initgame = true;
-		}
-		ShowCursor(false);
-		Looppause();
-		break;
-	}
-}

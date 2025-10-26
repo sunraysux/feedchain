@@ -1,4 +1,6 @@
-﻿bool heightW(float worldX, float worldY) {
+﻿
+
+bool heightW(float worldX, float worldY) {
 
     auto& heightMap = Textures::Texture[1];
 
@@ -210,8 +212,8 @@ public:
         if (age > age_limit * 0.95) {
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
-                    int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, base_rangex));
-                    int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, base_rangey));
+                    int ncx = coord_to_chunkx(Wrap(x + i * CHUNK_SIZE, 1024));
+                    int ncy = coord_to_chunky(Wrap(y + j * CHUNK_SIZE, 1024));
                     chunk_grid[ncx][ncy].killBerrys(x, y, id);
 
                 }

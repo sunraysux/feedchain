@@ -1040,7 +1040,7 @@ namespace Draw
 		ConstBuf::Update(1, ConstBuf::drawerP);
 		ConstBuf::ConstToPixel(1);
 
-		context->DrawInstanced(quadCount * 6*10, instances, 0, 0);
+		context->DrawInstanced(quadCount * 6 * 10, instances, 0, 0);
 	}
 
 	void NullDrawer(int quadCount, unsigned int instances = 1)
@@ -1052,6 +1052,90 @@ namespace Draw
 
 		context->DrawInstanced(quadCount * 6, instances, 0, 0);
 	}
+
+	void drawslot(int slot, int tex_i, int time, int timer)
+	{
+		Textures::TextureToShader(tex_i, 0, pixel);
+		Shaders::vShader(9);
+		Shaders::pShader(9);
+		if ((tick - time) > timer)
+		{
+			ConstBuf::global[0] = XMFLOAT4(
+				slot_number,
+				gameSpeed,
+				slot,
+				0.5f
+			);
+		}
+		else
+		{
+			ConstBuf::global[0] = XMFLOAT4(
+				slot_number,
+				gameSpeed,
+				slot,
+				0
+			);
+		}
+		ConstBuf::Update(5, ConstBuf::global);
+		ConstBuf::ConstToVertex(5);
+		ConstBuf::ConstToPixel(5);
+		Draw::NullDrawer(1);
+	}
+
+	void DrawUIimage(int textureIndex, float x1, float x2, float y1, float y2)
+	{
+		Shaders::vShader(7);
+		Shaders::pShader(7);
+
+		context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+		ConstBuf::global[0] = XMFLOAT4(x1, x2, y1, y2);
+		ConstBuf::Update(5, ConstBuf::global);
+		ConstBuf::ConstToVertex(5);
+		Draw::NullDrawer(1);
+	}
+	//void DrawSTAT(PopulationManager& pop)
+	//{
+	//	Shaders::vShader(2);
+	//	Shaders::pShader(2);
+	//
+	//	if (hunterStat) {
+	//		for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+	//		{
+	//			ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], pop.huntersMAX, 1, min(tickSTAT / 60, 100));
+	//		}
+	//		ConstBuf::Update(5, ConstBuf::global);
+	//		ConstBuf::ConstToVertex(5);
+	//		if (tickSTAT / 60 >= 2)
+	//			Draw::NullDrawer(min(tickSTAT / 60 - 1, 100 - 1));
+	//	}
+	//
+	//
+	//	if (plantStat) {
+	//		for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+	//		{
+	//			ConstBuf::global[i] = XMFLOAT4(plants_pop[i], pop.plantsMAX, 0, min(tickSTAT / 60, 100));
+	//		}
+	//		ConstBuf::Update(5, ConstBuf::global);
+	//		ConstBuf::ConstToVertex(5);
+	//		if (tickSTAT / 60 >= 2)
+	//			Draw::NullDrawer(min(tickSTAT / 60 - 1, 100 - 1));
+	//	}
+	//
+	//
+	//	if (herbivoresStat) {
+	//		for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+	//		{
+	//			ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], pop.herbivoresMAX, 0.5, min(tickSTAT / 60, 100));
+	//		}
+	//		ConstBuf::Update(5, ConstBuf::global);
+	//		ConstBuf::ConstToVertex(5);
+	//		if (tickSTAT / 60 >= 2)
+	//			Draw::NullDrawer(min(tickSTAT / 60 - 1, 100 - 1));
+	//	}
+	//}
+
+
+
 	void dravslot(int slot, int tex_i)
 	{
 		Textures::TextureToShader(tex_i, 0, pixel);
@@ -1065,6 +1149,7 @@ namespace Draw
 		);
 		ConstBuf::Update(5, ConstBuf::global);
 		ConstBuf::ConstToVertex(5);
+		ConstBuf::ConstToPixel(5);
 		Draw::NullDrawer(1);
 	}
 	void NullDrawer18(int quadCount, unsigned int instances = 1)
@@ -1097,9 +1182,10 @@ namespace Draw
 
 void frameConst()
 {
-	ConstBuf::frame.time = XMFLOAT4{ (float)(tick)/2 ,0,0,0 };
+	ConstBuf::frame.time = XMFLOAT4{ (float)(tick) / 2 ,0,0,0 };
 	ConstBuf::frame.aspect = XMFLOAT4{ aspect,iaspect, float(window.width), float(window.height) };
 	ConstBuf::UpdateFrame();
+
 }
 
 
@@ -1120,7 +1206,7 @@ namespace Camera
 		float speedMul = 1;
 
 		// Проекция / матрицы
-		float fovAngle = XMConvertToRadians(60.0f);
+		float fovAngle = XMConvertToRadians(30.0f);
 		XMMATRIX viewMatrix;
 		XMMATRIX projMatrix;
 		float width = 0.0f;

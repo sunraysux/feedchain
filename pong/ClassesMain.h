@@ -41,6 +41,11 @@ protected:
                 UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
                 float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
+                float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
+
+                float heightScale = 200.0f;
+                float depthScale = 80.0f;
+                height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
                 if (height < waterLevel) continue;
 
                 int xc = coord_to_chunkx(seedlingx);
@@ -95,6 +100,11 @@ protected:
                 UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
 
                 float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
+                float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
+
+                float heightScale = 200.0f;
+                float depthScale = 80.0f;
+                height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
                 if (height < waterLevel) continue;
 
                 int xc = coord_to_chunkx(seedlingx);
