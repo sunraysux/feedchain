@@ -58,17 +58,17 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float3 topRight = p - cameraRight * sz + cameraUp * sz;
 
     float3 quad[6] = {
-        bottomLeft, bottomRight, topLeft,
-        bottomRight, topRight, topLeft
+        bottomLeft, topLeft,bottomRight,
+        bottomRight, topLeft,topRight
     };
     float2 uvCoords[6] = {
-        float2(0, 1), // Нижний левый
-        float2(1, 1), // Нижний правый
-        float2(0, 0), // Верхний левый
+        float2(0, 1),
+        float2(0, 0),
+        float2(1, 1),
 
-        float2(1, 1), // Нижний правый
-        float2(1, 0), // Верхний правый
-        float2(0, 0)  // Верхний левый
+        float2(1, 1),
+        float2(0, 0),
+        float2(1, 0) 
     };
     float3 wpos = float3(quad[vID].xy, quad[vID].z);
     float4 viewPos = mul(float4(wpos, 1.0f), view[0]);

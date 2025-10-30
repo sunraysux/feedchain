@@ -143,13 +143,29 @@ void InitGame() {
     Textures::LoadTextureFromFile(19, L"Debug/трава1.png");
     Textures::LoadTextureFromFile(20, L"Debug/трава2.png");
     Textures::LoadTextureFromFile(21, L"Debug/трава3.png");
-    Textures::LoadTextureFromFile(22, L"Debug/speed025.png");
-    Textures::LoadTextureFromFile(23, L"Debug/speed05.png");
-    Textures::LoadTextureFromFile(24, L"Debug/speed.png");
-    Textures::LoadTextureFromFile(25, L"Debug/speed2.png");
-    Textures::LoadTextureFromFile(26, L"Debug/speed3.png");
     Textures::LoadTextureFromFile(27, L"Debug/Ягода.png");
     Textures::LoadTextureFromFile(28, L"Debug/bear.png");
+    Textures::LoadTextureFromFile(40, L"Debug/statBTN.png");
+    Textures::LoadTextureFromFile(41, L"Debug/typeBar1.png");
+    Textures::LoadTextureFromFile(42, L"Debug/speedBar1.png");
+    Textures::LoadTextureFromFile(47, L"Debug/statistik.png");
+    Textures::LoadTextureFromFile(48, L"Debug/speedBar2.png");
+    Textures::LoadTextureFromFile(49, L"Debug/speedBar3.png");
+    Textures::LoadTextureFromFile(50, L"Debug/speedBar4.png");
+    Textures::LoadTextureFromFile(51, L"Debug/typeBar2.png");
+    Textures::LoadTextureFromFile(52, L"Debug/typeBar3.png");
+    Textures::LoadTextureFromFile(53, L"Debug/typeBar4.png");
+    Textures::LoadTextureFromFile(54, L"Debug/statBTNf.png");
+    Textures::LoadTextureFromFile(100, L"Debug/0.png");
+    Textures::LoadTextureFromFile(101, L"Debug/1.png");
+    Textures::LoadTextureFromFile(102, L"Debug/2.png");
+    Textures::LoadTextureFromFile(103, L"Debug/3.png");
+    Textures::LoadTextureFromFile(104, L"Debug/4.png");
+    Textures::LoadTextureFromFile(105, L"Debug/5.png");
+    Textures::LoadTextureFromFile(106, L"Debug/6.png");
+    Textures::LoadTextureFromFile(107, L"Debug/7.png");
+    Textures::LoadTextureFromFile(108, L"Debug/8.png");
+    Textures::LoadTextureFromFile(109, L"Debug/9.png");
     // Начальные растения
    //for (int i = 0; i < 1000; i++) {
    //    auto tree = std::make_shared<Tree>();

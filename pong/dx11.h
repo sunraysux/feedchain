@@ -1007,7 +1007,7 @@ void Dx11Init()
 
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
-	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
+	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(1024, 1024), false, true);
 	Textures::Create(11, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 
 }

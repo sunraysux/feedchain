@@ -53,7 +53,7 @@ void Loop() {
 	Textures::RenderTarget(0, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::back);
 	ticloop++;
 	switch (gameSpeed) {
 

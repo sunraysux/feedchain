@@ -34,8 +34,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     // Позиции вершин
     float2 positions[6] = {
-        float2(0,0), float2(1,0), float2(0,1),
-        float2(1,0), float2(1,1), float2(0,1)
+        float2(0,0), float2(0,1), float2(1,0),
+        float2(1,0), float2(0,1), float2(1,1)
     };
     float2 localPos = positions[vID];
 
