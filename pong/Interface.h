@@ -30,7 +30,7 @@ float statBTNY = 0.85f;
 float statBTNW = 0.12f;
 float statBTNH = 0.15f;
 
-//Draw::DrawUIimage(47, 0.2, 1, 0, 0.8);
+
 float statistikX = 0.2f;
 float statistikY = 0;
 float statistikW = 0.8f;
@@ -169,14 +169,24 @@ void checkButtons()
         if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
             (barPositions - 0.1f + 1 * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 3 * 0.1f))
         {
-            for (int slot = 1; slot < 4; slot++)
-            {
+            /*for (int slot = 1; slot < 4; slot++)
+            {*/
                 if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
-                    (barPositions - 0.1f + slot * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + slot * 0.1f))
+                    (barPositions - 0.1f + 1 * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 1 * 0.1f))
                 {
-                    slot_number = slot;
+                    slot_number = 1;
                 }
-            }
+                else if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+                    (barPositions - 0.1f + 2 * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 2 * 0.1f))
+                {
+                    slot_number = 2;
+                }
+                else if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
+                    (barPositions - 0.1f + 3 * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 3 * 0.1f))
+                {
+                    slot_number = 3;
+                }
+            //}
 
             switch (slot_number)
             {
@@ -208,26 +218,40 @@ void checkButtons()
         if ((Camera::state.mousendcX >= typeBarX && Camera::state.mousendcX <= typeBarX + typeBarW) &&
             (Camera::state.mousendcY <= typeBarY && Camera::state.mousendcY >= typeBarY - typeBarH))
         {
-            for (int type = 1; type < 5; type++)
+            int type;
+
+            if (Camera::state.mousendcY <= typeBarY - (1 - 1) * (typeBarH / 4.0f) && Camera::state.mousendcY >= typeBarY - 1 * (typeBarH / 4.0f))
             {
-                float segmentTop = typeBarY - (type - 1) * (typeBarH / 4.0f);
-                float segmentBottom = typeBarY - type * (typeBarH / 4.0f);
-
-                if (Camera::state.mousendcY <= segmentTop && Camera::state.mousendcY >= segmentBottom)
-                {
-                    if (typeSelect != type)
-                    {
-                        typeSelect = type;
-                        slot_number = -4;
-
-                        if (type == 1) currentType = type_::lightning;
-                        if (type == 2) currentType = type_::rabbit;
-                        if (type == 3) currentType = type_::wolf;
-                        if (type == 4) currentType = type_::tree;
-                    }
-                    break;
-                }
+                type = 1;
             }
+            else if (Camera::state.mousendcY <= typeBarY - (2 - 1) * (typeBarH / 4.0f) && Camera::state.mousendcY >= typeBarY - 2 * (typeBarH / 4.0f))
+            {
+                type = 2;
+            }
+            else if (Camera::state.mousendcY <= typeBarY - (3 - 1) * (typeBarH / 4.0f) && Camera::state.mousendcY >= typeBarY - 3 * (typeBarH / 4.0f))
+            {
+                type = 3;
+            }
+            else if (Camera::state.mousendcY <= typeBarY - (4 - 1) * (typeBarH / 4.0f) && Camera::state.mousendcY >= typeBarY - 4 * (typeBarH / 4.0f))
+            {
+                type = 4;
+            }
+                    
+            if (typeSelect != type)
+            {           
+                typeSelect = type;               
+                slot_number = -4;
+             
+                if (type == 1) currentType = type_::lightning;
+                
+                if (type == 2) currentType = type_::rabbit;
+                
+                if (type == 3) currentType = type_::wolf;
+                
+                if (type == 4) currentType = type_::tree;
+                
+            }
+
         }
 
         // --- Панель скорости ---
