@@ -669,6 +669,47 @@ void DrawNumber(int number, float startX, float startY, float digitWidth, float 
     }
 }
 
+void DrawSTAT(PopulationManager& pop)
+{
+    Shaders::vShader(2);
+    Shaders::pShader(2);
+
+    if (hunterStat) {
+        for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+        {
+            ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], pop.huntersMAX, 1, min(tickSTAT / 60, 100));
+        }
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        if (tickSTAT / 60 >= 2)
+            Draw::NullDrawer(min(tickSTAT / 60 - 1, 100 - 1));
+    }
+
+
+    if (plantStat) {
+        for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+        {
+            ConstBuf::global[i] = XMFLOAT4(plants_pop[i], pop.plantsMAX, 0, min(tickSTAT / 60, 100));
+        }
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        if (tickSTAT / 60 >= 2)
+            Draw::NullDrawer(min(tickSTAT / 60 - 1, 100 - 1));
+    }
+
+
+    if (herbivoresStat) {
+        for (int i = 0;i < min(tickSTAT / 60, 100);i++)
+        {
+            ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], pop.herbivoresMAX, 0.5, min(tickSTAT / 60, 100));
+        }
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        if (tickSTAT / 60 >= 2)
+            Draw::NullDrawer(min(tickSTAT / 60 - 1, 100 - 1));
+    }
+}
+
 void Showpopulations() {
 
 
@@ -741,7 +782,7 @@ void Showpopulations() {
         DrawNumber(plants_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.5, 0.05, 0.05);
         DrawNumber(herbivores_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.3, 0.05, 0.05);
         DrawNumber(hunter_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.1, 0.05, 0.05);
-       // Draw::DrawSTAT(population);
+        DrawSTAT(population);
         Draw::DrawUIimage(47, statistikX, statistikX + statistikW, statistikY, statistikY + statistikH);
 
         // Отображаем текущие значения массивов
