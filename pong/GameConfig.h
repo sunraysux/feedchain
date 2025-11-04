@@ -120,7 +120,7 @@ const int CHUNKS_PER_SIDEX = 1024 * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = 1024 * 2 / CHUNK_SIZE;
 
 static const int LARGE_CHUNK_SIZE = 128; // 2048 / 128 = 16 чанков
-static const int CHUNKS_PER_SIDE_LARGE = 16;
+static const int CHUNKS_PER_SIDE_LARGE = base_rangex/128;
 // секция данных игры  
 class Creature;
 
@@ -190,7 +190,7 @@ public:
 
 inline int coord_to_large_chunkx(float coord) {
     // Смещаем координату в положительный диапазон [0, 2048]
-    float normalized = coord + 1024 - Camera::state.camX;
+    float normalized = coord + base_rangex;
     // Вычисляем индекс и ограничиваем его
     int index = static_cast<int>(normalized / LARGE_CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDE_LARGE - 1);
@@ -198,7 +198,7 @@ inline int coord_to_large_chunkx(float coord) {
 
 inline int coord_to_large_chunky(float coord) {
     // Смещаем координату в положительный диапазон [0, 2048]
-    float normalized = coord + 1024 - Camera::state.camY;
+    float normalized = coord + base_rangex;
     // Вычисляем индекс и ограничиваем его
     int index = static_cast<int>(normalized / LARGE_CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDE_LARGE - 1);

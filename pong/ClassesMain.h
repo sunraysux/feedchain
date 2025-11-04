@@ -20,7 +20,7 @@ protected:
         int seeds = Random::Int(1, 5);
         float seedlingx = x;
         float seedlingy = y;
-        auto& heightMap = Textures::Texture[1];
+        auto& heightMap = Textures::Texture[10];
         const UINT texW = static_cast<UINT>(heightMap.size.x);
         const UINT texH = static_cast<UINT>(heightMap.size.y);
         for (int s = 0; s < seeds; s++) {
@@ -33,20 +33,7 @@ protected:
                 float seedlingy = y + dy;
                 seedlingx = Wrap(seedlingx, base_rangex);
                 seedlingy = Wrap(seedlingy, base_rangey);
-
-                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex); // [0,1]
-                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey); // [0,1]
-
-                UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
-                UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
-
-                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
-                float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
-
-                float heightScale = 200.0f;
-                float depthScale = 80.0f;
-                height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
-                if (height < waterLevel) continue;
+                if (heightW(seedlingx, seedlingy)) continue;
 
                 int xc = coord_to_chunkx(seedlingx);
                 int yc = coord_to_chunky(seedlingy);
@@ -93,19 +80,7 @@ protected:
                 seedlingx = Wrap(seedlingx, base_rangex);
                 seedlingy = Wrap(seedlingy, base_rangey);
 
-                float normalizedX = (seedlingx + base_rangex) / (2.0f * base_rangex); // [0,1]
-                float normalizedY = (seedlingy + base_rangey) / (2.0f * base_rangey); // [0,1]
-
-                UINT texX = static_cast<UINT>(min(max(normalizedX, 0.0f) * (texW - 1), (double)(texW - 1)));
-                UINT texY = static_cast<UINT>(min(max(normalizedY, 0.0f) * (texH - 1), (double)(texH - 1)));
-
-                float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
-                float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
-
-                float heightScale = 200.0f;
-                float depthScale = 80.0f;
-                height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
-                if (height < waterLevel) continue;
+                if (heightW(seedlingx, seedlingy)) continue;
 
                 int xc = coord_to_chunkx(seedlingx);
                 int yc = coord_to_chunky(seedlingy);
@@ -199,14 +174,13 @@ protected:
         std::vector<std::shared_ptr<T>>& new_creatures,
         PopulationManager& pop) {
         if (shouldDie()) return;
-        age++; hunger++;
-        if (type == type_::rat) {
-            if (!infect) {
-                infection();
-            }
-            if (infect && !isUsedInfection) {
-                usedInfection();
-            }
+        age++;
+        hunger++;
+        if (!infect) {
+            infection();
+        }
+        if (infect && !isUsedInfection) {
+            usedInfection();
         }
         move_range = Random::Int(1, 5);
         move(pop);
@@ -216,6 +190,115 @@ protected:
     }
 
 protected:
+
+    bool findRichChunk() {
+        int currentChunkX = coord_to_large_chunkx(x);
+        int currentChunkY = coord_to_large_chunky(y);
+
+        ChunkWorld& currentChunk = population.getChunkByIndex(currentChunkX, currentChunkY);
+        // Для травоядных ищем траву, для хищников - добычу
+        int currentResource = 0;
+        int targetResource = 0;
+
+        switch (type) {
+        case type_::rabbit:
+            currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 1000;
+            if (maturity_age < age)
+                currentResource += currentChunk.rabbit_sum * 100 - currentChunk.wolf_sum * 1000;
+            break;
+        case type_::rat:
+            currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
+            if (maturity_age < age)
+                currentResource += currentChunk.rat_sum - currentChunk.wolf_sum;
+            break;
+        case type_::wolf:
+            currentResource = currentChunk.rabbit_sum + currentChunk.rat_sum;
+            break;
+        case type_::bear:
+            currentResource = currentChunk.rabbit_sum + currentChunk.bush_sum + currentChunk.berry_sum + currentChunk.wolf_sum + currentChunk.rat_sum;
+            break;
+        case type_::eagle:
+            currentResource = currentChunk.rat_sum;
+            break;
+        default:
+            return false;
+        }
+
+        // Если в текущем чанке достаточно ресурсов
+        if (currentResource >= 100) {
+            float a = Random::Float(0, 2 * 3.14159265f);
+            dirX = cosf(a);
+            dirY = sinf(a);
+            return true;
+        }
+
+        // Поиск лучшего чанка
+        int bestChunkX = -1, bestChunkY = -1;
+        int maxResource = currentResource;
+
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dy = -3; dy <= 3; dy++) {
+                if (dx == 0 && dy == 0) continue;
+
+                int checkX = currentChunkX + dx;
+                int checkY = currentChunkY + dy;
+
+                if (checkX >= 0 && checkX < CHUNKS_PER_SIDE_LARGE &&
+                    checkY >= 0 && checkY < CHUNKS_PER_SIDE_LARGE) {
+
+                    ChunkWorld& neighbor = population.getChunkByIndex(checkX, checkY);
+                    int neighborResource = 0;
+                    switch (type) {
+                    case type_::rabbit:
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
+                        if (maturity_age < age)
+                            neighborResource += neighbor.rabbit_sum - neighbor.wolf_sum * 1000;
+                        break;
+                    case type_::rat:
+                        neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
+                        if (maturity_age < age)
+                            neighborResource += neighbor.rat_sum - neighbor.wolf_sum * 1000;
+                        break;
+                    case type_::wolf:
+                        neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
+                        if (maturity_age < age)
+                            neighborResource = neighbor.wolf_sum - neighbor.rabbit_sum * 100 - neighbor.rat_sum * 100;
+                        break;
+                    case type_::bear:
+                        neighborResource = neighbor.berry_sum + neighbor.rabbit_sum;
+                        break;
+                    case type_::eagle:
+                        neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
+                        break;
+                    }
+
+                    if (neighborResource > maxResource) {
+                        maxResource = neighborResource;
+                        bestChunkX = checkX;
+                        bestChunkY = checkY;
+                    }
+                }
+            }
+        }
+
+        if (bestChunkX != -1 && bestChunkY != -1) {
+            float targetX = (bestChunkX + 0.5f) * LARGE_CHUNK_SIZE - base_rangex;
+            float targetY = (bestChunkY + 0.5f) * LARGE_CHUNK_SIZE - base_rangey;
+
+            float dx = torusDelta(x, targetX, base_rangex);
+            float dy = torusDelta(y, targetY, base_rangey);
+            float d = std::sqrt(dx * dx + dy * dy);
+
+            if (d > 1e-6f) {
+                dirX = dx / d;
+                dirY = dy / d;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     void move(PopulationManager& pop) {
         const float avoidance_radius = 10.0f;
         const float avoidanceStrength = 0.5f;
@@ -248,9 +331,10 @@ protected:
                 ay = (ay / len) * avoidanceStrength;
             }
         }
-        if (remainingSteps <= 0 || tick - stepsTick > 10) {
-            if (isHunger) {
-                auto bush = searchNearestCreature(x, y, type, 10, false, gender);
+        if (remainingSteps <= 0 || tick - stepsTick > 60) {
+            if (isHunger || eating) {
+                eating = true;
+                auto bush = searchNearestCreature(x, y, type, false, gender, findRichChunk());
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
                     float dy = torusDelta(y, bush.second, base_rangey);
@@ -268,7 +352,7 @@ protected:
                 }
             }
             else if (isMaturity && canAdd(pop, 0)) {
-                auto target = searchNearestCreature(x, y, type, 10, true, gender);
+                auto target = searchNearestCreature(x, y, type, true, gender, findRichChunk());
                 if (target.first != -5000.0f) {
                     float dx = torusDelta(x, target.first, base_rangex);
                     float dy = torusDelta(y, target.second, base_rangey);
@@ -287,16 +371,30 @@ protected:
             }
             // если всё ещё нет направления — случайный угол
             if (remainingSteps <= 0) {
-                float a = Random::Float(0, 2 * 3.14159265f);
-                dirX = cosf(a); dirY = sinf(a);
-                remainingSteps = 20;
-                stepsTick = tick;
+                if (findRichChunk()) {
+                    // Нашли направление к чанку с травой
+                    remainingSteps = Random::Int(30, 60); // Долгий переход
+                    stepsTick = tick;
+                }
+                else {
+                    // Не нашли чанк с травой — случайное направление
+                    float a = Random::Float(0, 2 * 3.14159265f);
+                    dirX = cosf(a); dirY = sinf(a);
+                    remainingSteps = 20;
+                    stepsTick = tick;
+                }
             }
         }
 
         // вычисляем steering: основной dir + небольшое избегание
-        float steerX = dirX + ax * 0.7f; // ax,ay — из расчёта избегания соседей
-        float steerY = dirY + ay * 0.7f;
+
+        float steerX = dirX + ax * 3; // ax,ay — из расчёта избегания соседей
+        float steerY = dirY + ay * 3;
+        if (isMaturity && canAdd(pop, 0))
+        {
+            steerX = dirX;
+            steerY = dirY;
+        }
         float slen = std::sqrt(steerX * steerX + steerY * steerY);
         if (slen > 1e-6f) { steerX /= slen; steerY /= slen; }
 
@@ -325,6 +423,7 @@ protected:
             // шаг возможен — совершаем его
             x = candX; y = candY;
             remainingSteps--;
+
             updateChunk();
         }
     }
@@ -354,6 +453,8 @@ protected:
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
                     offspring->birth_tick = tick;
+                    offspring->infect = false;
+                    offspring->isUsedInfection = false;
                     offspring->gender = (rand() % 2 == 0) ? gender_::male : gender_::female;
 
                     // Обновляем cooldown родителей
@@ -376,11 +477,6 @@ protected:
                     } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
                     partner->isDirectionSelect = true;
                     partner->step = Random::Int(5, 15);
-                    if (isUsedInfection || partner->isUsedInfection) {
-                        if (Random::Int(1, 2) == 1) {
-                            offspring->isUsedInfection = true;
-                        }
-                    }
                     new_creatures.push_back(offspring);
                     break;
                 }
@@ -405,22 +501,48 @@ protected:
                 float dist2 = dx * dx + dy * dy;
 
                 if (dist2 < eating_range) {
-                    hunger -= partner->nutritional_value;
-                    if (partner->isRotten == true) {
+                    if (partner->nutritional_value > nutritional_value)
+                    {
                         dead = true;
                     }
-                    partner->dead = true;
+                    else {
+                        hunger -= partner->nutritional_value;
+                        if (hunger < hunger_limit / 10)
+                            eating = false;
+                        if (partner->isRotten == true) {
+                            dead = true;
+                        }
+
+                        partner->dead = true;
+                    }
                 }
             }
         }
     }
     void infection() {
-        if (Random::Int(1, 100000) == 1) {
+        int xc = 0;
+        int yc = 0;
+        virus = 0;
+        for (int i = -1; i < 1; i++) {
+            for (int j = -1; j < 1; j++) {
+                xc = coord_to_chunkx(x + i * CHUNK_SIZE);
+                yc = coord_to_chunky(y + j * CHUNK_SIZE);
+                for (auto& w : getMateContainer(chunk_grid[xc][yc])) {
+                    if (auto partner = w.lock()) {
+                        virus += 1;
+
+                    }
+                }
+            }
+        }
+
+        if (virus > 5) {
+
             infect = true;
         }
     }
     void usedInfection() {
-        age_limit *= 0.8;
+        age_limit *= 0.1;
         isUsedInfection = true;
     }
 };
