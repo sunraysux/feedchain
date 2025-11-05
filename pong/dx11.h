@@ -220,9 +220,12 @@ namespace Textures
 		auto& tex = Texture[index];
 		if (!tex.pTexture) return;
 
-		// Создаем staging resource
 		D3D11_TEXTURE2D_DESC desc;
 		tex.pTexture->GetDesc(&desc);
+
+		// ДОБАВЬ ОТЛАДОЧНЫЙ ВЫВОД:
+		std::cout << "Texture format: " << desc.Format << std::endl;
+		std::cout << "Texture size: " << desc.Width << "x" << desc.Height << std::endl;
 
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 		desc.Usage = D3D11_USAGE_STAGING;
@@ -233,24 +236,76 @@ namespace Textures
 		device->CreateTexture2D(&desc, nullptr, &stagingTex);
 		context->CopyResource(stagingTex, tex.pTexture);
 
-	
 		D3D11_MAPPED_SUBRESOURCE mapped;
 		context->Map(stagingTex, 0, D3D11_MAP_READ, 0, &mapped);
 
-	
 		tex.cpuData.resize(desc.Width * desc.Height);
 		const unsigned char* data = static_cast<const unsigned char*>(mapped.pData);
 
-		for (UINT y = 0; y < desc.Height; y++) {
-			for (UINT x = 0; x < desc.Width; x++) {
-				const unsigned char* pixel = data + y * mapped.RowPitch + x * 4;
-				tex.cpuData[y * desc.Width + x] = XMFLOAT4(
-					pixel[0] / 255.0f, 
-					pixel[1] / 255.0f, 
-					pixel[2] / 255.0f, 
-					pixel[3] / 255.0f  
-				);
+		// АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ ФОРМАТА
+		switch (desc.Format) {
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+			// 8-bit (текущий проблемный формат)
+			for (UINT y = 0; y < desc.Height; y++) {
+				for (UINT x = 0; x < desc.Width; x++) {
+					const unsigned char* pixel = data + y * mapped.RowPitch + x * 4;
+					tex.cpuData[y * desc.Width + x] = XMFLOAT4(
+						pixel[0] / 255.0f,
+						pixel[1] / 255.0f,
+						pixel[2] / 255.0f,
+						pixel[3] / 255.0f
+					);
+				}
 			}
+			break;
+
+		case DXGI_FORMAT_R16G16B16A16_FLOAT:
+			// 16-bit float (рекомендуется)
+			for (UINT y = 0; y < desc.Height; y++) {
+				for (UINT x = 0; x < desc.Width; x++) {
+					const uint16_t* pixel = reinterpret_cast<const uint16_t*>(
+						data + y * mapped.RowPitch + x * 8);
+
+					// Конвертация half to float
+					auto halfToFloat = [](uint16_t half) -> float {
+						int sign = (half >> 15) & 0x1;
+						int exp = (half >> 10) & 0x1F;
+						int mant = half & 0x3FF;
+
+						if (exp == 0) return (sign ? -1.0f : 1.0f) * mant / 1024.0f;
+						if (exp == 31) return (sign ? -1.0f : 1.0f) * 65504.0f;
+
+						return (sign ? -1.0f : 1.0f) *
+							(1.0f + mant / 1024.0f) *
+							pow(2.0f, exp - 15);
+						};
+
+					tex.cpuData[y * desc.Width + x] = XMFLOAT4(
+						halfToFloat(pixel[0]),
+						halfToFloat(pixel[1]),
+						halfToFloat(pixel[2]),
+						halfToFloat(pixel[3])
+					);
+				}
+			}
+			break;
+
+		case DXGI_FORMAT_R32G32B32A32_FLOAT:
+			// 32-bit float (идеально)
+			for (UINT y = 0; y < desc.Height; y++) {
+				for (UINT x = 0; x < desc.Width; x++) {
+					const float* pixel = reinterpret_cast<const float*>(
+						data + y * mapped.RowPitch + x * 16);
+					tex.cpuData[y * desc.Width + x] = XMFLOAT4(
+						pixel[0], pixel[1], pixel[2], pixel[3]
+					);
+				}
+			}
+			break;
+
+		default:
+			std::cout << "Unsupported format: " << desc.Format << std::endl;
+			break;
 		}
 
 		context->Unmap(stagingTex, 0);
@@ -1007,7 +1062,7 @@ void Dx11Init()
 
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
-	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(1024, 1024), false, true);
+	Textures::Create(1, Textures::tType::flat, Textures::tFormat::s16, XMFLOAT2(height, height), false, true);
 	Textures::Create(11, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 
 }
@@ -1381,7 +1436,7 @@ namespace Camera
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 
-		const float maxZ = 1200.0f;
+		const float maxZ = 11200.0f;
 		newPosZ = min(newPosZ, maxZ);
 		newTargetZ = min(newTargetZ, maxZ- dz1);
 

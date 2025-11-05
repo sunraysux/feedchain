@@ -123,7 +123,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             checkButtons();
             drawWorld();
             //mainLoop();
-
+            //terraloop();
 
             timer::frameEndTime = timer::GetCounter();
             timer::frameRenderingDuration = timer::frameEndTime - timer::frameBeginTime;

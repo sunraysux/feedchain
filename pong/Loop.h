@@ -2,7 +2,7 @@
 {
 	InputAssembler::IA(InputAssembler::topology::triList);
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
-
+	frameConst();
 	Textures::RenderTarget(1, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();

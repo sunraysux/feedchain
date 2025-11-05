@@ -95,8 +95,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     float heightScale = 200;
     float depthScale = 80;
-    pos.z += exp(height * 2) * heightScale;
-    pos.z -= exp(depth * 2) * depthScale;
+    float worldZ = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
+    pos.z = worldZ;
 
     output.wpos = pos.xy;
     output.pos = mul(pos, mul(view[0], proj[0]));

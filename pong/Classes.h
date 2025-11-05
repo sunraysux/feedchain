@@ -1,41 +1,82 @@
-﻿bool heightW(float worldX, float worldY) {
+﻿XMFLOAT2 sampleHeightDepthBilinear(const std::vector<XMFLOAT4>& data,
+    int width, int height,
+    float u, float v)
+{
+    float x = u * (width - 1);
+    float y = v * (height - 1);
 
+    int x0 = floor(x);
+    int y0 = floor(y);
+    int x1 = min(x0 + 1, width - 1);
+    int y1 = min(y0 + 1, height - 1);
+
+    float tx = x - x0;
+    float ty = y - y0;
+
+    auto get = [&](int X, int Y) { return data[Y * width + X]; };
+
+    XMFLOAT4 h00 = get(x0, y0);
+    XMFLOAT4 h10 = get(x1, y0);
+    XMFLOAT4 h01 = get(x0, y1);
+    XMFLOAT4 h11 = get(x1, y1);
+
+    float h0 = h00.x * (1 - tx) + h10.x * tx;
+    float h1 = h01.x * (1 - tx) + h11.x * tx;
+    float h = h0 * (1 - ty) + h1 * ty;
+
+    float d0 = h00.y * (1 - tx) + h10.y * tx;
+    float d1 = h01.y * (1 - tx) + h11.y * tx;
+    float d = d0 * (1 - ty) + d1 * ty;
+
+    return { h, d };
+}
+
+bool heightW(float worldX, float worldY) {
     auto& heightMap = Textures::Texture[1];
 
-    // 1. Нормализация мировых координат
-    XMFLOAT2 normalizedPos;
-    normalizedPos.x = (worldX + 16384.0f) / 32768.0f;
-    normalizedPos.y = (worldY + 16384.0f) / 32768.0f;
+    // 1. Нормализация
+    float normalizedX = (worldX + 16384.0f) / 32768.0f;
+    float normalizedY = (worldY + 16384.0f) / 32768.0f;
 
-    // 2. Ограничение координат в пределах [0, 1]
-    normalizedPos.x = normalizedPos.x;
-    normalizedPos.y = normalizedPos.y;
+    // 2. Жёсткое ограничение
+    normalizedX = clamp(normalizedX, 0.0f, 1.0f);
+    normalizedY = clamp(normalizedY, 0.0f, 1.0f);
 
-    XMFLOAT2 regionUV;
-    regionUV.x = normalizedPos.x;
-    regionUV.y = normalizedPos.y;
+    // 3. Текстурные координаты
+    UINT texX = static_cast<UINT>(normalizedX * (heightMap.size.x - 1));
+    UINT texY = static_cast<UINT>(normalizedY * (heightMap.size.y - 1));
 
-    // 4. Безопасное вычисление текстурных координат
-    regionUV.x = fmodf(regionUV.x, 1.0f);
-    regionUV.y = fmodf(regionUV.y, 1.0f);
-
-    UINT texX = static_cast<UINT>(regionUV.x * (heightMap.size.x - 1));
-    UINT texY = static_cast<UINT>(regionUV.y * (heightMap.size.y - 1));
-
-    // 5. Проверка границ
-    texX = Wrap(texX, base_rangex);
+    // 4. ОДИНАКОВОЕ ограничение
+    texX = min(texX, static_cast<UINT>(heightMap.size.x - 1));
     texY = min(texY, static_cast<UINT>(heightMap.size.y - 1));
+    XMFLOAT2 hd = sampleHeightDepthBilinear(heightMap.cpuData, heightMap.size.x, heightMap.size.y, normalizedX, normalizedY);
 
-    float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
-    float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
+    float height = hd.x;
+    float depth = hd.y;
 
     float heightScale = 200.0f;
     float depthScale = 80.0f;
     height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
 
     return height < waterLevel;
+}
 
+bool heightW_TEST(float worldX, float worldY) {
+    auto& heightMap = Textures::Texture[1];
 
+    float normalizedX = (worldX + 16384.0f) / 32768.0f;
+    float normalizedY = (worldY + 16384.0f) / 32768.0f;
+
+    normalizedX = clamp(normalizedX, 0.0f, 1.0f);
+    normalizedY = clamp(normalizedY, 0.0f, 1.0f);
+
+    UINT texX = static_cast<UINT>(normalizedX * (heightMap.size.x - 1));
+    UINT texY = static_cast<UINT>(normalizedY * (heightMap.size.y - 1));
+
+    float raw_value = heightMap.cpuData[texY * heightMap.size.x + texX].x;
+
+    // ПРОСТОЙ ТЕСТ: используй сырое значение без сложных преобразований
+    return raw_value < 0.5f; // Измени 0.5f чтобы увидеть разницу
 }
 int plant_id = 0;
 #include "ClassesMain.h"

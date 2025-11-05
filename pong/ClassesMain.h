@@ -89,9 +89,9 @@ protected:
                 float radius2 = radius * radius;
 
                 int totalGrass = 0;
-                int MAX_PLANTS_PER_CHUNK = 1;
-                for (int i = -1; i < 1; i++) {
-                    for (int j = -1; j < 1; j++) {
+                int MAX_PLANTS_PER_CHUNK = 10;
+                for (int i = -1; i < 2; i++) {
+                    for (int j = -1; j < 2; j++) {
                         xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
                         yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
                         int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].Plants.size());
@@ -99,14 +99,14 @@ protected:
                         totalGrass += totalGrass1;
                         if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
                     }
-                    if (totalGrass > 1) break;
+                    if (totalGrass > 10) break;
                 }
 
 
 
 
 
-                if (totalGrass > 1) continue;
+                if (totalGrass > 10) continue;
                 auto offspring = createOffspring();
 
 
@@ -130,6 +130,7 @@ protected:
         std::vector<std::shared_ptr<T>>& new_plants,
         PopulationManager& pop) {
         if (shouldDie()) return;
+        updateChunk();
         age++;
         if (type == type_::berry && !isRotten && age > age_limit * 0.5) {
             isRotten = true;
@@ -191,7 +192,7 @@ protected:
 
 protected:
 
-    bool findRichChunk() {
+    bool findRichChunk(bool rich) {
         int currentChunkX = coord_to_large_chunkx(x);
         int currentChunkY = coord_to_large_chunky(y);
 
@@ -223,7 +224,16 @@ protected:
         default:
             return false;
         }
-
+        if (rich) {
+            if (currentResource >= 20) {
+                float a = Random::Float(0, 2 * 3.14159265f);
+                dirX = cosf(a);
+                dirY = sinf(a);
+                return true;
+            }
+            else
+                return false;
+        }
         // Если в текущем чанке достаточно ресурсов
         if (currentResource >= 100) {
             float a = Random::Float(0, 2 * 3.14159265f);
@@ -334,7 +344,7 @@ protected:
         if (remainingSteps <= 0 || tick - stepsTick > 60) {
             if (isHunger || eating) {
                 eating = true;
-                auto bush = searchNearestCreature(x, y, type, false, gender, findRichChunk());
+                auto bush = searchNearestCreature(x, y, type, false, gender, findRichChunk(true));
                 if (bush.first != -5000.0f) {
                     float dx = torusDelta(x, bush.first, base_rangex);
                     float dy = torusDelta(y, bush.second, base_rangey);
@@ -352,7 +362,7 @@ protected:
                 }
             }
             else if (isMaturity && canAdd(pop, 0)) {
-                auto target = searchNearestCreature(x, y, type, true, gender, findRichChunk());
+                auto target = searchNearestCreature(x, y, type, true, gender, findRichChunk(true));
                 if (target.first != -5000.0f) {
                     float dx = torusDelta(x, target.first, base_rangex);
                     float dy = torusDelta(y, target.second, base_rangey);
@@ -371,7 +381,7 @@ protected:
             }
             // если всё ещё нет направления — случайный угол
             if (remainingSteps <= 0) {
-                if (findRichChunk()) {
+                if (findRichChunk(false)) {
                     // Нашли направление к чанку с травой
                     remainingSteps = Random::Int(30, 60); // Долгий переход
                     stepsTick = tick;

@@ -133,7 +133,7 @@ float4 PS(VS_OUTPUT IN) : SV_Target
 
     float3 p = periodicP;
     p += domainWarp(p * 1.5) * 0.3;
-
+    p.z *= 1.9;
     // Уменьшаем контрастность основных шумов
     float ridgeMain = ridgeFBM3D(p * float3(0.7, 0.35, 0.7), 4, 2.0, 0.6);
     ridgeMain = pow(ridgeMain * 0.8 + 0.2, 1.1);
