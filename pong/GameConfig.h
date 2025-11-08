@@ -116,8 +116,8 @@ inline float WrapY(float y)
     return y;
 }
 const int CHUNK_SIZE = 8; // Размер чанка
-int xmin = 1024*2;
-int ymin = 1024*2;
+int xmin = 1024*4;
+int ymin = 1024*4;
 const int CHUNKS_PER_SIDEX = xmin * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = ymin * 2 / CHUNK_SIZE;
 

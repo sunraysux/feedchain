@@ -16,6 +16,7 @@ cbuffer drawer : register(b5)
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD0;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
 };
@@ -59,7 +60,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // ФИКС: СМЕЩАЕМ ТАК, ЧТОБЫ ЦЕНТРАЛЬНЫЙ ЧАНК БЫЛ (0,0)
     // tileX от 0 до 7, tileY от 0 до 7
     // Хотим чтобы камера была в центре области (чанки -3.5 до +3.5)
-    float2 chunkOffset = float2(tileX - 3.5, tileY - 3.5) * CHUNK_SIZE;
+    float2 chunkOffset = float2(tileX - 3, tileY - 3) * CHUNK_SIZE;
 
     // Смещение внутри чанка
     float2 offset;
@@ -91,16 +92,14 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Высота
     float4 pos = float4(worldXY, 0, 1);
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
-    float depth = heightMap.SampleLevel(sampLinear, regionUV, 0).g;
 
-    float heightScale = 200;
-    float depthScale = 80;
-    float worldZ = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
+    float heightScale = 1500;
+    float worldZ = height *heightScale ;
     pos.z = worldZ;
-
+    output.uv = regionUV;
     output.wpos = pos.xy;
     output.pos = mul(pos, mul(view[0], proj[0]));
-    output.height = (height * 100 - depth * 40) / 90;
+    output.height = worldZ;
 
     return output;
 }

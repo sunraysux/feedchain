@@ -3,7 +3,7 @@ SamplerState sampLinear : register(s0);
 
 cbuffer global : register(b5)
 {
-    float4 gConst[4010]; // Увеличиваем размер буфера
+    float4 gConst[4096]; 
 };
 
 cbuffer camera : register(b3)
@@ -40,11 +40,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     // 6) sample высоты (как в terrain)
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
-    float depth = heightMap.SampleLevel(sampLinear, regionUV, 0).g;
 
-    float heightScale = 200;
-    float depthScale = 80;
-    float worldZ = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
+    float heightScale = 1500;
+    float worldZ = height *heightScale;
 
     // Базовая позиция билборда
     float3 p = float3(x, y, worldZ);

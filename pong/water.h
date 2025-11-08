@@ -33,14 +33,12 @@ float waterNoise(float2 p)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
-    const float HEIGHT_SCALE = 200.0;
+    const float HEIGHT_SCALE = 1500.0;
 
     // получаем высоту и глубину рельефа
     float terrainHeight = heightMap.SampleLevel(sampLinear, input.uv, 0).r ;
-    float terrainDepth = heightMap.SampleLevel(sampLinear, input.uv, 0).g ;
-    int depthScale = 80;
     // нижн€€ граница рельефа (дно)
-    float height = exp(terrainHeight * 2) * HEIGHT_SCALE - exp(terrainDepth * 2) * depthScale;
+    float height = terrainHeight * HEIGHT_SCALE;
     // глубина воды над рельефом
     float depth = saturate((input.wpos.z - height)/70 );
     

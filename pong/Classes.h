@@ -54,30 +54,12 @@ bool heightW(float worldX, float worldY) {
     float height = hd.x;
     float depth = hd.y;
 
-    float heightScale = 200.0f;
-    float depthScale = 80.0f;
-    height = exp(height * 2) * heightScale - exp(depth * 2) * depthScale;
+    float heightScale = 1500;
+    height = height *heightScale;
 
     return height < waterLevel;
 }
 
-bool heightW_TEST(float worldX, float worldY) {
-    auto& heightMap = Textures::Texture[1];
-
-    float normalizedX = (worldX + 16384.0f) / 32768.0f;
-    float normalizedY = (worldY + 16384.0f) / 32768.0f;
-
-    normalizedX = clamp(normalizedX, 0.0f, 1.0f);
-    normalizedY = clamp(normalizedY, 0.0f, 1.0f);
-
-    UINT texX = static_cast<UINT>(normalizedX * (heightMap.size.x - 1));
-    UINT texY = static_cast<UINT>(normalizedY * (heightMap.size.y - 1));
-
-    float raw_value = heightMap.cpuData[texY * heightMap.size.x + texX].x;
-
-    // ПРОСТОЙ ТЕСТ: используй сырое значение без сложных преобразований
-    return raw_value < 0.5f; // Измени 0.5f чтобы увидеть разницу
-}
 int plant_id = 0;
 #include "ClassesMain.h"
 

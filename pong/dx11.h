@@ -714,7 +714,7 @@ namespace ConstBuf
 {
 	ID3D11Buffer* buffer[6];
 
-#define constCount 4010
+#define constCount 4096
 
 	//b0 - use "params" label in shader
 	float drawerV[constCount];//update per draw call
@@ -1396,12 +1396,10 @@ namespace Camera
 		texY = min(texY, static_cast<UINT>(heightMap.size.y - 1));
 
 		float height = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].x;
-		float depth = heightMap.cpuData[texY * static_cast<UINT>(heightMap.size.x) + texX].y;
 
 		// Тот же расчет что в шейдере
-		float heightScale = 200.0f;
-		float depthScale = 80.0f;
-		height = exp(height * 2.0f) * heightScale - exp(depth * 2.0f) * depthScale;
+		float heightScale = 1500;
+		height = height* heightScale;
 
 		return height;
 	}
@@ -1436,7 +1434,7 @@ namespace Camera
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 
-		const float maxZ = 11200.0f;
+		const float maxZ = 20000.0f;
 		newPosZ = min(newPosZ, maxZ);
 		newTargetZ = min(newTargetZ, maxZ- dz1);
 
@@ -1578,7 +1576,7 @@ namespace Camera
 
 		// Матрицы и константные буфера
 		XMMATRIX view = XMMatrixLookAtLH(state.position, state.target, state.upDirection);
-		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 1.0f, curZ*10.0f);
+		XMMATRIX proj = XMMatrixPerspectiveFovLH(state.fovAngle, (float)state.width / (float)state.height, 1.0f, curZ*7.0f);
 		state.viewMatrix = view;
 		state.projMatrix = proj;
 
