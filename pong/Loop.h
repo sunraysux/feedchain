@@ -1,4 +1,6 @@
-﻿struct DiamondSquare {
+﻿static int lastTick = -1;
+int colorType = 1;
+struct DiamondSquare {
     int size;
     float* heightmap;
     float roughness;
@@ -221,7 +223,19 @@ void Loop() {
 	Camera::Update();
 	frameConst();
 	Textures::RenderTarget(0, 0);
-    Draw::Clear({ 0.5f, 0.4f, 0.8f, 1.0f });
+	if (tick -lastTick>2) {
+		lastTick = tick;
+	  colorType = rand() % 6;
+
+	}
+	switch (colorType) {
+	case 0: Draw::Clear({ 1.0f, 0.0f, 0.0f, 1.0f }); break; // Красный
+	case 1: Draw::Clear({ 0.0f, 1.0f, 0.0f, 1.0f }); break; // Зеленый
+	case 2: Draw::Clear({ 0.0f, 0.0f, 1.0f, 1.0f }); break; // Синий
+	case 3: Draw::Clear({ 1.0f, 0.0f, 1.0f, 1.0f }); break; // Пурпурный
+	case 4: Draw::Clear({ 1.0f, 1.0f, 0.0f, 1.0f }); break; // Желтый
+	case 5: Draw::Clear({ 0.0f, 1.0f, 1.0f, 1.0f }); break; // Голубой
+	}
 	Draw::ClearDepth();
 	Rasterizer::Cull(Rasterizer::cullmode::back);
 	ticloop++;
