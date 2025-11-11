@@ -94,12 +94,16 @@ protected:
         else if (i == 4)
             return chunk.bear_eat;
     }
-    void addToChunk(Chunk& chunk) override {
-        chunk.berrys.push_back(weak_from_this());
-        chunk.rabbit_eat.push_back(weak_from_this());
-        chunk.rat_eat.push_back(weak_from_this());
-        chunk.bear_eat.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+    void addToChunk(Chunk& chunk,bool world) override {
+
+        if(world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        else {
+            chunk.berrys.push_back(weak_from_this());
+            chunk.rabbit_eat.push_back(weak_from_this());
+            chunk.rat_eat.push_back(weak_from_this());
+            chunk.bear_eat.push_back(weak_from_this());
+        }
     }
 };
 
@@ -135,12 +139,13 @@ protected:
         else if (i == 4)
             return chunk.rat_eat;
     }
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, const bool world=true) override {
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
         chunk.grass.push_back(weak_from_this());
         chunk.Plants.push_back(weak_from_this());
         chunk.rabbit_eat.push_back(weak_from_this());
         chunk.rat_eat.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -173,10 +178,11 @@ protected:
             return chunk.Plants;
     }
 
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, bool world) override {
         chunk.trees.push_back(weak_from_this());
-        chunk.Plants.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        chunk.Plants.push_back(weak_from_this()); 
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -272,13 +278,14 @@ protected:
         else if (i == 5)
             return chunk.bear_eat;
     }
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, bool world) override {
         chunk.bushes.push_back(weak_from_this());
         chunk.Plants.push_back(weak_from_this());
         chunk.rabbit_eat.push_back(weak_from_this());
         chunk.rat_eat.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -346,12 +353,13 @@ protected:
             return chunk.wolf_eat;
     }
 
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, bool world) override {
         chunk.rabbits.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
         chunk.wolf_eat.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -413,11 +421,12 @@ protected:
             return chunk.bear_eat;
     }
 
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, bool world) override {
         chunk.wolves.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -486,13 +495,14 @@ protected:
             return chunk.eagle_eat;
     }
 
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, bool world) override {
         chunk.rats.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
         chunk.bear_eat.push_back(weak_from_this());
         chunk.wolf_eat.push_back(weak_from_this());
         chunk.eagle_eat.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 
@@ -551,7 +561,9 @@ protected:
             return chunk.wolf_eat;
     }
 
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, bool world) override {
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
         chunk.eagles.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
         chunk.wolf_eat.push_back(weak_from_this());
@@ -610,10 +622,11 @@ protected:
             return chunk.Animals;
     }
 
-    void addToChunk(Chunk& chunk) override {
+    void addToChunk(Chunk& chunk, const bool world=true) override {
         chunk.bears.push_back(weak_from_this());
         chunk.Animals.push_back(weak_from_this());
-        population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
+        if (world)
+            population.addToChunkWorld(current_chunkWORLD_x, current_chunkWORLD_y, type);
     }
 };
 

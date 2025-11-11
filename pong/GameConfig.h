@@ -121,8 +121,8 @@ int ymin = 1024*4;
 const int CHUNKS_PER_SIDEX = xmin * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = ymin * 2 / CHUNK_SIZE;
 
-static const int LARGE_CHUNK_SIZE = 128; // 2048 / 128 = 16 чанков
-static const int CHUNKS_PER_SIDE_LARGE = base_rangex/128;
+static const int LARGE_CHUNK_SIZE = 128; 
+static const int CHUNKS_PER_SIDE_LARGE = base_rangex*2/128;
 // секция данных игры  
 class Creature;
 
@@ -296,6 +296,7 @@ public:
     }
 
     void removeFromChunkWorld(int worldX, int worldY, type_ type) {
+        if (worldX < 0 || worldY < 0) return;
         auto& chunk = getChunkByIndex(worldX, worldY);
         switch (type) {
         case type_::rabbit: chunk.rabbit_sum--; break;
@@ -421,8 +422,7 @@ public:
                 container.end()
             );
         }
-        population.removeFromChunkWorld(current_chunkWORLD_x,
-            current_chunkWORLD_y, type);
+
         // Удаляем weak_ptr, указывающий на текущий объект
 
         current_chunk_x = -1;
@@ -439,9 +439,15 @@ public:
             // Добавляем в новый чанк
             current_chunk_x = new_cx;
             current_chunk_y = new_cy;
-            current_chunkWORLD_x = coord_to_large_chunkx(x);
-            current_chunkWORLD_y = coord_to_large_chunky(y);
-            addToChunk(chunk_grid[new_cx][new_cy]);
+
+            addToChunk(chunk_grid[new_cx][new_cy],false);
+        }
+        if (chunkWORLD_x != current_chunkWORLD_x || chunkWORLD_y != current_chunkWORLD_y) {
+            population.removeFromChunkWorld(current_chunkWORLD_x,
+                current_chunkWORLD_y, type);
+            current_chunkWORLD_x = chunkWORLD_x;
+            current_chunkWORLD_y = chunkWORLD_y;
+            addToChunk(chunk_grid[new_cx][new_cy], true);
         }
     }
 
@@ -452,7 +458,7 @@ protected:
     // Виртуальный метод для получения нужного контейнера в чанке
     virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, int i) = 0;
     // Виртуальный метод для добавления в чанк (уже объявлен)
-    virtual void addToChunk(Chunk& chunk) = 0;
+    virtual void addToChunk(Chunk& chunk,bool world) = 0;
 };
 
 

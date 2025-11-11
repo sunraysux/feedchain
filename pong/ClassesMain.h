@@ -89,7 +89,7 @@ protected:
                 float radius2 = radius * radius;
 
                 int totalGrass = 0;
-                int MAX_PLANTS_PER_CHUNK = 10;
+                int MAX_PLANTS_PER_CHUNK = 2;
                 for (int i = -1; i < 2; i++) {
                     for (int j = -1; j < 2; j++) {
                         xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
@@ -99,14 +99,14 @@ protected:
                         totalGrass += totalGrass1;
                         if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
                     }
-                    if (totalGrass > 10) break;
+                    if (totalGrass > 2) break;
                 }
 
 
 
 
 
-                if (totalGrass > 10) continue;
+                if (totalGrass > 2) continue;
                 auto offspring = createOffspring();
 
 
@@ -204,11 +204,15 @@ protected:
         switch (type) {
         case type_::rabbit:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 1000;
+            if (currentChunk.rabbit_sum > 10)
+                currentResource = -10000;
             if (maturity_age < age)
-                currentResource += currentChunk.rabbit_sum * 100 - currentChunk.wolf_sum * 1000;
+                currentResource += currentChunk.rabbit_sum * 100 ;
             break;
         case type_::rat:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
+            if (currentChunk.rat_sum > 10)
+                currentResource = -10000;
             if (maturity_age < age)
                 currentResource += currentChunk.rat_sum - currentChunk.wolf_sum;
             break;
@@ -226,6 +230,7 @@ protected:
         }
         if (rich) {
             if (currentResource >= 20) {
+                
                 float a = Random::Float(0, 2 * 3.14159265f);
                 dirX = cosf(a);
                 dirY = sinf(a);
@@ -261,13 +266,17 @@ protected:
                     switch (type) {
                     case type_::rabbit:
                         neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
+                        if (neighbor.rabbit_sum > 10)
+                            neighborResource = -10000;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rabbit_sum - neighbor.wolf_sum * 1000;
+                            neighborResource += neighbor.rabbit_sum ;
                         break;
                     case type_::rat:
                         neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
+                        if (neighbor.rat_sum > 10)
+                            neighborResource = -10000;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rat_sum - neighbor.wolf_sum * 1000;
+                            neighborResource += neighbor.rat_sum ;
                         break;
                     case type_::wolf:
                         neighborResource = neighbor.rabbit_sum + neighbor.rat_sum;
