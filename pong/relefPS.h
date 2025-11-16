@@ -1,3 +1,8 @@
+cbuffer drawer : register(b5)
+{
+    float4 gConst[4002];
+};
+
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
@@ -225,6 +230,21 @@ float noise(float2 p)
     return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
 }
 
+float min(float a, float b)
+{
+    return a < b ? a : b;
+}
+
+float max(float a, float b)
+{
+    return a > b ? a : b;
+}
+
+float clamp(float x, float a, float b)
+{
+    return max(min(x, b), a);
+}
+
 float fbm(float2 p)
 {
     float value = 0.0;
@@ -243,34 +263,58 @@ float fbm(float2 p)
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    // Нормализуем высоту для работы с шумом
-    float normalized_height = input.height / 1500.0;
-//return float4(normalized_height, normalized_height, normalized_height, 1.0f);
-    float2 worldPos = input.wpos.xy;
 
-    // Применяем шум к нормализованной высоте
+
+    float normalized_height = input.height / 1500.0;
+
+
+    float2 worldPos = input.wpos.xy;
+    int DEST_SIZE = 50;
+    float base_rangey = 8192 * 2;
+    float base_rangex = 8192 * 2;
+    
+    float cellSize = (base_rangex * 2) / DEST_SIZE;
+    float exactX = (worldPos.x + base_rangex) / cellSize;
+    float exactY = (worldPos.y + base_rangey) / cellSize;
+    
+    int x0 = (int)floor(exactX);
+    int y0 = (int)floor(exactY);
+    float fx = exactX - x0;
+    float fy = exactY - y0;
+    
+    float grassValue = 0.0f;
+    for (int i = 0; i <= 1; i++) {
+        for (int j = 0; j <= 1; j++) {
+            int sampleX = (x0 + i + DEST_SIZE) % DEST_SIZE;
+            int sampleY = (y0 + j + DEST_SIZE) % DEST_SIZE;
+            float weight = (i == 0 ? (1 - fx) : fx) * (j == 0 ? (1 - fy) : fy);
+            grassValue += gConst[sampleX + sampleY * DEST_SIZE + 2].x * weight;
+        }
+    }
+    
     float erosion = fbm(worldPos * 0.3);
     float n = fbm(worldPos * 0.8 + erosion * 0.5) * 0.1 - 0.05;
     normalized_height = saturate(normalized_height + n);
-
+    
     // Конвертируем обратно в абсолютные значения для палитры
     float absolute_height = input.height;
     float3 color = fantasyPalette(absolute_height);
-
-   // // Эффекты эрозии
-   // float erosionEffect = 0.9 + erosion * 0.2;
-   // color *= erosionEffect;
-   //
-   // // Текстурный шум в зависимости от типа местности
-   // float textureNoise;
-   // if (normalized_height < 0.4) // Вода и низменности
-   //     textureNoise = fbm(worldPos * 1.5) * 0.1;
-   // else if (normalized_height < 0.6) // Равнины и холмы
-   //     textureNoise = fbm(worldPos * 4.0) * 0.15;
-   // else // Горы
-   //     textureNoise = fbm(worldPos * 8.0) * 0.2;
-   //
-   // color *= (0.85 + textureNoise);
-   //
-    return float4(color, 1.0f);
+    color.y =0.1;
+    color.y += grassValue / 2000;
+    // // Эффекты эрозии
+    // float erosionEffect = 0.9 + erosion * 0.2;
+    // color *= erosionEffect;
+    //
+    // // Текстурный шум в зависимости от типа местности
+    // float textureNoise;
+    // if (normalized_height < 0.4) // Вода и низменности
+    //     textureNoise = fbm(worldPos * 1.5) * 0.1;
+    // else if (normalized_height < 0.6) // Равнины и холмы
+    //     textureNoise = fbm(worldPos * 4.0) * 0.15;
+    // else // Горы
+    //     textureNoise = fbm(worldPos * 8.0) * 0.2;
+    //
+    // color *= (0.85 + textureNoise);
+    //
+     return float4(color, 1.0f);
 }

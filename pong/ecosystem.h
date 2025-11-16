@@ -1,14 +1,4 @@
 ﻿
-//основной процесс
-
-
-//void UpdateAllGrass() {
-//    for (int cx = 0; cx < CHUNKS_PER_SIDEX; ++cx) {
-//        for (int cy = 0; cy < CHUNKS_PER_SIDEY; ++cy) {
-//            chunk_grid[cx][cy].UpdateGrassGrowth(cx,cy);
-//        }
-//    }
-//}
 void ProcessCreatures(PopulationManager& pop) {
     tick++;
     int dead_rabbits = 0;
@@ -53,7 +43,8 @@ void ProcessCreatures(PopulationManager& pop) {
                 [&](const ValueType& entity) {
                     if (entity->shouldDie()) {
                         counter++;
-                        entity->removeFromChunk();
+                        entity->removeFromChunk(true);
+
                         return true;
                     }
                     return false;
@@ -235,16 +226,6 @@ void InitGame() {
 }
 
 type_ currentType = type_::wolf; // по умолчанию волк
-//void HandleCreatureSelection() {
-//    if (GetAsyncKeyState('1') & 0x8000) currentType = type_::wolf;
-//    if (GetAsyncKeyState('2') & 0x8000) currentType = type_::rabbit;
-//    if (GetAsyncKeyState('3') & 0x8000) currentType = type_::tree;
-//    if (GetAsyncKeyState('4') & 0x8000) currentType = type_::bush;
-//    if (GetAsyncKeyState('5') & 0x8000) currentType = type_::eagle;
-//    if (GetAsyncKeyState('6') & 0x8000) currentType = type_::rat;
-//    if (GetAsyncKeyState('7') & 0x8000) currentType = type_::lightning;
-//    if (GetAsyncKeyState('8') & 0x8000) currentType = type_::grass;
-//}
 
 
 

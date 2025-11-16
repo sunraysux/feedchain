@@ -97,7 +97,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float worldZ = height *heightScale ;
     pos.z = worldZ;
     output.uv = regionUV;
-    output.wpos = pos.xy;
+    output.wpos = wrappedWorldXY;
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.height = worldZ;
 

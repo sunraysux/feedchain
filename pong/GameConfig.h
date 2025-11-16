@@ -2,6 +2,27 @@
 #include <random> 
 #include <memory>
 #include <limits>
+
+int tick = 0;
+float base_rangey = 8192 * 2;
+float base_rangex = 8192 * 2;
+float clamp(float x, float a, float b)
+{
+    return fmax(fmin(x, b), a);
+}
+int gameSpeed = 1;
+int oldGameSpeed = 1;
+int currentStartButton = 1;
+float cursorY1 = -0.35;
+float cursorY2 = -0.38;
+int slot_number = 1;
+int typeSelect = 1;
+inline float Wrap(float x, float range) {
+    float size = range * 2.0f; // полный размер мира
+    if (x >= range) x -= size;
+    if (x < -range) x += size;
+    return x;
+}
 enum class gameState_ {
     MainMenu, game, pause
 };
@@ -206,260 +227,24 @@ inline int coord_to_large_chunky(float coord) {
     return clamp(index, 0, CHUNKS_PER_SIDE_LARGE - 1);
 }
 
-inline int coord_to_chunkx(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + xmin - Camera::state.camX;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / CHUNK_SIZE);
-    return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
+
+
+float lerp(float x1, float x2, float a)
+{
+    return x1 * (1 - a) + x2 * a;
 }
 
-inline int coord_to_chunky(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + ymin - Camera::state.camY;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / CHUNK_SIZE);
-    return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
+float length(float x1, float y1, float x2, float y2)
+{
+    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 
-
-struct ChunkWorld {
-    int rabbit_sum;
-    int wolf_sum;
-    int bear_sum;
-    int eagle_sum;
-    int tree_sum;
-    int bush_sum;
-    int grass_sum;
-    int berry_sum;
-    int rat_sum;
-};
-
-class PopulationManager {
-public:
-    int rabbit_count = 0;
-    int tree_count = 0;
-    int wolf_count = 0;
-    int bush_count = 0;
-    int eagle_count = 0;
-    int grass_count = 0;
-    int rat_count = 0;
-    int berry_count = 0;
-    int bear_count = 0;
-    const int grass_limit = 5000;
-    const int wolf_limit = 500;
-    const int rabbit_limit = 500;
-    const int tree_limit = 500;
-    const int bush_limit = 2000;
-    const int eagle_limit = 1000;
-    const int rat_limit = 500;
-    const int berry_limit = 5000;
-    const int bear_limit = 500;
-    int plantsMAX = grass_limit + tree_limit + bush_limit;
-    int huntersMAX = wolf_limit + bear_limit;
-    int herbivoresMAX = rat_limit + rabbit_limit;
-
-
-    std::vector<std::vector<ChunkWorld>> chunks;
-
-    // Конструктор
-    PopulationManager() : chunks(CHUNKS_PER_SIDE_LARGE, std::vector<ChunkWorld>(CHUNKS_PER_SIDE_LARGE)) {}
-
-    // Методы для работы с чанками
-    ChunkWorld& getChunk(int worldX, int worldY) {
-        int chunkX = coord_to_large_chunkx(worldX);
-        int chunkY = coord_to_large_chunky(worldY);
-        return chunks[chunkX][chunkY];
-    }
-    ChunkWorld& getChunkByIndex(int chunkX, int chunkY) {
-        return chunks[chunkX][chunkY];
-    }
-
-    // Обновление статистики в чанке при добавлении/удалении существа
-    void addToChunkWorld(int worldX, int worldY, type_ type) {
-
-        auto& chunk = getChunkByIndex(worldX, worldY);
-        switch (type) {
-        case type_::rabbit: chunk.rabbit_sum++; break;
-        case type_::wolf:
-            if (chunk.wolf_sum < 0)
-                int x = 0;
-            chunk.wolf_sum++; break;
-        case type_::bear: chunk.bear_sum++; break;
-        case type_::eagle: chunk.eagle_sum++; break;
-        case type_::rat: chunk.rat_sum++; break;
-        case type_::tree: chunk.tree_sum++; break;
-        case type_::berry: chunk.berry_sum++; break;
-        case type_::grass: chunk.grass_sum++; break;
-        case type_::bush: chunk.bush_sum++; break;
-        }
-    }
-
-    void removeFromChunkWorld(int worldX, int worldY, type_ type) {
-        if (worldX < 0 || worldY < 0) return;
-        auto& chunk = getChunkByIndex(worldX, worldY);
-        switch (type) {
-        case type_::rabbit: chunk.rabbit_sum--; break;
-        case type_::wolf:
-            if (chunk.wolf_sum == 0)
-                int x = 0;
-            chunk.wolf_sum--; break;
-
-        case type_::bear: chunk.bear_sum--; break;
-        case type_::eagle: chunk.eagle_sum--; break;
-        case type_::rat: chunk.rat_sum--; break;
-        case type_::tree: chunk.tree_sum--; break;
-        case type_::berry: chunk.berry_sum--; break;
-        case type_::grass: chunk.grass_sum--; break;
-        case type_::bush: chunk.bush_sum--; break;
-        }
-    }
-
-    bool canAddWolf(int pending = 0) const {
-        return wolf_count + pending < wolf_limit;
-    }
-
-    bool canAddRabbit(int pending = 0) const {
-        return rabbit_count + pending < rabbit_limit;
-    }
-
-    bool canAddTree(int pending = 0) const {
-        return tree_count + pending < tree_limit;
-    }
-    bool canAddBush(int pending = 0) const {
-        return bush_count + pending < bush_limit;
-    }
-
-    bool canAddEagle(int pending = 0) const {
-        return eagle_count + pending < eagle_limit;
-    }
-    bool canAddRat(int pending = 0) const {
-        return rat_count + pending < rat_limit;
-    }
-    bool canAddGrass(int pending = 0) const {
-        return grass_count + pending < grass_limit;
-    }
-    bool canAddBerrys(int pending = 0) const {
-        return berry_count + pending < berry_limit;
-    }
-    bool canAddBear(int pending = 0) const {
-        return bear_count + pending < bear_limit;
-    }
-
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs, int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys, int delta_bears) {
-        rabbit_count += delta_rabbits;
-        tree_count += delta_trees;
-        wolf_count += delta_wolfs;
-        bush_count += delta_bushes;
-        eagle_count += delta_eagles;
-        rat_count += delta_rats;
-        grass_count += delta_grass;
-        berry_count += delta_berrys;
-        bear_count += delta_bears;
-    }
-};
-
-PopulationManager population;
-class Chunk;
-extern std::vector<std::vector<Chunk>> chunk_grid(
-    CHUNKS_PER_SIDEX,
-    std::vector<Chunk>(CHUNKS_PER_SIDEY)
-);
-//struct Grass {
-//    float growthLevel = 1.0f;
-//    float growth = 100;
-//    int maxGrowth = 100;
-//};
 
 inline float distanceSquared(float x1, float y1, float x2, float y2) {
     float dx = x1 - x2;
     float dy = y1 - y2;
     return dx * dx + dy * dy;
 }
-
-
-class Creature : public std::enable_shared_from_this<Creature> {
-public:
-    float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value, nextPositionX, nextPositionY, move_range, step;
-    int age;
-    int current_chunkWORLD_x = -1;
-    int current_chunkWORLD_y = -1;
-    int current_chunk_x = -1;
-    int current_chunk_y = -1;
-    gender_ gender;
-    type_ type;
-    bool dead = false;
-    bool eating = false;
-    bool isDirectionSelect = false;
-    float birth_tick;
-    int berry_count;
-    int blossoming_age = 0;
-    int berry_limit;
-    bool infect = false;
-    bool isUsedInfection = false;
-    bool isRotten = false;
-    int id;
-    int cont = 2;
-    Creature(type_ t) : type(t) {}
-
-
-    void removeFromChunk() {
-        if (current_chunk_x < 0 || current_chunk_y < 0) return;
-
-        auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
-        for (int i = 1;i <= cont;i++) {
-
-
-            auto& container = getChunkContainer(chunk, i);
-
-            // Удаляем weak_ptr, указывающий на текущий объект
-            container.erase(
-                std::remove_if(container.begin(), container.end(),
-                    [this](const std::weak_ptr<Creature>& wp) {
-                        auto sp = wp.lock();
-                        return !sp || sp.get() == this;
-                    }),
-                container.end()
-            );
-        }
-
-        // Удаляем weak_ptr, указывающий на текущий объект
-
-        current_chunk_x = -1;
-        current_chunk_y = -1;
-    }
-    virtual ~Creature() = default;
-    virtual void updateChunk() {
-        int new_cx = coord_to_chunkx(x);
-        int new_cy = coord_to_chunky(y);
-        int chunkWORLD_x = coord_to_large_chunkx(x);
-        int chunkWORLD_y = coord_to_large_chunky(y);
-        if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
-            removeFromChunk();  // Удаляем из старого чанка
-            // Добавляем в новый чанк
-            current_chunk_x = new_cx;
-            current_chunk_y = new_cy;
-
-            addToChunk(chunk_grid[new_cx][new_cy],false);
-        }
-        if (chunkWORLD_x != current_chunkWORLD_x || chunkWORLD_y != current_chunkWORLD_y) {
-            population.removeFromChunkWorld(current_chunkWORLD_x,
-                current_chunkWORLD_y, type);
-            current_chunkWORLD_x = chunkWORLD_x;
-            current_chunkWORLD_y = chunkWORLD_y;
-            addToChunk(chunk_grid[new_cx][new_cy], true);
-        }
-    }
-
-
-    virtual bool shouldDie() const = 0;
-
-protected:
-    // Виртуальный метод для получения нужного контейнера в чанке
-    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, int i) = 0;
-    // Виртуальный метод для добавления в чанк (уже объявлен)
-    virtual void addToChunk(Chunk& chunk,bool world) = 0;
-};
 
 
 inline float torusDelta(float from, float to, float size) {

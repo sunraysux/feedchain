@@ -113,6 +113,99 @@
     <Image Include="Debug\Трава3.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Debug\0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\6.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\7.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\8.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\9.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\cursor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\info.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\newMenu.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\settings.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed025.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speed3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\speedBar4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\statBTN.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\statBTNf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\statistik.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\typeBar4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Debug\Ягода.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Debug\bounce.wav">
@@ -216,6 +309,18 @@
     </ClInclude>
     <ClInclude Include="slotVS.h">
       <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassesMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMain.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

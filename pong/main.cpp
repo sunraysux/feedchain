@@ -18,44 +18,15 @@ HWND hWnd;
 
 #include "WICTextureLoader.h"
 
-int tick = 0;
-float base_rangey = 8192 * 2;
-float base_rangex = 8192 * 2;
-float clamp(float x, float a, float b)
-{
-    return fmax(fmin(x, b), a);
-}
-int gameSpeed = 1;
-int oldGameSpeed = 1;
-int currentStartButton = 1;
-float cursorY1 = -0.35;
-float cursorY2 = -0.38;
-int slot_number = 1;
-int typeSelect = 1;
-inline float Wrap(float x, float range) {
-    float size = range * 2.0f; // полный размер мира
-    if (x >= range) x -= size;
-    if (x < -range) x += size;
-    return x;
-}
 
-#include "dx11.h"
 #include "GameConfig.h"
+#include "dx11.h"
+#include "GameMain.h"
 #include "Chunks.h"
 #include "Classes.h"
 #include "ecosystem.h"
 
 
-
-float lerp(float x1, float x2, float a)
-{
-    return x1 * (1 - a) + x2 * a;
-}
-
-float length(float x1, float y1, float x2, float y2)
-{
-    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
-}
 #include "Interface.h"
 #include "Loop.h"
 #include "Game.h"

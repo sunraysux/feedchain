@@ -124,7 +124,10 @@ public:
 
     void process(std::vector<std::shared_ptr<Grass>>& new_plants,
         PopulationManager& pop) {
-        Plnt::process<Grass>(new_plants, pop);
+        age++;
+        if ((torusDelta(x, Camera::state.camX, base_rangex) < 1000) && (torusDelta(x, Camera::state.camX, base_rangex) > -1000) &&
+            (torusDelta(y, Camera::state.camY, base_rangey) < 1000) && (torusDelta(y, Camera::state.camY, base_rangey) > -1000))
+            Plnt::process<Grass>(new_plants, pop);
     }
 
 
@@ -167,6 +170,8 @@ public:
 
     void process(std::vector<std::shared_ptr<Tree>>& new_plants,
         PopulationManager& pop) {
+        if ((torusDelta(x, Camera::state.camX, base_rangex) < 1000) && (torusDelta(x, Camera::state.camX, base_rangex) > -1000) &&
+            (torusDelta(y, Camera::state.camY, base_rangey) < 1000) && (torusDelta(y, Camera::state.camY, base_rangey) > -1000))
         Plnt::process<Tree>(new_plants, pop);
     }
 

@@ -213,6 +213,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameConfig.h" />
+    <ClInclude Include="GameMain.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="layer.h" />
     <ClInclude Include="lightningVS.h" />

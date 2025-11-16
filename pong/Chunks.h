@@ -16,7 +16,6 @@ struct Chunk {
     std::vector<std::weak_ptr<Creature>> eagle_eat;
     std::vector<std::weak_ptr<Creature>> rat_eat;
 
-    //Grass grass;
     bool water;
     // Поиск ближайшего существа указанного типа
     std::pair<float, float> nearest_creature(type_ creatureType, float x, float y, bool matureOnly, gender_ gender) const {

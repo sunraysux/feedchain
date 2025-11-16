@@ -126,11 +126,10 @@ struct DiamondSquare {
             }
         }
 
-        // Пост-обработка для реализма
         normalize();
         applyRealisticCurve();
         applyErosion(0.2f, 2);
-        normalize(); // Финальная нормализация
+        normalize(); 
     }
 };
 
@@ -223,19 +222,20 @@ void Loop() {
 	Camera::Update();
 	frameConst();
 	Textures::RenderTarget(0, 0);
-	if (tick -lastTick>2) {
+	if (tick - lastTick > 2) {
 		lastTick = tick;
-	  colorType = rand() % 6;
+		colorType = rand() % 6;
 
 	}
-	switch (colorType) {
-	case 0: Draw::Clear({ 1.0f, 0.0f, 0.0f, 1.0f }); break; // Красный
-	case 1: Draw::Clear({ 0.0f, 1.0f, 0.0f, 1.0f }); break; // Зеленый
-	case 2: Draw::Clear({ 0.0f, 0.0f, 1.0f, 1.0f }); break; // Синий
-	case 3: Draw::Clear({ 1.0f, 0.0f, 1.0f, 1.0f }); break; // Пурпурный
-	case 4: Draw::Clear({ 1.0f, 1.0f, 0.0f, 1.0f }); break; // Желтый
-	case 5: Draw::Clear({ 0.0f, 1.0f, 1.0f, 1.0f }); break; // Голубой
-	}
+	//switch (colorType) {
+	//case 0: Draw::Clear({ 1.0f, 0.0f, 0.0f, 1.0f }); break; // Красный
+	//case 1: Draw::Clear({ 0.0f, 1.0f, 0.0f, 1.0f }); break; // Зеленый
+	//case 2: Draw::Clear({ 0.0f, 0.0f, 1.0f, 1.0f }); break; // Синий
+	//case 3: Draw::Clear({ 1.0f, 0.0f, 1.0f, 1.0f }); break; // Пурпурный
+	//case 4: Draw::Clear({ 1.0f, 1.0f, 0.0f, 1.0f }); break; // Желтый
+	//case 5: Draw::Clear({ 0.0f, 1.0f, 1.0f, 1.0f }); break; // Голубой
+	//}
+	Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
 	Draw::ClearDepth();
 	Rasterizer::Cull(Rasterizer::cullmode::back);
 	ticloop++;
@@ -259,6 +259,7 @@ void Loop() {
 	}
 	//ShowGrow();
 
+
 	mouse();
 	ShowRacketAndBallFromVectors(
 		rabbits,
@@ -281,14 +282,44 @@ void Loop() {
 
 
 
-
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
 	ConstBuf::global[0] = XMFLOAT4(64, 64, Camera::state.camX, Camera::state.camY);
 	ConstBuf::global[1] = XMFLOAT4(1024, 1024, 0, 0);
+	const int SOURCE_SIZE = 256;
+	const int DEST_SIZE = 50;
+	const float BLOCK_SIZE = SOURCE_SIZE / (float)DEST_SIZE; // 5.12
+
+	for (int blockX = 0; blockX < DEST_SIZE; blockX++)
+		for (int blockY = 0; blockY < DEST_SIZE; blockY++)
+		{
+			float sum = 0.0f;
+			int count = 0;
+
+			// Используем float для точного расчета границ
+			int startX = (int)(blockX * BLOCK_SIZE);
+			int endX = (int)((blockX + 1) * BLOCK_SIZE);
+			int startY = (int)(blockY * BLOCK_SIZE);
+			int endY = (int)((blockY + 1) * BLOCK_SIZE);
+
+			for (int x = startX; x < endX; x++)
+				for (int y = startY; y < endY; y++)
+				{
+					if (x < SOURCE_SIZE && y < SOURCE_SIZE)
+					{
+						ChunkWorld& currentChunk = population.getChunkByIndex(x, y);
+						sum += currentChunk.grass_sum;
+						count++;
+					}
+				}
+
+			int index = blockX + blockY * DEST_SIZE;
+			ConstBuf::global[index + 2].x =  sum ; // Усредняем!
+		}
 	ConstBuf::ConstToVertex(5);
+	ConstBuf::ConstToPixel(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(1, 0, vertex);
 	Draw::NullDrawer(32768*8);
