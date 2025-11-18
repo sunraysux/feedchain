@@ -485,14 +485,6 @@ void mouse()
     }
 
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-        std::vector<std::shared_ptr<Wolf>> new_wolfs;
-        std::vector<std::shared_ptr<Rabbit>> new_rabbits;
-        std::vector<std::shared_ptr<Tree>> new_trees;
-        std::vector<std::shared_ptr<Bush>> new_bushes;
-        std::vector<std::shared_ptr<Eagle>> new_eagles;
-        std::vector<std::shared_ptr<Rat>> new_rats;
-        std::vector<std::shared_ptr<Grass>> new_grass;
-        std::vector<std::shared_ptr<Bear>> new_bears;
 
         auto add_new_entities = [](auto& dest, auto& src) {
             dest.reserve(dest.size() + src.size());
@@ -508,13 +500,13 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddWolf(static_cast<int>(new_wolfs.size())) && tick - wolfSpawnTick > hunterTick) {
+            if (population.canAddWolf(static_cast<int>(new_creature.size())) && tick - wolfSpawnTick > hunterTick) {
                 auto wolf = std::make_shared<Wolf>();
                 wolf->y = Wrap(Camera::state.mouseY, base_rangey);
                 wolf->x = Wrap(Camera::state.mouseX, base_rangex);
                 wolf->hunger = 0;
                 wolf->age = 0;
-                new_wolfs.push_back(wolf);
+                new_creature.push_back(wolf);
                 population.wolf_count++;
                 wolfSpawnTick = tick;
             }
@@ -524,13 +516,13 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddRabbit(static_cast<int>(new_rabbits.size())) && tick - rabbitSpawnTick > herbivoresTick) {
+            if (population.canAddRabbit(static_cast<int>(new_creature.size())) && tick - rabbitSpawnTick > herbivoresTick) {
                 auto rabbit = std::make_shared<Rabbit>();
                 rabbit->y = Wrap(Camera::state.mouseY, base_rangey);
                 rabbit->x = Wrap(Camera::state.mouseX, base_rangex);
                 rabbit->hunger = 0;
                 rabbit->age = 0;
-                new_rabbits.push_back(rabbit);
+                new_creature.push_back(rabbit);
                 population.rabbit_count++;
                 rabbitSpawnTick = tick;
             }
@@ -540,7 +532,7 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddTree(static_cast<int>(new_trees.size()))) {
+            if (population.canAddTree(static_cast<int>(new_creature.size()))) {
                 auto tree = std::make_shared<Tree>();
                 tree->y = Wrap(Camera::state.mouseY, base_rangey);
                 tree->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -548,7 +540,7 @@ void mouse()
                 plant_id += 1;
                 tree->id = plant_id;
                 tree->updateChunk();
-                new_trees.push_back(tree);
+                new_creature.push_back(tree);
                 population.tree_count++;
             }
             break;
@@ -557,7 +549,7 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddGrass(static_cast<int>(new_grass.size()))) {
+            if (population.canAddGrass(static_cast<int>(new_creature.size()))) {
                 auto gras = std::make_shared<Grass>();
                 gras->y = Wrap(Camera::state.mouseY, base_rangey);
                 gras->x = Wrap(Camera::state.mouseX, base_rangex);
@@ -565,7 +557,7 @@ void mouse()
                 plant_id += 1;
                 gras->id = plant_id;
                 gras->updateChunk();
-                new_grass.push_back(gras);
+                new_creature.push_back(gras);
                 population.grass_count++;
             }
             break;
@@ -574,14 +566,14 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddBush(static_cast<int>(new_bushes.size()))) {
+            if (population.canAddBush(static_cast<int>(new_creature.size()))) {
                 auto bush = std::make_shared<Bush>();
                 bush->y = Wrap(Camera::state.mouseY, base_rangey);
                 bush->x = Wrap(Camera::state.mouseX, base_rangex);
                 bush->age = 0;
                 plant_id += 1;
                 bush->id = plant_id;
-                new_bushes.push_back(bush);
+                new_creature.push_back(bush);
                 population.bush_count++;
             }
             break;
@@ -606,13 +598,13 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddRat(static_cast<int>(new_rats.size())) && tick - ratSpawnTick > herbivoresTick) {
+            if (population.canAddRat(static_cast<int>(new_creature.size())) && tick - ratSpawnTick > herbivoresTick) {
                 auto rat = std::make_shared<Rat>();
                 rat->y = Wrap(Camera::state.mouseY, base_rangey);
                 rat->x = Wrap(Camera::state.mouseX, base_rangex);
                 rat->hunger = 0;
                 rat->age = 0;
-                new_rats.push_back(rat);
+                new_creature.push_back(rat);
                 population.rat_count++;
                 ratSpawnTick = tick;
             }
@@ -630,13 +622,13 @@ void mouse()
             if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
                 return;
             }
-            if (population.canAddBear(static_cast<int>(new_bears.size())) && tick - bearSpawnTick > hunterTick) {
+            if (population.canAddBear(static_cast<int>(new_creature.size())) && tick - bearSpawnTick > hunterTick) {
                 auto bear = std::make_shared<Bear>();
                 bear->y = Wrap(Camera::state.mouseY, base_rangey);
                 bear->x = Wrap(Camera::state.mouseX, base_rangex);
                 bear->hunger = 0;
                 bear->age = 0;
-                new_bears.push_back(bear);
+                new_creature.push_back(bear);
                 population.bear_count++;
                 bearSpawnTick = tick;
             }
@@ -644,14 +636,7 @@ void mouse()
         }
         }
 
-        add_new_entities(grass, new_grass);
-        add_new_entities(rabbits, new_rabbits);
-        add_new_entities(wolves, new_wolfs);
-        add_new_entities(trees, new_trees);
-        add_new_entities(bushes, new_bushes);
-        add_new_entities(eagles, new_eagles);
-        add_new_entities(rats, new_rats);
-        add_new_entities(bears, new_bears);
+        add_new_entities(creature, new_creature);
     }
 }
 

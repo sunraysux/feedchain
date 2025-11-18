@@ -13,8 +13,7 @@ public:
 
 protected:
 
-    template <typename T>
-    void reproduce(std::vector<std::shared_ptr<T>>& new_plants) {
+    void reproduce() {
         if (!Random::FastChance(0.05f)) return;
 
         int seeds = Random::Int(1, 5);
@@ -59,7 +58,7 @@ protected:
                 auto offspring = createOffspring();
 
 
-                auto seedling = std::dynamic_pointer_cast<T>(offspring);
+                auto seedling = offspring;
                 seedling->x = seedlingx;
                 seedling->y = seedlingy;
                 // установить базовые значения
@@ -67,7 +66,7 @@ protected:
                 seedling->birth_tick = tick;
                 seedling->updateChunk();
                 seedling->id = plant_id + s + 1;
-                new_plants.push_back(std::move(seedling));
+                new_creature.push_back(std::move(seedling));
             }
 
             else {
@@ -110,7 +109,7 @@ protected:
                 auto offspring = createOffspring();
 
 
-                auto seedling = std::dynamic_pointer_cast<T>(offspring);
+                auto seedling =offspring;
                 seedling->x = seedlingx;
                 seedling->y = seedlingy;
                 // установить базовые значения
@@ -118,7 +117,7 @@ protected:
                 seedling->birth_tick = tick;
                 seedling->id = plant_id + s + 1;
                 seedling->updateChunk();
-                new_plants.push_back(std::move(seedling));
+                new_creature.push_back(std::move(seedling));
             }
 
         }
@@ -126,11 +125,10 @@ protected:
     }
 
     template <typename T>
-    void process(
-        std::vector<std::shared_ptr<T>>& new_plants,
-        PopulationManager& pop) {
+    void process(PopulationManager& pop) {
         if (shouldDie()) return;
-        updateChunk();
+        if (tick % 10 == 0)
+            updateChunk();
         age++;
         if (type == type_::berry && !isRotten && age > age_limit * 0.5) {
             isRotten = true;
@@ -138,7 +136,7 @@ protected:
         if (type != type_::berry) {
             if (age >= maturity_age && canAdd(pop, 0)) {
                 if (tick % 5 == 0) {
-                    reproduce(new_plants);
+                    reproduce();
                 }
             }
         }
@@ -168,12 +166,8 @@ public:
 protected:
 
 
-    template <typename T>
 
-    void process(
-        std::vector<std::shared_ptr<T>>& creatures,
-        std::vector<std::shared_ptr<T>>& new_creatures,
-        PopulationManager& pop) {
+    void process(PopulationManager& pop) {
         if (shouldDie()) return;
         age++;
         hunger++;
@@ -187,7 +181,7 @@ protected:
         move(pop);
         eat();
         if (canAdd(pop, 0))
-            reproduce(creatures, new_creatures);
+            reproduce();
     }
 
 protected:
@@ -447,9 +441,7 @@ protected:
         }
     }
 
-    template <typename T>
-    void reproduce(std::vector<std::shared_ptr<T>>& creatures
-        , std::vector<std::shared_ptr<T>>& new_creatures) {
+    void reproduce() {
         if (age < maturity_age || (tick - birth_tick) < MATURITY_TICKS || dead) return;
 
         int base_cx = coord_to_chunkx(x);
@@ -468,7 +460,7 @@ protected:
 
                 if (dist2 < 50.0f * 50.0f) {
                     auto spring = createOffspring();
-                    auto offspring = std::dynamic_pointer_cast<T>(spring);
+                    auto offspring = spring;
                     offspring->x = Wrap(x + Random::Int(-5, 5), base_rangex);
                     offspring->y = Wrap(y + Random::Int(-5, 5), base_rangey);
                     offspring->birth_tick = tick;
@@ -496,7 +488,7 @@ protected:
                     } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
                     partner->isDirectionSelect = true;
                     partner->step = Random::Int(5, 15);
-                    new_creatures.push_back(offspring);
+                    new_creature.push_back(offspring);
                     break;
                 }
             }

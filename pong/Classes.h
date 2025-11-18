@@ -78,9 +78,9 @@ public:
         return pop.canAddBerrys(static_cast<int>(newSize));
     }
 
-    void process(std::vector<std::shared_ptr<Berry>>& new_plants,
+    void process(
         PopulationManager& pop) {
-        Plnt::process<Berry>(new_plants, pop);
+        Plnt::process<Berry>(pop);
     }
 
 protected:
@@ -122,12 +122,12 @@ public:
         return pop.canAddGrass(static_cast<int>(newSize));
     }
 
-    void process(std::vector<std::shared_ptr<Grass>>& new_plants,
+    void process(
         PopulationManager& pop) {
         age++;
         if ((torusDelta(x, Camera::state.camX, base_rangex) < 1000) && (torusDelta(x, Camera::state.camX, base_rangex) > -1000) &&
             (torusDelta(y, Camera::state.camY, base_rangey) < 1000) && (torusDelta(y, Camera::state.camY, base_rangey) > -1000))
-            Plnt::process<Grass>(new_plants, pop);
+            Plnt::process<Grass>( pop);
     }
 
 
@@ -168,11 +168,11 @@ public:
         return pop.canAddTree(static_cast<int>(newSize));
     }
 
-    void process(std::vector<std::shared_ptr<Tree>>& new_plants,
+    void process(
         PopulationManager& pop) {
         if ((torusDelta(x, Camera::state.camX, base_rangex) < 1000) && (torusDelta(x, Camera::state.camX, base_rangex) > -1000) &&
             (torusDelta(y, Camera::state.camY, base_rangey) < 1000) && (torusDelta(y, Camera::state.camY, base_rangey) > -1000))
-        Plnt::process<Tree>(new_plants, pop);
+        Plnt::process<Tree>( pop);
     }
 
 protected:
@@ -210,7 +210,7 @@ public:
         return pop.canAddBush(static_cast<int>(newSize));
     }
 
-    void blossoming(std::vector<std::shared_ptr<Berry>>& new_berrys) {
+    void blossoming() {
 
 
         float reproductionChance = min(0.01f * (age - maturity_age), 0.05f);
@@ -234,14 +234,11 @@ public:
         seedling->y = Wrap(seedling->y, base_rangey);
         seedling->id = id;
         updateChunk();
-        new_berrys.push_back(seedling);
+        new_creature.push_back(seedling);
 
     }
 
-    void process(
-        std::vector<std::shared_ptr<Bush>>& new_plants,
-        std::vector<std::shared_ptr<Berry>>& new_berrys,
-        PopulationManager& pop) {
+    void process(PopulationManager& pop) {
         if (shouldDie()) return;
 
         if (age > age_limit * 0.95) {
@@ -259,12 +256,12 @@ public:
 
         if (age >= maturity_age && canAdd(pop, 0)) {
             if (tick % 5 == 0) {
-                reproduce(new_plants);
+                reproduce();
             }
         }
         if (age >= blossoming_age && pop.canAddBerrys()) {
             if (tick % 5 == 0) {
-                blossoming(new_berrys);
+                blossoming();
             }
         }
 
@@ -339,10 +336,8 @@ public:
         return chunk.rabbits;
     }
 
-    void process(std::vector<std::shared_ptr<Rabbit>>& creature,
-        std::vector<std::shared_ptr<Rabbit>>& new_creature,
-        PopulationManager& pop) {
-        Animal::process<Rabbit>(creature, new_creature, pop);
+    void process(PopulationManager& pop) {
+        Animal::process(pop);
     }
 
 
@@ -412,7 +407,7 @@ public:
     void process(std::vector<std::shared_ptr<Wolf>>& creature,
         std::vector<std::shared_ptr<Wolf>>& new_creature,
         PopulationManager& pop) {
-        Animal::process<Wolf>(creature, new_creature, pop);
+        Animal::process(pop);
     }
 
 
@@ -483,7 +478,7 @@ public:
     void process(std::vector<std::shared_ptr<Rat>>& creature,
         std::vector<std::shared_ptr<Rat>>& new_creature,
         PopulationManager& pop) {
-        Animal::process<Rat>(creature, new_creature, pop);
+        Animal::process(pop);
     }
 
 protected:
@@ -551,7 +546,7 @@ public:
     void process(std::vector < std::shared_ptr <Eagle>>& creature,
         std::vector<std::shared_ptr<Eagle>>& new_creature,
         PopulationManager& pop) {
-        Animal::process<Eagle>(creature, new_creature, pop);
+        Animal::process(pop);
     }
 
 
@@ -611,10 +606,8 @@ public:
         return chunk.bears;
     }
 
-    void process(std::vector < std::shared_ptr <Bear>>& creature,
-        std::vector<std::shared_ptr<Bear>>& new_creature,
-        PopulationManager& pop) {
-        Animal::process<Bear>(creature, new_creature, pop);
+    void process(PopulationManager& pop) {
+        Animal::process( pop);
     }
 
 
@@ -639,13 +632,4 @@ protected:
 // Глобальный контейнер существ
 
 
-std::vector<std::shared_ptr<Rabbit>> rabbits;
-std::vector<std::shared_ptr<Tree>> trees;
-std::vector<std::shared_ptr<Wolf>> wolves;
-std::vector<std::shared_ptr<Bush>> bushes;
-std::vector<std::shared_ptr<Eagle>> eagles;
-std::vector<std::shared_ptr<Rat>> rats;
-std::vector<std::shared_ptr<Grass>> grass;
-std::vector<std::shared_ptr<Berry>> berrys;
-std::vector<std::shared_ptr<Bear>> bears;
 

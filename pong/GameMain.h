@@ -138,16 +138,8 @@ public:
         return bear_count + pending < bear_limit;
     }
 
-    void update(int delta_rabbits, int delta_trees, int delta_wolfs, int delta_bushes, int delta_eagles, int delta_rats, int delta_grass, int delta_berrys, int delta_bears) {
-        rabbit_count += delta_rabbits;
-        tree_count += delta_trees;
-        wolf_count += delta_wolfs;
-        bush_count += delta_bushes;
-        eagle_count += delta_eagles;
-        rat_count += delta_rats;
-        grass_count += delta_grass;
-        berry_count += delta_berrys;
-        bear_count += delta_bears;
+    void update(int delta_creature) {
+        rabbit_count += delta_creature;
     }
 };
 
@@ -182,7 +174,8 @@ public:
     int id;
     int cont = 2;
     Creature(type_ t) : type(t) {}
-
+    virtual void process(PopulationManager& pop) = 0;
+    
 
     void removeFromChunk(bool world) {
         if (current_chunk_x < 0 || current_chunk_y < 0) return;
@@ -243,5 +236,5 @@ protected:
     // ¬иртуальный метод дл€ добавлени€ в чанк (уже объ€влен)
     virtual void addToChunk(Chunk& chunk, bool world) = 0;
 };
-
-
+std::vector<std::shared_ptr<Creature>> creature;
+std::vector<std::shared_ptr<Creature>> new_creature;

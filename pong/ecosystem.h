@@ -1,100 +1,37 @@
-﻿
-void ProcessCreatures(PopulationManager& pop) {
+﻿void ProcessCreatures(PopulationManager& pop) {
     tick++;
-    int dead_rabbits = 0;
-    int dead_trees = 0;
-    int dead_wolfs = 0;
-    int dead_eagles = 0;
-    int dead_bushes = 0;
-    int dead_rats = 0;
-    int dead_grass = 0;
-    int dead_berrys = 0;
-    int dead_bears = 0;
-    std::vector<std::shared_ptr<Wolf>> new_wolfs;
-    std::vector<std::shared_ptr<Rabbit>> new_rabbits;        //список для новых существ
-    std::vector<std::shared_ptr<Tree>> new_trees;          //список для новых существ
-    std::vector<std::shared_ptr<Bush>> new_bushes;
-    std::vector<std::shared_ptr<Eagle>> new_eagles;
-    std::vector<std::shared_ptr<Rat>> new_rats;
-    std::vector<std::shared_ptr<Grass>> new_grass;
-    std::vector<std::shared_ptr<Berry>> new_berrys;
-    std::vector<std::shared_ptr<Bear>> new_bears;
-    
+    int dead_creature = 0;
 
-    
-    for (auto& tree : trees) tree->process(new_trees, pop);
-    for (auto& bush : bushes) bush->process(new_bushes,new_berrys, pop);
-    for (auto& gras : grass) gras->process(new_grass, pop);
-    for (auto& berry : berrys) berry->process(new_berrys, pop);
-
-    for (auto& rabbit : rabbits) rabbit->process(rabbits, new_rabbits, pop);
-    for (auto& wolf : wolves) wolf->process(wolves, new_wolfs, pop);
-    for (auto& rat : rats) rat->process(rats, new_rats, pop);
-    for (auto& eagle : eagles) eagle->process(eagles, new_eagles, pop);
-    for (auto& bear : bears) bear->process(bears, new_bears, pop);
-    
-
-    auto remove_dead = [](auto& container, int& counter) {
-        using ContainerType = typename std::remove_reference<decltype(container)>::type;
-        using ValueType = typename ContainerType::value_type;
-
-        container.erase(
-            std::remove_if(container.begin(), container.end(),
-                [&](const ValueType& entity) {
-                    if (entity->shouldDie()) {
-                        counter++;
-                        entity->removeFromChunk(true);
-
-                        return true;
-                    }
-                    return false;
-                }
-            ),
-            container.end()
-        );
-        };
-    if (tick % Random::Int(1,5) == 0) {
-        remove_dead(grass, dead_grass);
+    // Обработать всех существ
+    for (auto& cr : creature) {
+        cr->process(pop);
     }
-    remove_dead(rabbits, dead_rabbits);
-    remove_dead(wolves, dead_wolfs);
-    remove_dead(trees, dead_trees);
-    remove_dead(bushes, dead_bushes);
-    remove_dead(eagles, dead_eagles);
-    remove_dead(rats, dead_rats);
-    remove_dead(berrys, dead_berrys);
-    remove_dead(bears, dead_bears);
-    //remove_dead(grass, dead_grass);
-    // 3.  добавления новых существ
-    auto add_new_entities = [](auto& dest, auto& src) {
-        dest.reserve(dest.size() + src.size());
-        for (auto& entity : src) {
-            entity->updateChunk();
-            dest.emplace_back(std::move(entity));
-        }
-        src.clear();
-        };
-    pop.update(
-        static_cast<int>(new_rabbits.size()) - dead_rabbits,//обновление статистики
-        static_cast<int>(new_trees.size()) - dead_trees,
-        static_cast<int>(new_wolfs.size()) - dead_wolfs,
-        static_cast<int>(new_bushes.size()) - dead_bushes,
-        static_cast<int>(new_eagles.size()) - dead_eagles,
-        static_cast<int>(new_rats.size()) - dead_rats,
-        static_cast<int>(new_grass.size()) - dead_grass,
-        static_cast<int>(new_berrys.size()) - dead_berrys,
-        static_cast<int>(new_bears.size()) - dead_bears
-    );
-    add_new_entities(rabbits, new_rabbits);
-    add_new_entities(wolves, new_wolfs);
-    add_new_entities(trees, new_trees);
-    add_new_entities(bushes, new_bushes);
-    add_new_entities(eagles, new_eagles);
-    add_new_entities(rats, new_rats);
-    add_new_entities(grass, new_grass);
-    add_new_entities(berrys, new_berrys);
-    add_new_entities(bears, new_bears);
 
+    // Удалить мертвых существ напрямую
+    creature.erase(
+        std::remove_if(creature.begin(), creature.end(),
+            [&](const auto& entity) {
+                if (entity->shouldDie()) {
+                    dead_creature++;
+                    entity->removeFromChunk(true);
+                    return true;
+                }
+                return false;
+            }
+        ),
+        creature.end()
+    );
+
+    // Обновить популяцию перед добавлением новых существ
+    pop.update(static_cast<int>(new_creature.size()) - dead_creature);
+
+    // Добавить новых существ
+    creature.reserve(creature.size() + new_creature.size());
+    for (auto& entity : new_creature) {
+        entity->updateChunk();
+        creature.emplace_back(std::move(entity));
+    }
+    new_creature.clear();
 }
 //инициализация игры
 void InitGame() {
@@ -252,17 +189,16 @@ auto isVisible = [&](float x, float y) -> bool {
         ndcY >= -1.0f && ndcY <= 1.0f &&
         ndcZ >= 0.0f && ndcZ <= 1.0f);
     };
-
 int BATCH_SIZE = 4000;
+
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
-    
+
     context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
     for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
         size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
 
-       
-        const int OFFSET = 8; 
+        const int OFFSET = 8;
         std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global + OFFSET);
 
         ConstBuf::global[0] = XMFLOAT4(Camera::state.camXChunk, Camera::state.camYChunk, 0, 0);
@@ -273,131 +209,150 @@ void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instanc
         Draw::NullDrawer(1, static_cast<int>(count));
     }
 }
-// --- Одна текстура ---
-template<typename T, typename F>
-void DrawFromSharedVector(int textureIndex, const std::vector<std::shared_ptr<T>>& vec, F toInstance)
-{
-    if (vec.empty()) return;
 
-    std::vector<XMFLOAT4> instances;
-    instances.reserve(vec.size());
-    for (const auto& p : vec) {
-        if (!p) continue;
-        instances.push_back(toInstance(p.get()));
-    }
-    DrawBatchedInstances(textureIndex, instances);
-}
-
-// ---для растений (3 категории по возрасту) ---
-template<typename T>
-void DrawPlantsBySize(const int arr[4], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
-{
-    std::vector<XMFLOAT4> smallInstances; smallInstances.reserve(vec.size() / 3);
-    std::vector<XMFLOAT4> standardInstances; standardInstances.reserve(vec.size() / 3);
-    std::vector<XMFLOAT4> bigInstances; bigInstances.reserve(vec.size() / 3);
-
-    for (const auto& p : vec) {
-        if (!p) continue;
-        const Creature* c = p.get();
-        float as = c->age / ageScale;
-        if (c->age > c->age_limit / 2) {
-            bigInstances.emplace_back(c->x, c->y, as, static_cast<float>(arr[0]));
-        }
-        else if (c->age > c->age_limit / 3) {
-            standardInstances.emplace_back(c->x, c->y, as, static_cast<float>(arr[0]));
-        }
-        else {
-            smallInstances.emplace_back(c->x, c->y, max(as, 1.0f), static_cast<float>(arr[0]));
-        }
-    }
-
-    DrawBatchedInstances(arr[1], smallInstances);
-    DrawBatchedInstances(arr[2], standardInstances);
-    DrawBatchedInstances(arr[3], bigInstances);
-}
-
-// ---  для животных с разделением по полу ---
-template<typename T>
-void DrawAnimalsByGender(const int arr[3], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
-{
-    std::vector<XMFLOAT4> male; male.reserve(vec.size() / 2);
-    std::vector<XMFLOAT4> female; female.reserve(vec.size() / 2);
-
-    for (const auto& p : vec) {
-        if (!p) continue;
-        const Creature* c = p.get();
-        float s = max(c->age / ageScale, 10.0f);
-        if (c->gender == gender_::male) male.emplace_back(c->x, c->y, s, arr[0]);
-        else female.emplace_back(c->x, c->y, s, arr[0]);
-    }
-
-    DrawBatchedInstances(arr[1], male);
-    DrawBatchedInstances(arr[2], female);
-}
-
-// --- Спец-хелпер для простых одно-текстурных существ (Rabbits/Wolves) ---
-template<typename T>
-void DrawSimpleCreatures(int textureIndex, const std::vector<std::shared_ptr<T>>& vec, float ageScale)
-{
-    DrawFromSharedVector(textureIndex, vec, [ageScale](const T* c)->XMFLOAT4 {
-        float s = max(c->age / ageScale, 10.0f);
-        return XMFLOAT4(c->x, c->y, s, 1.0f);
-        });
-}
-
-// --- Спец-хелпер для вирусной проверки (infect / not infect) ---
-template<typename T>
-void DrawInfectCheck(const int arr[2], const std::vector<std::shared_ptr<T>>& vec, float ageScale)
-{
-    std::vector<XMFLOAT4> infect; infect.reserve(vec.size() / 2);
-    std::vector<XMFLOAT4> noinfect; noinfect.reserve(vec.size() / 2);
-
-    for (const auto& p : vec) {
-        if (!p) continue;
-        const Creature* c = p.get();
-        float s = max(c->age / ageScale, 10.0f);
-        if (c->infect) infect.emplace_back(c->x, c->y, s, 1.0f);
-        else noinfect.emplace_back(c->x, c->y, s, 1.0f);
-    }
-
-    DrawBatchedInstances(arr[0], infect);
-    DrawBatchedInstances(arr[1], noinfect);
-}
-
-
-  
-void ShowRacketAndBallFromVectors(
-    const std::vector<std::shared_ptr<Rabbit>>& rabbits,
-    const std::vector<std::shared_ptr<Tree>>& trees,
-    const std::vector<std::shared_ptr<Wolf>>& wolves,
-    const std::vector<std::shared_ptr<Bush>>& bushes,
-    const std::vector<std::shared_ptr<Eagle>>& eagles,
-    const std::vector<std::shared_ptr<Rat>>& rats,
-    const std::vector<std::shared_ptr<Grass>>& grass,
-    const std::vector<std::shared_ptr<Berry>>& berrys,
-    const std::vector<std::shared_ptr<Bear>>& bears)
+void ShowRacketAndBallFromVectors()
 {
     Shaders::vShader(0);
     Shaders::pShader(0);
 
-    int tree_arr[] = { 2,9,11,12 };
-    int bush_arr[] = { 1,7,13,14 };
-    int eagle_arr[] = {2, 8,16 };
-    int rat_arr[] = { 17,15 };   
-    int grass_arr[] = { 1,19,20,21 };
+    // Группировка существ по типам
+    std::vector<XMFLOAT4> wolves;
+    std::vector<XMFLOAT4> rabbits;
+    std::vector<XMFLOAT4> bears;
+    std::vector<XMFLOAT4> maleEagles;
+    std::vector<XMFLOAT4> femaleEagles;
+    std::vector<XMFLOAT4> smallTrees;
+    std::vector<XMFLOAT4> standardTrees;
+    std::vector<XMFLOAT4> bigTrees;
+    std::vector<XMFLOAT4> smallBushes;
+    std::vector<XMFLOAT4> standardBushes;
+    std::vector<XMFLOAT4> bigBushes;
+    std::vector<XMFLOAT4> berrys;
+    std::vector<XMFLOAT4> smallGrass;
+    std::vector<XMFLOAT4> standardGrass;
+    std::vector<XMFLOAT4> bigGrass;
+    std::vector<XMFLOAT4> infectedRats;
+    std::vector<XMFLOAT4> healthyRats;
 
-    // Рисуем: напрямую из векторов
-    DrawSimpleCreatures<Rabbit>(2, rabbits, SIZERABBITS);   
-    DrawSimpleCreatures<Wolf>(3, wolves, SIZEWOLFS);
-    DrawSimpleCreatures<Bear>(28, bears, SIZEBEARS);
-    
+    // Предварительное резервирование памяти (оптимизация)
+    size_t totalCreatures = creature.size();
+    size_t estimatedPerType = totalCreatures / 10; // примерная оценка
 
-    DrawAnimalsByGender<Eagle>(eagle_arr, eagles, SIZEAGLES);
-    DrawPlantsBySize<Tree>(tree_arr, trees, SIZETREES);      
-    DrawPlantsBySize<Bush>(bush_arr, bushes, SIZEBUSHES);    
-    DrawSimpleCreatures<Berry>(27, berrys, SIZEBERRYS);
-    DrawPlantsBySize<Grass>(grass_arr, grass, SIZEGRASS);    
-    DrawInfectCheck<Rat>(rat_arr, rats, SIZERATS);           
+    wolves.reserve(estimatedPerType);
+    rabbits.reserve(estimatedPerType);
+
+    // Обработка всех существ в одном цикле
+    for (const auto& cr : creature) {
+        if (!cr) continue;
+
+        switch (cr->type) {
+        case type_::wolf: {
+            float s = max(cr->age / SIZEWOLFS, 10.0f);
+            wolves.emplace_back(cr->x, cr->y, s, 1.0f);
+            break;
+        }
+        case type_::rabbit: {
+            float s = max(cr->age / SIZERABBITS, 10.0f);
+            rabbits.emplace_back(cr->x, cr->y, s, 1.0f);
+            break;
+        }
+        case type_::bear: {
+            float s = max(cr->age / SIZEBEARS, 10.0f);
+            bears.emplace_back(cr->x, cr->y, s, 1.0f);
+            break;
+        }
+        case type_::eagle: {
+            float s = max(cr->age / SIZEAGLES, 10.0f);
+            if (cr->gender == gender_::male) {
+                maleEagles.emplace_back(cr->x, cr->y, s, 2.0f);
+            }
+            else {
+                femaleEagles.emplace_back(cr->x, cr->y, s, 2.0f);
+            }
+            break;
+        }
+        case type_::tree: {
+            float as = cr->age / SIZETREES;
+            if (cr->age > cr->age_limit / 2) {
+                bigTrees.emplace_back(cr->x, cr->y, as, 2.0f);
+            }
+            else if (cr->age > cr->age_limit / 3) {
+                standardTrees.emplace_back(cr->x, cr->y, as, 2.0f);
+            }
+            else {
+                smallTrees.emplace_back(cr->x, cr->y, max(as, 1.0f), 2.0f);
+            }
+            break;
+        }
+        case type_::bush: {
+            float as = cr->age / SIZEBUSHES;
+            if (cr->age > cr->age_limit / 2) {
+                bigBushes.emplace_back(cr->x, cr->y, as, 1.0f);
+            }
+            else if (cr->age > cr->age_limit / 3) {
+                standardBushes.emplace_back(cr->x, cr->y, as, 1.0f);
+            }
+            else {
+                smallBushes.emplace_back(cr->x, cr->y, max(as, 1.0f), 1.0f);
+            }
+            break;
+        }
+        case type_::berry: {
+            float s = max(cr->age / SIZEBERRYS, 10.0f);
+            berrys.emplace_back(cr->x, cr->y, s, 1.0f);
+            break;
+        }
+        case type_::grass: {
+            float as = cr->age / SIZEGRASS;
+            if (cr->age > cr->age_limit / 2) {
+                bigGrass.emplace_back(cr->x, cr->y, as, 1.0f);
+            }
+            else if (cr->age > cr->age_limit / 3) {
+                standardGrass.emplace_back(cr->x, cr->y, as, 1.0f);
+            }
+            else {
+                smallGrass.emplace_back(cr->x, cr->y, max(as, 1.0f), 1.0f);
+            }
+            break;
+        }
+        case type_::rat: {
+            float s = max(cr->age / SIZERATS, 10.0f);
+            if (cr->infect) {
+                infectedRats.emplace_back(cr->x, cr->y, s, 1.0f);
+            }
+            else {
+                healthyRats.emplace_back(cr->x, cr->y, s, 1.0f);
+            }
+            break;
+        }
+        }
+    }
+
+    // Отрисовка всех групп
+    // Животные с одной текстурой
+    DrawBatchedInstances(3, wolves);        // волки
+    DrawBatchedInstances(2, rabbits);       // кролики  
+    DrawBatchedInstances(28, bears);        // медведи
+    DrawBatchedInstances(27, berrys);       // ягоды
+
+    // Животные с разделением по полу
+    DrawBatchedInstances(8, maleEagles);    // орлы-самцы
+    DrawBatchedInstances(16, femaleEagles); // орлы-самки
+
+    // Растения с разделением по размеру
+    DrawBatchedInstances(9, smallTrees);    // маленькие деревья
+    DrawBatchedInstances(11, standardTrees);// средние деревья  
+    DrawBatchedInstances(12, bigTrees);     // большие деревья
+
+    DrawBatchedInstances(7, smallBushes);   // маленькие кусты
+    DrawBatchedInstances(13, standardBushes);// средние кусты
+    DrawBatchedInstances(14, bigBushes);    // большие кусты
+
+    DrawBatchedInstances(19, smallGrass);   // маленькая трава
+    DrawBatchedInstances(20, standardGrass);// средняя трава
+    DrawBatchedInstances(21, bigGrass);     // большая трава
+
+    // Животные с проверкой заражения
+    DrawBatchedInstances(17, infectedRats); // зараженные крысы
+    DrawBatchedInstances(15, healthyRats);  // здоровые крысы
 }
-
-

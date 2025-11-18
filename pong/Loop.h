@@ -261,16 +261,7 @@ void Loop() {
 
 
 	mouse();
-	ShowRacketAndBallFromVectors(
-		rabbits,
-		trees,
-		wolves,
-		bushes,
-		eagles,
-		rats,
-		grass,
-		berrys,
-		bears);
+	ShowRacketAndBallFromVectors();
 
 	Showpopulations();
 	//UpdateAllGrass();
@@ -354,16 +345,7 @@ void Looppause() {
 	//ShowGrow();
 
 	mouse();
-	ShowRacketAndBallFromVectors(
-		rabbits,
-		trees,
-		wolves,
-		bushes,
-		eagles,
-		rats,
-		grass,
-		berrys,
-		bears);
+	ShowRacketAndBallFromVectors();
 
 	Showpopulations();
 
