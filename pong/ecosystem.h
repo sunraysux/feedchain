@@ -22,9 +22,6 @@
         creature.end()
     );
 
-    // Обновить популяцию перед добавлением новых существ
-    pop.update(static_cast<int>(new_creature.size()) - dead_creature);
-
     // Добавить новых существ
     creature.reserve(creature.size() + new_creature.size());
     for (auto& entity : new_creature) {

@@ -72,18 +72,15 @@ public:
 
         auto& chunk = getChunkByIndex(worldX, worldY);
         switch (type) {
-        case type_::rabbit: chunk.rabbit_sum++; break;
-        case type_::wolf:
-            if (chunk.wolf_sum < 0)
-                int x = 0;
-            chunk.wolf_sum++; break;
-        case type_::bear: chunk.bear_sum++; break;
-        case type_::eagle: chunk.eagle_sum++; break;
-        case type_::rat: chunk.rat_sum++; break;
-        case type_::tree: chunk.tree_sum++; break;
-        case type_::berry: chunk.berry_sum++; break;
-        case type_::grass: chunk.grass_sum++; break;
-        case type_::bush: chunk.bush_sum++; break;
+        case type_::rabbit: chunk.rabbit_sum++;rabbit_count++; break;
+        case type_::wolf:chunk.wolf_sum++;wolf_count++; break;
+        case type_::bear: chunk.bear_sum++;   bear_count++; break;
+        case type_::eagle: chunk.eagle_sum++; eagle_count++; break;
+        case type_::rat: chunk.rat_sum++;     rat_count++;  break;
+        case type_::tree: chunk.tree_sum++;   tree_count++; break;
+        case type_::berry: chunk.berry_sum++; berry_count++; break;
+        case type_::grass: chunk.grass_sum++; grass_count++; break;
+        case type_::bush: chunk.bush_sum++;   bush_count++; break;
         }
     }
 
@@ -91,19 +88,17 @@ public:
         if (worldX < 0 || worldY < 0) return;
         auto& chunk = getChunkByIndex(worldX, worldY);
         switch (type) {
-        case type_::rabbit: chunk.rabbit_sum--; break;
-        case type_::wolf:
-            if (chunk.wolf_sum == 0)
-                int x = 0;
-            chunk.wolf_sum--; break;
+        case type_::rabbit: chunk.rabbit_sum--;rabbit_count--; break;
+        case type_::wolf: chunk.wolf_sum--; wolf_count--; break;
+        
 
-        case type_::bear: chunk.bear_sum--; break;
-        case type_::eagle: chunk.eagle_sum--; break;
-        case type_::rat: chunk.rat_sum--; break;
-        case type_::tree: chunk.tree_sum--; break;
-        case type_::berry: chunk.berry_sum--; break;
-        case type_::grass: chunk.grass_sum--; break;
-        case type_::bush: chunk.bush_sum--; break;
+        case type_::bear: chunk.bear_sum--;  bear_count--;  break;
+        case type_::eagle: chunk.eagle_sum--;eagle_count--; break;
+        case type_::rat: chunk.rat_sum--;    rat_count--;   break;
+        case type_::tree: chunk.tree_sum--;  tree_count--; break;
+        case type_::berry: chunk.berry_sum--;berry_count--; break;
+        case type_::grass: chunk.grass_sum--;grass_count--; break;
+        case type_::bush: chunk.bush_sum--;  bush_count--; break;
         }
     }
 
@@ -138,9 +133,6 @@ public:
         return bear_count + pending < bear_limit;
     }
 
-    void update(int delta_creature) {
-        rabbit_count += delta_creature;
-    }
 };
 
 PopulationManager population;

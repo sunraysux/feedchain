@@ -507,7 +507,6 @@ void mouse()
                 wolf->hunger = 0;
                 wolf->age = 0;
                 new_creature.push_back(wolf);
-                population.wolf_count++;
                 wolfSpawnTick = tick;
             }
             break;
@@ -523,7 +522,6 @@ void mouse()
                 rabbit->hunger = 0;
                 rabbit->age = 0;
                 new_creature.push_back(rabbit);
-                population.rabbit_count++;
                 rabbitSpawnTick = tick;
             }
             break;
@@ -541,7 +539,6 @@ void mouse()
                 tree->id = plant_id;
                 tree->updateChunk();
                 new_creature.push_back(tree);
-                population.tree_count++;
             }
             break;
         }
@@ -558,7 +555,6 @@ void mouse()
                 gras->id = plant_id;
                 gras->updateChunk();
                 new_creature.push_back(gras);
-                population.grass_count++;
             }
             break;
         }
@@ -574,7 +570,6 @@ void mouse()
                 plant_id += 1;
                 bush->id = plant_id;
                 new_creature.push_back(bush);
-                population.bush_count++;
             }
             break;
         }
@@ -605,7 +600,6 @@ void mouse()
                 rat->hunger = 0;
                 rat->age = 0;
                 new_creature.push_back(rat);
-                population.rat_count++;
                 ratSpawnTick = tick;
             }
             break;
@@ -629,7 +623,6 @@ void mouse()
                 bear->hunger = 0;
                 bear->age = 0;
                 new_creature.push_back(bear);
-                population.bear_count++;
                 bearSpawnTick = tick;
             }
             break;
