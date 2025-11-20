@@ -269,28 +269,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
 
     float2 worldPos = input.wpos.xy;
-    int DEST_SIZE = 50;
-    float base_rangey = 8192 * 2;
-    float base_rangex = 8192 * 2;
-    
-    float cellSize = (base_rangex * 2) / DEST_SIZE;
-    float exactX = (worldPos.x + base_rangex) / cellSize;
-    float exactY = (worldPos.y + base_rangey) / cellSize;
-    
-    int x0 = (int)floor(exactX);
-    int y0 = (int)floor(exactY);
-    float fx = exactX - x0;
-    float fy = exactY - y0;
-    
-    float grassValue = 0.0f;
-    for (int i = 0; i <= 1; i++) {
-        for (int j = 0; j <= 1; j++) {
-            int sampleX = (x0 + i + DEST_SIZE) % DEST_SIZE;
-            int sampleY = (y0 + j + DEST_SIZE) % DEST_SIZE;
-            float weight = (i == 0 ? (1 - fx) : fx) * (j == 0 ? (1 - fy) : fy);
-            grassValue += gConst[sampleX + sampleY * DEST_SIZE + 2].x * weight;
-        }
-    }
     
     float erosion = fbm(worldPos * 0.3);
     float n = fbm(worldPos * 0.8 + erosion * 0.5) * 0.1 - 0.05;
@@ -299,8 +277,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     // Конвертируем обратно в абсолютные значения для палитры
     float absolute_height = input.height;
     float3 color = fantasyPalette(absolute_height);
-    color.y =0.1;
-    color.y += grassValue / 2000;
     // // Эффекты эрозии
     // float erosionEffect = 0.9 + erosion * 0.2;
     // color *= erosionEffect;

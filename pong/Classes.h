@@ -35,8 +35,8 @@ bool heightW(float worldX, float worldY) {
     auto& heightMap = Textures::Texture[1];
 
     // 1. Нормализация
-    float normalizedX = (worldX + 16384.0f) / 32768.0f;
-    float normalizedY = (worldY + 16384.0f) / 32768.0f;
+    float normalizedX = (worldX ) / 32768.0f;
+    float normalizedY = (worldY ) / 32768.0f;
 
     // 2. Жёсткое ограничение
     normalizedX = clamp(normalizedX, 0.0f, 1.0f);
@@ -125,8 +125,8 @@ public:
     void process(
         PopulationManager& pop) {
         age++;
-        if ((torusDelta(x, Camera::state.camX, base_rangex) < 1000) && (torusDelta(x, Camera::state.camX, base_rangex) > -1000) &&
-            (torusDelta(y, Camera::state.camY, base_rangey) < 1000) && (torusDelta(y, Camera::state.camY, base_rangey) > -1000))
+        if ((torusDeltaA(x, Camera::state.camX, base_rangex) < 1000) &&
+            (torusDeltaA(y, Camera::state.camY, base_rangey) < 1000) )
             Plnt::process<Grass>( pop);
     }
 

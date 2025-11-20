@@ -277,43 +277,47 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4(64, 64, Camera::state.camX, Camera::state.camY);
-	ConstBuf::global[1] = XMFLOAT4(1024, 1024, 0, 0);
-	const int SOURCE_SIZE = 256;
-	const int DEST_SIZE = 50;
-	const float BLOCK_SIZE = SOURCE_SIZE / (float)DEST_SIZE; // 5.12
+	ConstBuf::global[0] = XMFLOAT4(128, 128, Camera::state.camX, 0);
+	ConstBuf::global[1] = XMFLOAT4(0, 0, Camera::state.camY, 0);
+    const int SOURCE_SIZE = 256;
+    const int DEST_SIZE = 64;  // изменено с 50 на 64
+    const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4
 
-	for (int blockX = 0; blockX < DEST_SIZE; blockX++)
-		for (int blockY = 0; blockY < DEST_SIZE; blockY++)
-		{
-			float sum = 0.0f;
-			int count = 0;
+    for (int blockX = 0; blockX < DEST_SIZE; blockX++)
+        for (int blockY = 0; blockY < DEST_SIZE; blockY++)
+        {
+            float sum = 0.0f;
+            int count = 0;
 
-			// Используем float для точного расчета границ
-			int startX = (int)(blockX * BLOCK_SIZE);
-			int endX = (int)((blockX + 1) * BLOCK_SIZE);
-			int startY = (int)(blockY * BLOCK_SIZE);
-			int endY = (int)((blockY + 1) * BLOCK_SIZE);
+            // Проходим по блоку 4x4 в исходных данных
+            for (int dx = 0; dx < BLOCK_SIZE; dx++)
+                for (int dy = 0; dy < BLOCK_SIZE; dy++)
+                {
+                    int x = blockX * BLOCK_SIZE + dx;
+                    int y = blockY * BLOCK_SIZE + dy;
 
-			for (int x = startX; x < endX; x++)
-				for (int y = startY; y < endY; y++)
-				{
-					if (x < SOURCE_SIZE && y < SOURCE_SIZE)
-					{
-						ChunkWorld& currentChunk = population.getChunkByIndex(x, y);
-						sum += currentChunk.grass_sum;
-						count++;
-					}
-				}
+                    ChunkWorld& currentChunk = population.getChunkByIndex(x, y);
+                    sum += currentChunk.grass_sum;
+                    count++;
+                }
 
-			int index = blockX + blockY * DEST_SIZE;
-			ConstBuf::global[index + 2].x =  sum ; // Усредняем!
-		}
+            // Усредняем значения
+            float average = sum / count;
+            
+            int index = blockX + blockY * DEST_SIZE;
+            //if (index > DEST_SIZE* DEST_SIZE-100)
+            //    average = 100;
+           // else if (index < 100)
+           //     average = 20;
+           // else
+           //     average = 100;
+            ConstBuf::global[index].w = average;
+        }
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::ConstToPixel(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(1, 0, vertex);
-	Draw::NullDrawer(32768*8);
+	Draw::NullDrawer(128*128,9);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);

@@ -1370,8 +1370,8 @@ namespace Camera
 
 		// Мир от -16384 до +16384 (всего 32768)
 		XMFLOAT2 normalizedPos;
-		normalizedPos.x = (worldX + 16384.0f) / 32768.0f;  // Преобразуем -16384..+16384 в 0..1
-		normalizedPos.y = (worldY + 16384.0f) / 32768.0f;
+		normalizedPos.x = (worldX ) / 32768.0f;  // Преобразуем -16384..+16384 в 0..1
+		normalizedPos.y = (worldY ) / 32768.0f;
 
 		// Ограничение координат
 		normalizedPos.x = fmaxf(0.0f, fminf(1.0f, normalizedPos.x));

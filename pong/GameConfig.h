@@ -4,8 +4,8 @@
 #include <limits>
 
 int tick = 0;
-float base_rangey = 8192 * 2;
-float base_rangex = 8192 * 2;
+float base_rangey = 32768.0;
+float base_rangex = 32768.0;
 float clamp(float x, float a, float b)
 {
     return fmax(fmin(x, b), a);
@@ -18,9 +18,8 @@ float cursorY2 = -0.38;
 int slot_number = 1;
 int typeSelect = 1;
 inline float Wrap(float x, float range) {
-    float size = range * 2.0f; // полный размер мира
-    if (x >= range) x -= size;
-    if (x < -range) x += size;
+    if (x > range) x -= range;
+    if (x < 0) x += range;
     return x;
 }
 enum class gameState_ {
@@ -101,41 +100,6 @@ float DegreesToRadians(float degrees)
 
 
 
-
-inline float WrapXcam(float x)
-{
-    x /= 2;
-    float size = base_rangex * 2.0f;
-    while (x < -base_rangex) x += size;
-    while (x > base_rangex) x -= size;
-    return x;
-}
-
-inline float WrapYcam(float y)
-{
-    y /= 2;
-    float size = base_rangey * 2.0f;
-    while (y < -base_rangey) y += size;
-    while (y > base_rangey) y -= size;
-    return y;
-}
-
-
-inline float WrapX(float x)
-{
-    float size = base_rangex * 2.0f;
-    while (x < -base_rangex) x += size;
-    while (x > base_rangex) x -= size;
-    return x;
-}
-
-inline float WrapY(float y)
-{
-    float size = base_rangey * 2.0f;
-    while (y < -base_rangey) y += size;
-    while (y > base_rangey) y -= size;
-    return y;
-}
 const int CHUNK_SIZE = 8; // Размер чанка
 int xmin = 1024*4;
 int ymin = 1024*4;
@@ -143,7 +107,7 @@ const int CHUNKS_PER_SIDEX = xmin * 2 / CHUNK_SIZE;
 const int CHUNKS_PER_SIDEY = ymin * 2 / CHUNK_SIZE;
 
 static const int LARGE_CHUNK_SIZE = 128; 
-static const int CHUNKS_PER_SIDE_LARGE = base_rangex*2/128;
+static const int CHUNKS_PER_SIDE_LARGE = base_rangex/128;
 // секция данных игры  
 class Creature;
 
@@ -213,7 +177,7 @@ public:
 
 inline int coord_to_large_chunkx(float coord) {
     // Смещаем координату в положительный диапазон [0, 2048]
-    float normalized = coord + base_rangex;
+    float normalized = coord;
     // Вычисляем индекс и ограничиваем его
     int index = static_cast<int>(normalized / LARGE_CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDE_LARGE - 1);
@@ -221,7 +185,7 @@ inline int coord_to_large_chunkx(float coord) {
 
 inline int coord_to_large_chunky(float coord) {
     // Смещаем координату в положительный диапазон [0, 2048]
-    float normalized = coord + base_rangex;
+    float normalized = coord;
     // Вычисляем индекс и ограничиваем его
     int index = static_cast<int>(normalized / LARGE_CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDE_LARGE - 1);
@@ -245,9 +209,25 @@ inline float distanceSquared(float x1, float y1, float x2, float y2) {
     float dy = y1 - y2;
     return dx * dx + dy * dy;
 }
-
-
 inline float torusDelta(float from, float to, float size) {
     float d = to - from;
     return Wrap(d, size);
+}
+
+inline float torusDeltaSigned(float from, float to, float size) {
+    float diff = to - from;
+    if (diff > size / 2)
+        return diff - size;
+    else if (diff < -size / 2)
+        return diff + size;
+    else
+        return diff;
+}
+
+inline float torusDeltaA(float from, float to, float size) {
+    float diff = fabs(to - from);
+    if (diff > size / 2)
+        return size - diff;
+    else
+        return diff;
 }

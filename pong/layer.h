@@ -45,10 +45,10 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float2 regionOffset = float2(regionX * REGION_SIZE, regionY * REGION_SIZE);
 
     // Мировые координаты
-    float2 worldXY = regionOffset + (localPos - 0.5) * REGION_SIZE;
+    float2 worldXY = regionOffset + (localPos) * REGION_SIZE;
 
     // ФИКС: ПРОСТО ИСПОЛЬЗУЕМ localPos ДЛЯ UV
-    float2 regionUV = localPos;
+    float2 regionUV = (worldXY- regionOffset) / REGION_SIZE;
 
     float4 worldPos = float4(worldXY.x, worldXY.y, waterLevel, 1.0);
 

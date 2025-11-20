@@ -19,15 +19,8 @@ struct VS_OUTPUT
     float2 uv : TEXCOORD0;
     float height : TEXCOORD1;
     float2 wpos : TEXCOORD2;
+    uint instanceID : TEXCOORD3;
 };
-
-// Функция для зацикливания координат
-inline float Wrap(float x, float range) {
-    float size = range * 2.0f; // полный размер мира
-    while (x >= range) x -= size;
-    while (x < -range) x += size;
-    return x;
-}
 
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
@@ -35,34 +28,14 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     int gridX = gConst[0].x;
     int gridY = gConst[0].y;
-    int base_rangex = gConst[1].x;
-    int base_rangey = gConst[1].y;
-    float2 cameraPos = float2(gConst[0].z, gConst[0].w);
 
     int quadID = vID / 6;
     int localVertex = vID % 6;
 
     const float AREA_SIZE = 32768.0;
-    const float CHUNK_SIZE = AREA_SIZE / 8.0;
+    const uint INSTANCE_COUNT = 9; // 3x3 сетка инстансов
 
-    int quadsPerChunk = gridX * gridY;
-    int chunkID = quadID / quadsPerChunk;
-    int localQuadID = quadID % quadsPerChunk;
-
-    int tileX = chunkID % 8;
-    int tileY = chunkID / 8;
-
-    // ФИКС: ВЫРАВНИВАЕМ КАМЕРУ И СМЕЩАЕМ ДЛЯ ЦЕНТРИРОВАНИЯ
-    float2 alignedCameraPos;
-    alignedCameraPos.x = floor(cameraPos.x / CHUNK_SIZE) * CHUNK_SIZE;
-    alignedCameraPos.y = floor(cameraPos.y / CHUNK_SIZE) * CHUNK_SIZE;
-
-    // ФИКС: СМЕЩАЕМ ТАК, ЧТОБЫ ЦЕНТРАЛЬНЫЙ ЧАНК БЫЛ (0,0)
-    // tileX от 0 до 7, tileY от 0 до 7
-    // Хотим чтобы камера была в центре области (чанки -3.5 до +3.5)
-    float2 chunkOffset = float2(tileX - 3, tileY - 3) * CHUNK_SIZE;
-
-    // Смещение внутри чанка
+    // Смещение внутри инстанса (вершины квада)
     float2 offset;
     if (localVertex == 0) offset = float2(0, 0);
     else if (localVertex == 1) offset = float2(0, 1);
@@ -71,35 +44,39 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(0, 1);
     else offset = float2(1, 1);
 
-    // Позиция внутри чанка
+    // Вычисляем позицию вершины внутри инстанса
+    int verticesPerInstance = gridX * gridY * 6;
+    int localQuadID = (vID % verticesPerInstance) / 6;
+
     float2 normalizedPos = float2(
         (localQuadID % gridX + offset.x) / gridX,
         (localQuadID / gridX + offset.y) / gridY
     );
 
-    // Мировая позиция
-    float2 localXY = chunkOffset + (normalizedPos - 0.5) * CHUNK_SIZE;
-    float2 worldXY = alignedCameraPos + localXY;
+    // Базовые координаты для инстанса 0
+    float2 worldXY = normalizedPos * AREA_SIZE;
 
-    // ЗАЦИКЛИВАЕМ КООРДИНАТЫ ДЛЯ UV
-    float2 wrappedWorldXY;
-    wrappedWorldXY.x = Wrap(worldXY.x, 16384.0);
-    wrappedWorldXY.y = Wrap(worldXY.y, 16384.0);
+    // Вычисляем смещение для текущего инстанса (3x3 сетка)
+    int2 instanceOffset = int2(iID % 3 - 1, 1 - iID / 3); // [-1, 0, 1] для X и Y
+    worldXY += instanceOffset * AREA_SIZE;
 
-    // Преобразуем зацикленные координаты в UV
-    float2 regionUV = (wrappedWorldXY + 16384.0) / 32768.0;
-
-    // Высота
-    float4 pos = float4(worldXY, 0, 1);
+    // UV с учетом смещения инстанса
+    float2 regionUV = (worldXY- instanceOffset * AREA_SIZE) / (AREA_SIZE);
+    if (regionUV.y < 0.00001)regionUV.y = 1;
+    if (regionUV.x < 0.00001)regionUV.x = 1;
+    // Высота из текстуры
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
 
     float heightScale = 1500;
-    float worldZ = height *heightScale ;
-    pos.z = worldZ;
+    float worldZ = height * heightScale;
+
+    float4 pos = float4(worldXY, worldZ, 1);
+
     output.uv = regionUV;
-    output.wpos = wrappedWorldXY;
+    output.wpos = worldXY;
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.height = worldZ;
+    output.instanceID = iID;
 
     return output;
 }
