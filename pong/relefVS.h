@@ -33,9 +33,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     int localVertex = vID % 6;
 
     const float AREA_SIZE = 32768.0;
-    const uint INSTANCE_COUNT = 9; // 3x3 сетка инстансов
+    const uint INSTANCE_COUNT = 9; 
 
-    // —мещение внутри инстанса (вершины квада)
     float2 offset;
     if (localVertex == 0) offset = float2(0, 0);
     else if (localVertex == 1) offset = float2(0, 1);
@@ -44,7 +43,6 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (localVertex == 4) offset = float2(0, 1);
     else offset = float2(1, 1);
 
-    // ¬ычисл€ем позицию вершины внутри инстанса
     int verticesPerInstance = gridX * gridY * 6;
     int localQuadID = (vID % verticesPerInstance) / 6;
 
@@ -53,18 +51,15 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
         (localQuadID / gridX + offset.y) / gridY
     );
 
-    // Ѕазовые координаты дл€ инстанса 0
     float2 worldXY = normalizedPos * AREA_SIZE;
 
-    // ¬ычисл€ем смещение дл€ текущего инстанса (3x3 сетка)
-    int2 instanceOffset = int2(iID % 3 - 1, 1 - iID / 3); // [-1, 0, 1] дл€ X и Y
+    int2 instanceOffset = int2(iID % 3 - 1, 1 - iID / 3); 
     worldXY += instanceOffset * AREA_SIZE;
 
-    // UV с учетом смещени€ инстанса
     float2 regionUV = (worldXY- instanceOffset * AREA_SIZE) / (AREA_SIZE);
     if (regionUV.y < 0.00001)regionUV.y = 1;
     if (regionUV.x < 0.00001)regionUV.x = 1;
-    // ¬ысота из текстуры
+
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
 
     float heightScale = 1500;
