@@ -1,4 +1,4 @@
-
+п»ї
 
 static bool keyPressed[256] = { 0 };
 static bool mouseLeftDown = false;
@@ -50,7 +50,7 @@ void checkButtons()
 {
     bool shiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000);
 
-    // Клавиатура
+    // РљР»Р°РІРёР°С‚СѓСЂР°
     if (keyPressed[VK_SHIFT])
         Camera::state.speedMul = 10.0f;
     else
@@ -109,14 +109,14 @@ void checkButtons()
         gameState = gameState_::MainMenu;
     }
 
-    // Мышь 
+    // РњС‹С€СЊ 
     if (mouseWheelDelta != 0)
     {
         Camera::HandleMouseWheel(mouseWheelDelta);
         mouseWheelDelta = 0;
     }
 
-    // Главное меню
+    // Р“Р»Р°РІРЅРѕРµ РјРµРЅСЋ
     if (gameState == gameState_::MainMenu)
     {
         if (!settings && !info) {
@@ -160,12 +160,12 @@ void checkButtons()
         return;
     }
 
-    // Игра
+    // РРіСЂР°
     if (mouseLeftDown)
     {
 
 
-        // --- Слоты ---
+        // --- РЎР»РѕС‚С‹ ---
         if ((barBottom < Camera::state.mousendcY && Camera::state.mousendcY < barHeights) &&
             (barPositions - 0.1f + 1 * 0.1f < Camera::state.mousendcX && Camera::state.mousendcX < barPositions + 3 * 0.1f))
         {
@@ -204,7 +204,7 @@ void checkButtons()
             }
         }
 
-        // --- Панель типов ---
+        // --- РџР°РЅРµР»СЊ С‚РёРїРѕРІ ---
         if ((Camera::state.mousendcX >= typeBarX && Camera::state.mousendcX <= typeBarX + typeBarW) &&
             (Camera::state.mousendcY <= typeBarY && Camera::state.mousendcY >= typeBarY - typeBarH))
         {
@@ -230,7 +230,7 @@ void checkButtons()
             }
         }
 
-        // --- Панель скорости ---
+        // --- РџР°РЅРµР»СЊ СЃРєРѕСЂРѕСЃС‚Рё ---
         if ((Camera::state.mousendcX >= speedBarX && Camera::state.mousendcX <= speedBarX + speedBarW) &&
             (Camera::state.mousendcY <= speedBarY && Camera::state.mousendcY >= speedBarY - speedBarH))
         {
@@ -269,7 +269,7 @@ void checkButtons()
             }
         }
 
-        // ---Статистика---
+        // ---РЎС‚Р°С‚РёСЃС‚РёРєР°---
         if ((Camera::state.mousendcX >= statBTNX && Camera::state.mousendcX <= statBTNX + statBTNW) &&
             (Camera::state.mousendcY <= statBTNY + statBTNH && Camera::state.mousendcY >= statBTNY)) {
             if (!statistik) statistik = true;
@@ -419,26 +419,44 @@ void mouse()
 {
     if (tick - tickSTAT >= 60) {
         tickSTAT = tick;
+        int plants_p = population.bush_count + population.tree_count + population.grass_count;
+        int herbivores_p = population.rabbit_count + population.rat_count;
+        int hunter_p= population.bear_count + population.eagle_count + population.wolf_count;
 
         if (stat_size < 100) {
-            plants_pop[stat_size] = population.bush_count + population.tree_count + population.grass_count;
-            herbivores_pop[stat_size] = population.rabbit_count + population.rat_count;
-            hunter_pop[stat_size] = population.bear_count + population.eagle_count + population.wolf_count;
+            plants_pop[stat_size] =     plants_p;
+            herbivores_pop[stat_size] = herbivores_p;
+            hunter_pop[stat_size] =     hunter_p;
             stat_size++;
+            if (pmax < plants_p)
+                pmax = plants_p;
+            if (hemax < herbivores_p)
+                hemax = herbivores_p;
+            if (humax < hunter_p)
+                humax = hunter_p;
         }
         else {
+            pmax = 0;
+            hemax = 0;
+            humax = 0;
             for (int i = 0; i < 99; i++) {
                 plants_pop[i] = plants_pop[i + 1];
                 herbivores_pop[i] = herbivores_pop[i + 1];
                 hunter_pop[i] = hunter_pop[i + 1];
+                if (pmax < plants_pop[i])
+                    pmax = plants_pop[i];
+                if (hemax < herbivores_pop[i])
+                    hemax = herbivores_pop[i];
+                if (humax < hunter_pop[i])
+                    humax = hunter_pop[i];
             }
-            plants_pop[99] = population.bush_count + population.tree_count + population.grass_count;
-            herbivores_pop[99] = population.rabbit_count + population.rat_count;
-            hunter_pop[99] = population.bear_count + population.eagle_count + population.wolf_count;
+            plants_pop[99] =     plants_p;
+            herbivores_pop[99] = herbivores_p;
+            hunter_pop[99] =     hunter_p;
         }
     }
 
-    drawCursor(); // отрисовываем курсор с текстурой выбранного животного
+    drawCursor(); // РѕС‚СЂРёСЃРѕРІС‹РІР°РµРј РєСѓСЂСЃРѕСЂ СЃ С‚РµРєСЃС‚СѓСЂРѕР№ РІС‹Р±СЂР°РЅРЅРѕРіРѕ Р¶РёРІРѕС‚РЅРѕРіРѕ
 
     if (seed > 0) {
         if (seed == 1)
@@ -456,8 +474,8 @@ void mouse()
         Draw::Thunder(1);
 
         seed++;
-        if (seed > 8) // сколько кадров жить
-            seed = 0; // выключить
+        if (seed > 8) // СЃРєРѕР»СЊРєРѕ РєР°РґСЂРѕРІ Р¶РёС‚СЊ
+            seed = 0; // РІС‹РєР»СЋС‡РёС‚СЊ
 
     }
 
@@ -634,15 +652,15 @@ void mouse()
 }
 
 void DrawNumber(int number, float startX, float startY, float digitWidth, float digitHeight) {
-    // Преобразуем число в строку
+    // РџСЂРµРѕР±СЂР°Р·СѓРµРј С‡РёСЃР»Рѕ РІ СЃС‚СЂРѕРєСѓ
     std::string numStr = std::to_string(number);
 
-    // Отображаем каждую цифру
+    // РћС‚РѕР±СЂР°Р¶Р°РµРј РєР°Р¶РґСѓСЋ С†РёС„СЂСѓ
     for (int i = 0; i < numStr.length(); i++) {
-        int digit = numStr[i] - '0'; // получаем цифру от 0 до 9
+        int digit = numStr[i] - '0'; // РїРѕР»СѓС‡Р°РµРј С†РёС„СЂСѓ РѕС‚ 0 РґРѕ 9
         float x = startX + i * digitWidth;
 
-        // Используем текстуру 100 + digit (100-109)
+        // РСЃРїРѕР»СЊР·СѓРµРј С‚РµРєСЃС‚СѓСЂСѓ 100 + digit (100-109)
         Draw::DrawUIimage(100 + digit, x, x + digitWidth, startY, startY + digitHeight);
     }
 }
@@ -655,7 +673,7 @@ void DrawSTAT(PopulationManager& pop)
     if (hunterStat) {
         for (int i = 0;i < min(tickSTAT / 60, 100);i++)
         {
-            ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], pop.huntersMAX, 1, min(tickSTAT / 60, 100));
+            ConstBuf::global[i] = XMFLOAT4(hunter_pop[i], humax, 1, min(tickSTAT / 60, 100));
         }
         ConstBuf::Update(5, ConstBuf::global);
         ConstBuf::ConstToVertex(5);
@@ -667,7 +685,7 @@ void DrawSTAT(PopulationManager& pop)
     if (plantStat) {
         for (int i = 0;i < min(tickSTAT / 60, 100);i++)
         {
-            ConstBuf::global[i] = XMFLOAT4(plants_pop[i], pop.plantsMAX, 0, min(tickSTAT / 60, 100));
+            ConstBuf::global[i] = XMFLOAT4(plants_pop[i], pmax, 0, min(tickSTAT / 60, 100));
         }
         ConstBuf::Update(5, ConstBuf::global);
         ConstBuf::ConstToVertex(5);
@@ -679,7 +697,7 @@ void DrawSTAT(PopulationManager& pop)
     if (herbivoresStat) {
         for (int i = 0;i < min(tickSTAT / 60, 100);i++)
         {
-            ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], pop.herbivoresMAX, 0.5, min(tickSTAT / 60, 100));
+            ConstBuf::global[i] = XMFLOAT4(herbivores_pop[i], hemax, 0.5, min(tickSTAT / 60, 100));
         }
         ConstBuf::Update(5, ConstBuf::global);
         ConstBuf::ConstToVertex(5);
@@ -763,10 +781,10 @@ void Showpopulations() {
         DrawSTAT(population);
         Draw::DrawUIimage(47, statistikX, statistikX + statistikW, statistikY, statistikY + statistikH);
 
-        // Отображаем текущие значения массивов
+        // РћС‚РѕР±СЂР°Р¶Р°РµРј С‚РµРєСѓС‰РёРµ Р·РЅР°С‡РµРЅРёСЏ РјР°СЃСЃРёРІРѕРІ
         float yOffset = 0;
-        float digitWidth = 10.0f; // ширина одной цифры
-        float digitHeight = 20.0f; // высота цифры
+        float digitWidth = 10.0f; // С€РёСЂРёРЅР° РѕРґРЅРѕР№ С†РёС„СЂС‹
+        float digitHeight = 20.0f; // РІС‹СЃРѕС‚Р° С†РёС„СЂС‹
 
         // Plants population
 

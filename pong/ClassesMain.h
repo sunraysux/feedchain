@@ -156,7 +156,7 @@ public:
     float dirX = 0.0f, dirY = 0.0f;
     int remainingSteps = 0;
     float speed = 1.0f;
-    int MATURITY_TICKS = 200;
+    int MATURITY_TICKS = 100;
     bool shouldDie() const override {
         return dead || age > age_limit || hunger > hunger_limit;
     }
@@ -198,7 +198,7 @@ protected:
         switch (type) {
         case type_::rabbit:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 1000;
-            if (currentChunk.rabbit_sum > 10)
+            if (currentChunk.rabbit_sum > 100)
                 currentResource = -10000;
             if (maturity_age < age)
                 currentResource += currentChunk.rabbit_sum * 100 ;
@@ -225,9 +225,9 @@ protected:
         if (rich) {
             if (currentResource >= 20) {
                 
-                float a = Random::Float(0, 2 * 3.14159265f);
-                dirX = cosf(a);
-                dirY = sinf(a);
+                //float a = Random::Float(0, 2 * 3.14159265f);
+                //dirX = cosf(a);
+                //dirY = sinf(a);
                 return true;
             }
             else
@@ -238,7 +238,7 @@ protected:
             float a = Random::Float(0, 2 * 3.14159265f);
             dirX = cosf(a);
             dirY = sinf(a);
-            return true;
+            return false;
         }
 
         // Поиск лучшего чанка
@@ -295,11 +295,11 @@ protected:
         }
 
         if (bestChunkX != -1 && bestChunkY != -1) {
-            float targetX = (bestChunkX + 0.5f) * LARGE_CHUNK_SIZE - base_rangex;
-            float targetY = (bestChunkY + 0.5f) * LARGE_CHUNK_SIZE - base_rangey;
+            float targetX = (bestChunkX + 0.5f) * LARGE_CHUNK_SIZE ;
+            float targetY = (bestChunkY + 0.5f) * LARGE_CHUNK_SIZE ;
 
-            float dx = torusDelta(x, targetX, base_rangex);
-            float dy = torusDelta(y, targetY, base_rangey);
+            float dx = torusDeltaSigned(x, targetX, base_rangex);
+            float dy = torusDeltaSigned(y, targetY, base_rangey);
             float d = std::sqrt(dx * dx + dy * dy);
 
             if (d > 1e-6f) {
@@ -488,7 +488,7 @@ protected:
                     } while (partner->nextPositionX == 0 && partner->nextPositionY == 0);
                     partner->isDirectionSelect = true;
                     partner->step = Random::Int(5, 15);
-                    new_creature.push_back(offspring);
+                    new_creature.push_back(std::move(offspring));
                     break;
                 }
             }

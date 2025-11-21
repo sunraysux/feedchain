@@ -37,6 +37,9 @@ float z = 0;
 int plants_pop[4000];
 int herbivores_pop[4000];
 int hunter_pop[4000];
+int pmax=0;
+int hemax=0;
+int humax=0;
 int stat_size = 0;
 int seed = 0;
 

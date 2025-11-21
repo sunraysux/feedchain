@@ -1,15 +1,15 @@
-inline int coord_to_chunkx(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
+п»їinline int coord_to_chunkx(float coord) {
+    // РЎРјРµС‰Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёР· [-50,50] РІ [0,100]
     float normalized = coord + xmin - Camera::state.camX;
-    // Вычисляем индекс и ограничиваем его
+    // Р’С‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ Рё РѕРіСЂР°РЅРёС‡РёРІР°РµРј РµРіРѕ
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
 }
 
 inline int coord_to_chunky(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
+    // РЎРјРµС‰Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёР· [-50,50] РІ [0,100]
     float normalized = coord + ymin - Camera::state.camY;
-    // Вычисляем индекс и ограничиваем его
+    // Р’С‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ Рё РѕРіСЂР°РЅРёС‡РёРІР°РµРј РµРіРѕ
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
 }
@@ -47,17 +47,14 @@ public:
     const int rat_limit = 5000;
     const int berry_limit = 50000;
     const int bear_limit = 5000;
-    int plantsMAX = grass_limit + tree_limit + bush_limit;
-    int huntersMAX = wolf_limit + bear_limit;
-    int herbivoresMAX = rat_limit + rabbit_limit;
 
 
     std::vector<std::vector<ChunkWorld>> chunks;
 
-    // Конструктор
+    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
     PopulationManager() : chunks(CHUNKS_PER_SIDE_LARGE, std::vector<ChunkWorld>(CHUNKS_PER_SIDE_LARGE)) {}
 
-    // Методы для работы с чанками
+    // РњРµС‚РѕРґС‹ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ С‡Р°РЅРєР°РјРё
     ChunkWorld& getChunk(int worldX, int worldY) {
         int chunkX = coord_to_large_chunkx(worldX);
         int chunkY = coord_to_large_chunky(worldY);
@@ -67,7 +64,7 @@ public:
         return chunks[chunkX][chunkY];
     }
 
-    // Обновление статистики в чанке при добавлении/удалении существа
+    // РћР±РЅРѕРІР»РµРЅРёРµ СЃС‚Р°С‚РёСЃС‚РёРєРё РІ С‡Р°РЅРєРµ РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё/СѓРґР°Р»РµРЅРёРё СЃСѓС‰РµСЃС‚РІР°
     void addToChunkWorld(int worldX, int worldY, type_ type) {
 
         auto& chunk = getChunkByIndex(worldX, worldY);
@@ -180,7 +177,7 @@ public:
 
             auto& container = getChunkContainer(chunk, i);
 
-            // Удаляем weak_ptr, указывающий на текущий объект
+            // РЈРґР°Р»СЏРµРј weak_ptr, СѓРєР°Р·С‹РІР°СЋС‰РёР№ РЅР° С‚РµРєСѓС‰РёР№ РѕР±СЉРµРєС‚
             container.erase(
                 std::remove_if(container.begin(), container.end(),
                     [this](const std::weak_ptr<Creature>& wp) {
@@ -191,7 +188,7 @@ public:
             );
         }
 
-        // Удаляем weak_ptr, указывающий на текущий объект
+        // РЈРґР°Р»СЏРµРј weak_ptr, СѓРєР°Р·С‹РІР°СЋС‰РёР№ РЅР° С‚РµРєСѓС‰РёР№ РѕР±СЉРµРєС‚
 
         current_chunk_x = -1;
         current_chunk_y = -1;
@@ -203,8 +200,8 @@ public:
         int chunkWORLD_x = coord_to_large_chunkx(x);
         int chunkWORLD_y = coord_to_large_chunky(y);
         if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
-            removeFromChunk(false);  // Удаляем из старого чанка
-            // Добавляем в новый чанк
+            removeFromChunk(false);  // РЈРґР°Р»СЏРµРј РёР· СЃС‚Р°СЂРѕРіРѕ С‡Р°РЅРєР°
+            // Р”РѕР±Р°РІР»СЏРµРј РІ РЅРѕРІС‹Р№ С‡Р°РЅРє
             current_chunk_x = new_cx;
             current_chunk_y = new_cy;
 
@@ -223,9 +220,9 @@ public:
     virtual bool shouldDie() const = 0;
 
 protected:
-    // Виртуальный метод для получения нужного контейнера в чанке
+    // Р’РёСЂС‚СѓР°Р»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РЅСѓР¶РЅРѕРіРѕ РєРѕРЅС‚РµР№РЅРµСЂР° РІ С‡Р°РЅРєРµ
     virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, int i) = 0;
-    // Виртуальный метод для добавления в чанк (уже объявлен)
+    // Р’РёСЂС‚СѓР°Р»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РІ С‡Р°РЅРє (СѓР¶Рµ РѕР±СЉСЏРІР»РµРЅ)
     virtual void addToChunk(Chunk& chunk, bool world) = 0;
 };
 std::vector<std::shared_ptr<Creature>> creature;
