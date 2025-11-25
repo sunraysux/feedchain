@@ -125,8 +125,8 @@ public:
     void process(
         PopulationManager& pop) {
         age++;
-        if ((torusDeltaA(x, Camera::state.camX, base_rangex) < 1000) &&
-            (torusDeltaA(y, Camera::state.camY, base_rangey) < 1000) )
+       // if ((torusDeltaA(x, Camera::state.camX, base_rangex) < 1000) &&
+       //     (torusDeltaA(y, Camera::state.camY, base_rangey) < 1000) )
             Plnt::process<Grass>( pop);
     }
 
@@ -170,8 +170,8 @@ public:
 
     void process(
         PopulationManager& pop) {
-        if ((torusDelta(x, Camera::state.camX, base_rangex) < 1000) && (torusDelta(x, Camera::state.camX, base_rangex) > -1000) &&
-            (torusDelta(y, Camera::state.camY, base_rangey) < 1000) && (torusDelta(y, Camera::state.camY, base_rangey) > -1000))
+       // if ((torusDeltaSigned(x, Camera::state.camX, base_rangex) < 1000) && (torusDeltaSigned(x, Camera::state.camX, base_rangex) > -1000) &&
+        //    (torusDeltaSigned(y, Camera::state.camY, base_rangey) < 1000) && (torusDeltaSigned(y, Camera::state.camY, base_rangey) > -1000))
         Plnt::process<Tree>( pop);
     }
 

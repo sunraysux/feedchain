@@ -88,7 +88,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
 
 
-        if (time >= timer::nextFrameTime)
+       // if (time >= timer::nextFrameTime)
         {
             currentTime = timer::GetCounter();
 
@@ -105,7 +105,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             double frameInterval = timer::frameBeginTime - currentTime;
         }
 
-        Sleep((DWORD)min(FRAME_LEN, max(FRAME_LEN - timer::frameRenderingDuration, 0)));
+        //Sleep((DWORD)min(FRAME_LEN, max(FRAME_LEN - timer::frameRenderingDuration, 0)));
     }
 
     return (int)msg.wParam;

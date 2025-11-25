@@ -198,10 +198,8 @@ protected:
         switch (type) {
         case type_::rabbit:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 1000;
-            if (currentChunk.rabbit_sum > 100)
-                currentResource = -10000;
             if (maturity_age < age)
-                currentResource += currentChunk.rabbit_sum * 100 ;
+                currentResource += currentChunk.rabbit_sum * 10 ;
             break;
         case type_::rat:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
@@ -223,7 +221,7 @@ protected:
             return false;
         }
         if (rich) {
-            if (currentResource >= 20) {
+            if (currentResource >= 50) {
                 
                 //float a = Random::Float(0, 2 * 3.14159265f);
                 //dirX = cosf(a);
@@ -234,11 +232,11 @@ protected:
                 return false;
         }
         // Если в текущем чанке достаточно ресурсов
-        if (currentResource >= 100) {
+        if (currentResource >= 50) {
             float a = Random::Float(0, 2 * 3.14159265f);
             dirX = cosf(a);
             dirY = sinf(a);
-            return false;
+            return true;
         }
 
         // Поиск лучшего чанка
@@ -260,10 +258,8 @@ protected:
                     switch (type) {
                     case type_::rabbit:
                         neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
-                        if (neighbor.rabbit_sum > 10)
-                            neighborResource = -10000;
                         if (maturity_age < age)
-                            neighborResource += neighbor.rabbit_sum ;
+                            neighborResource += neighbor.rabbit_sum*100 ;
                         break;
                     case type_::rat:
                         neighborResource = neighbor.grass_sum + neighbor.berry_sum - neighbor.wolf_sum * 1000;
@@ -295,13 +291,11 @@ protected:
         }
 
         if (bestChunkX != -1 && bestChunkY != -1) {
-            float targetX = (bestChunkX + 0.5f) * LARGE_CHUNK_SIZE ;
-            float targetY = (bestChunkY + 0.5f) * LARGE_CHUNK_SIZE ;
-
+            float targetX = (bestChunkX + 0.5f) * LARGE_CHUNK_SIZE;
+            float targetY = (bestChunkY + 0.5f) * LARGE_CHUNK_SIZE;
             float dx = torusDeltaSigned(x, targetX, base_rangex);
             float dy = torusDeltaSigned(y, targetY, base_rangey);
             float d = std::sqrt(dx * dx + dy * dy);
-
             if (d > 1e-6f) {
                 dirX = dx / d;
                 dirY = dy / d;
@@ -349,8 +343,8 @@ protected:
                 eating = true;
                 auto bush = searchNearestCreature(x, y, type, false, gender, findRichChunk(true));
                 if (bush.first != -5000.0f) {
-                    float dx = torusDelta(x, bush.first, base_rangex);
-                    float dy = torusDelta(y, bush.second, base_rangey);
+                    float dx = torusDeltaSigned(x, bush.first, base_rangex);
+                    float dy = torusDeltaSigned(y, bush.second, base_rangey);
                     float d = std::sqrt(dx * dx + dy * dy);
                     if (d > 1e-6f) {
                         dirX = dx / d;
@@ -367,8 +361,8 @@ protected:
             else if (isMaturity && canAdd(pop, 0)) {
                 auto target = searchNearestCreature(x, y, type, true, gender, findRichChunk(true));
                 if (target.first != -5000.0f) {
-                    float dx = torusDelta(x, target.first, base_rangex);
-                    float dy = torusDelta(y, target.second, base_rangey);
+                    float dx = torusDeltaSigned(x, target.first, base_rangex);
+                    float dy = torusDeltaSigned(y, target.second, base_rangey);
                     float d = std::sqrt(dx * dx + dy * dy);
                     if (d > 1e-6f) {
                         dirX = dx / d;
@@ -454,8 +448,8 @@ protected:
                 if (partner->age < maturity_age || (tick - partner->birth_tick) < MATURITY_TICKS) continue;
 
                 // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
+                float dx = torusDeltaSigned(x, partner->x, base_rangex);
+                float dy = torusDeltaSigned(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
 
                 if (dist2 < 50.0f * 50.0f) {
@@ -507,8 +501,8 @@ protected:
                 if (partner->dead) continue;
 
                 // расстояние с учётом тора
-                float dx = torusDelta(x, partner->x, base_rangex);
-                float dy = torusDelta(y, partner->y, base_rangey);
+                float dx = torusDeltaSigned(x, partner->x, base_rangex);
+                float dy = torusDeltaSigned(y, partner->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
 
                 if (dist2 < eating_range) {

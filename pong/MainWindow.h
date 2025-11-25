@@ -15,10 +15,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     auto height = GetSystemMetrics(SM_CYSCREEN);
 
     HBRUSH brush = CreateSolidBrush(RGB(0, 0, 0));
-    WNDCLASSEX wcex = { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS, WndProc, 0,0, hInst, NULL, LoadCursor(NULL, IDC_ARROW), brush, NULL, "fx", NULL };
+    WNDCLASSEX wcex = { sizeof(WNDCLASSEX), CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS, WndProc, 0,0, hInst, NULL, LoadCursor(NULL, IDC_ARROW), brush, NULL, L"fx", NULL };
     RegisterClassEx(&wcex);
 
-    window.hWnd = CreateWindow("fx", "fx", WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, width, height, NULL, NULL, hInst, NULL);
+    window.hWnd = CreateWindow(L"fx", L"fx", WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, width, height, NULL, NULL, hInst, NULL);
     if (!window.hWnd) return FALSE;
 
     ShowWindow(window.hWnd, SW_SHOW);

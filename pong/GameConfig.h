@@ -18,7 +18,7 @@ float cursorY2 = -0.38;
 int slot_number = 1;
 int typeSelect = 1;
 inline float Wrap(float x, float range) {
-    if (x > range) x -= range;
+    if (x >= range) x -= range;
     if (x < 0) x += range;
     return x;
 }
@@ -212,19 +212,15 @@ inline float distanceSquared(float x1, float y1, float x2, float y2) {
     float dy = y1 - y2;
     return dx * dx + dy * dy;
 }
-inline float torusDelta(float from, float to, float size) {
-    float d = to - from;
-    return Wrap(d, size);
-}
 
 inline float torusDeltaSigned(float from, float to, float size) {
-    float diff = to - from;
-    if (diff > size / 2)
-        return diff - size;
-    else if (diff < -size / 2)
-        return diff + size;
-    else
-        return diff;
+    if (size <= 0.0f) return to - from;
+    float half = size * 0.5f;
+    float d = to - from;
+    d = std::fmod(d + half, size);
+    if (d < 0.0f) d += size;
+    d -= half;
+    return d;
 }
 
 inline float torusDeltaA(float from, float to, float size) {

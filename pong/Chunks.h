@@ -64,8 +64,8 @@ struct Chunk {
         for (auto& w : berrys) {
             if (auto c = w.lock()) {
                 if (id == c->id) {
-                    float dx = torusDelta(x, c->x, base_rangex);
-                    float dy = torusDelta(y, c->y, base_rangey);
+                    float dx = torusDeltaSigned(x, c->x, base_rangex);
+                    float dy = torusDeltaSigned(y, c->y, base_rangey);
                     float dist2 = dx * dx + dy * dy;
 
                     if (dist2 > 0.0f && dist2 < best_dist2) {
@@ -103,8 +103,8 @@ struct Chunk {
                     }
                 }
 
-                float dx = torusDelta(x, c->x, base_rangex);
-                float dy = torusDelta(y, c->y, base_rangey);
+                float dx = torusDeltaSigned(x, c->x, base_rangex);
+                float dy = torusDeltaSigned(y, c->y, base_rangey);
                 float dist2 = dx * dx + dy * dy;
 
                 if (dist2 > 0.0f && dist2 < best_dist2) {
@@ -131,8 +131,8 @@ struct Chunk {
 
         for (auto& w : creatures) {
             if (auto c = w.lock()) {
-                float dx = torusDelta(x, c->x, base_rangex);
-                float dy = torusDelta(y, c->y, base_rangey);
+                float dx = torusDeltaSigned(x, c->x, base_rangex);
+                float dy = torusDeltaSigned(y, c->y, base_rangey);
 
                 if (std::abs(dx) < half_side && std::abs(dy) < half_side) {
                     avoidX += -dx;
@@ -208,8 +208,8 @@ void kill_creatures_in_radius(float center_x, float center_y, float radius) {
                 for (auto& weak_creature : creatures) {
                     if (auto creature = weak_creature.lock()) {
                         // Проверяем расстояние до курсора с учетом тороидальности
-                        float dx = torusDelta(center_x, creature->x, base_rangex);
-                        float dy = torusDelta(center_y, creature->y, base_rangey);
+                        float dx = torusDeltaSigned(center_x, creature->x, base_rangex);
+                        float dy = torusDeltaSigned(center_y, creature->y, base_rangey);
                         float distance_sq = dx * dx + dy * dy;
 
                         // Если существо в радиусе, помечаем его как мертвое
