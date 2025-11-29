@@ -238,23 +238,19 @@ void Loop() {
 	Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
 	Draw::ClearDepth();
 	Rasterizer::Cull(Rasterizer::cullmode::back);
-	ticloop++;
 	switch (gameSpeed) {
 
 	case 1: // 1x → каждый кадр
 		ProcessCreatures(population);
-		ticloop = 0;
 		break;
 	case 2: // 2x → два раза за кадр
 		ProcessCreatures(population);
 		ProcessCreatures(population);
-		ticloop = 0;
 		break;
 	case 3: // 4x → четыре раза за кадр
 		ProcessCreatures(population);
 		ProcessCreatures(population);
 		ProcessCreatures(population);
-		ticloop = 0;
 		break;
 	}
 	//ShowGrow();
@@ -283,36 +279,36 @@ void Loop() {
     const int DEST_SIZE = 64;  // изменено с 50 на 64
     const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4
 
-    for (int blockX = 0; blockX < DEST_SIZE; blockX++)
-        for (int blockY = 0; blockY < DEST_SIZE; blockY++)
-        {
-            float sum = 0.0f;
-            int count = 0;
-
-            // Проходим по блоку 4x4 в исходных данных
-            for (int dx = 0; dx < BLOCK_SIZE; dx++)
-                for (int dy = 0; dy < BLOCK_SIZE; dy++)
-                {
-                    int x = blockX * BLOCK_SIZE + dx;
-                    int y = blockY * BLOCK_SIZE + dy;
-
-                    ChunkWorld& currentChunk = population.getChunkByIndex(x, y);
-                    sum += currentChunk.grass_sum;
-                    count++;
-                }
-
-            // Усредняем значения
-            float average = sum / count;
-            
-            int index = blockX + blockY * DEST_SIZE;
-            //if (index > DEST_SIZE* DEST_SIZE-100)
-            //    average = 100;
-           // else if (index < 100)
-           //     average = 20;
-           // else
-           //     average = 100;
-            ConstBuf::global[index].w = average;
-        }
+   //for (int blockX = 0; blockX < DEST_SIZE; blockX++)
+   //    for (int blockY = 0; blockY < DEST_SIZE; blockY++)
+   //    {
+   //        float sum = 0.0f;
+   //        int count = 0;
+   //
+   //        // Проходим по блоку 4x4 в исходных данных
+   //        for (int dx = 0; dx < BLOCK_SIZE; dx++)
+   //            for (int dy = 0; dy < BLOCK_SIZE; dy++)
+   //            {
+   //                int x = blockX * BLOCK_SIZE + dx;
+   //                int y = blockY * BLOCK_SIZE + dy;
+   //
+   //                ChunkWorld& currentChunk = population.getChunkByIndex(x, y);
+   //                sum += currentChunk.grass_sum;
+   //                count++;
+   //            }
+   //
+   //        // Усредняем значения
+   //        float average = sum / count;
+   //        
+   //        int index = blockX + blockY * DEST_SIZE;
+   //       if (index > DEST_SIZE* DEST_SIZE-100)
+   //           average = 1;
+   //        else if (index < 100)
+   //            average = 1;
+   //        else
+   //        //    average = 100;
+   //        ConstBuf::global[index].w = average;
+   //    }
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::ConstToPixel(5);
 	ConstBuf::Update(5, ConstBuf::global);

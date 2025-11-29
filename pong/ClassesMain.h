@@ -41,9 +41,9 @@ protected:
                 float radius2 = radius * radius;
 
                 int totalGrass = 0;
-                int MAX_PLANTS_PER_CHUNK = 1;
-                for (int i = -5; i < 5; i++) {
-                    for (int j = -5; j < 5; j++) {
+                int MAX_PLANTS_PER_CHUNK = 0;
+                for (int i = -10; i < 10; i++) {
+                    for (int j = -10; j < 10; j++) {
                         xc = coord_to_chunkx(seedlingx + i * CHUNK_SIZE);
                         yc = coord_to_chunky(seedlingy + j * CHUNK_SIZE);
                         int totalGrass1 = static_cast<int>(chunk_grid[xc][yc].trees.size());
@@ -51,10 +51,10 @@ protected:
                         totalGrass += totalGrass1;
                         if (totalGrass1 > MAX_PLANTS_PER_CHUNK) break;
                     }
-                    if (totalGrass > 1) break;
+                    if (totalGrass > 0) break;
                 }
 
-                if (totalGrass > 1) continue;
+                if (totalGrass > 0) continue;
                 auto offspring = createOffspring();
 
 
@@ -197,21 +197,23 @@ protected:
         switch (type) {
         case type_::rabbit:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 1000;
-            if (maturity_age < age)
+            if (maturity_age < age && currentChunk.rabbit_sum < 100)
                 currentResource += currentChunk.rabbit_sum * 10 ;
             break;
         case type_::rat:
             currentResource = currentChunk.grass_sum + currentChunk.berry_sum - currentChunk.wolf_sum * 100;
-            if (currentChunk.rat_sum > 10)
-                currentResource = -10000;
-            if (maturity_age < age)
-                currentResource += currentChunk.rat_sum - currentChunk.wolf_sum;
+            if (maturity_age < age && currentChunk.rat_sum < 100)
+                currentResource += currentChunk.rat_sum *10;
             break;
         case type_::wolf:
             currentResource = currentChunk.rabbit_sum + currentChunk.rat_sum;
+            if (maturity_age < age&& currentChunk.wolf_sum<100)
+                currentResource += currentChunk.wolf_sum * 10;
             break;
         case type_::bear:
             currentResource = currentChunk.rabbit_sum + currentChunk.bush_sum + currentChunk.berry_sum + currentChunk.wolf_sum + currentChunk.rat_sum;
+            if (maturity_age < age && currentChunk.bear_sum < 100)
+                currentResource += currentChunk.bear_sum * 10;
             break;
         case type_::eagle:
             currentResource = currentChunk.rat_sum;

@@ -38,12 +38,12 @@ public:
     int rat_count = 0;
     int berry_count = 0;
     int bear_count = 0;
-    const int grass_limit = 50000;
+    const int grass_limit = 5000;
     const int wolf_limit = 5000;
     const int rabbit_limit = 5000;
     const int tree_limit = 5000;
-    const int bush_limit = 20000;
-    const int eagle_limit = 10000;
+    const int bush_limit = 5000;
+    const int eagle_limit = 1000;
     const int rat_limit = 5000;
     const int berry_limit = 50000;
     const int bear_limit = 5000;

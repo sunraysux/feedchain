@@ -417,44 +417,7 @@ void checkButtons()
 
 void mouse()
 {
-    if (tick - tickSTAT >= 60) {
-        tickSTAT = tick;
-        int plants_p = population.bush_count + population.tree_count + population.grass_count;
-        int herbivores_p = population.rabbit_count + population.rat_count;
-        int hunter_p= population.bear_count + population.eagle_count + population.wolf_count;
-
-        if (stat_size < 100) {
-            plants_pop[stat_size] =     plants_p;
-            herbivores_pop[stat_size] = herbivores_p;
-            hunter_pop[stat_size] =     hunter_p;
-            stat_size++;
-            if (pmax < plants_p)
-                pmax = plants_p;
-            if (hemax < herbivores_p)
-                hemax = herbivores_p;
-            if (humax < hunter_p)
-                humax = hunter_p;
-        }
-        else {
-            pmax = 0;
-            hemax = 0;
-            humax = 0;
-            for (int i = 0; i < 99; i++) {
-                plants_pop[i] = plants_pop[i + 1];
-                herbivores_pop[i] = herbivores_pop[i + 1];
-                hunter_pop[i] = hunter_pop[i + 1];
-                if (pmax < plants_pop[i])
-                    pmax = plants_pop[i];
-                if (hemax < herbivores_pop[i])
-                    hemax = herbivores_pop[i];
-                if (humax < hunter_pop[i])
-                    humax = hunter_pop[i];
-            }
-            plants_pop[99] =     plants_p;
-            herbivores_pop[99] = herbivores_p;
-            hunter_pop[99] =     hunter_p;
-        }
-    }
+    
 
     drawCursor(); // отрисовываем курсор с текстурой выбранного животного
 
@@ -708,6 +671,44 @@ void DrawSTAT(PopulationManager& pop)
 
 void Showpopulations() {
 
+    if (tick - tickSTAT >= 60) {
+        tickSTAT = tick;
+        int plants_p = population.bush_count + population.tree_count + population.grass_count;
+        int herbivores_p = population.rabbit_count + population.rat_count;
+        int hunter_p = population.bear_count + population.eagle_count + population.wolf_count;
+
+        if (stat_size < 100) {
+            plants_pop[stat_size] = plants_p;
+            herbivores_pop[stat_size] = herbivores_p;
+            hunter_pop[stat_size] = hunter_p;
+            stat_size++;
+            if (pmax < plants_p)
+                pmax = plants_p;
+            if (hemax < herbivores_p)
+                hemax = herbivores_p;
+            if (humax < hunter_p)
+                humax = hunter_p;
+        }
+        else {
+            pmax = 0;
+            hemax = 0;
+            humax = 0;
+            for (int i = 0; i < 99; i++) {
+                plants_pop[i] = plants_pop[i + 1];
+                herbivores_pop[i] = herbivores_pop[i + 1];
+                hunter_pop[i] = hunter_pop[i + 1];
+                if (pmax < plants_pop[i])
+                    pmax = plants_pop[i];
+                if (hemax < herbivores_pop[i])
+                    hemax = herbivores_pop[i];
+                if (humax < hunter_pop[i])
+                    humax = hunter_pop[i];
+            }
+            plants_pop[99] = plants_p;
+            herbivores_pop[99] = herbivores_p;
+            hunter_pop[99] = hunter_p;
+        }
+    }
 
     switch (typeSelect)
     {

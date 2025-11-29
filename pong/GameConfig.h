@@ -43,11 +43,10 @@ int humax=0;
 int stat_size = 0;
 int seed = 0;
 
-static int ticloop = 0;
 
 int herbivoresTick = 30;
 int hunterTick = 50;
-int deadTick = 500;
+int deadTick = 50;
 
 int rabbitSpawnTick = -1000;
 int ratSpawnTick = -1000;
