@@ -198,7 +198,7 @@ public:
         nutritional_value = 1000;
         age = 0;
         maturity_age = 500;
-        age_limit = 1000;
+        age_limit = 10000;
         berry_count = 0;
         blossoming_age = 80;
         berry_limit = 5;
@@ -252,7 +252,8 @@ public:
             }
         }
         age++;
-
+        if (Random::Int(0, 100000) <= 1)
+            dead = true;
 
         if (age >= maturity_age && canAdd(pop, 0)) {
             if (tick % 5 == 0) {

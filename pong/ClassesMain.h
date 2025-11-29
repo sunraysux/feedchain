@@ -127,7 +127,7 @@ protected:
     template <typename T>
     void process(PopulationManager& pop) {
         if (shouldDie()) return;
-        if (tick % 10 == 0)
+        if (tick+id % 10 == 0)
             updateChunk();
         age++;
         if (type == type_::berry && !isRotten && age > age_limit * 0.5) {
@@ -135,9 +135,8 @@ protected:
         }
         if (type != type_::berry) {
             if (age >= maturity_age && canAdd(pop, 0)) {
-                if (tick % 5 == 0) {
-                    reproduce();
-                }
+                reproduce();
+                
             }
         }
     }

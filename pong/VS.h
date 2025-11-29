@@ -36,7 +36,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     const float CHUNK_SIZE = 32768.0f;
 
     float2 regionUV = (float2(x, y)) / CHUNK_SIZE;
-
+    if (regionUV.y < 0.00001)regionUV.y = 1;
+    if (regionUV.x < 0.00001)regionUV.x = 1;
     // 6) sample высоты (как в terrain)
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
 

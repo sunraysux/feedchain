@@ -277,7 +277,7 @@ void Loop() {
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 
-	ConstBuf::global[0] = XMFLOAT4(256, 256, Camera::state.camX, 0);
+	ConstBuf::global[0] = XMFLOAT4(512, 512, Camera::state.camX, 0);
 	ConstBuf::global[1] = XMFLOAT4(0, 0, Camera::state.camY, 0);
     const int SOURCE_SIZE = 256;
     const int DEST_SIZE = 64;  // изменено с 50 на 64
@@ -317,7 +317,7 @@ void Loop() {
 	ConstBuf::ConstToPixel(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(1, 0, vertex);
-	Draw::NullDrawer(256*256,9);
+	Draw::NullDrawer(512*512,9);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);

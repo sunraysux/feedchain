@@ -283,10 +283,10 @@ void ShowRacketAndBallFromVectors()
         }
         case type_::bush: {
             float as = cr->age / SIZEBUSHES;
-            if (cr->age > cr->age_limit / 2) {
-                bigBushes.emplace_back(cr->x, cr->y, as, 1.0f);
+            if (cr->age > 500) {
+                bigBushes.emplace_back(cr->x, cr->y, min(as,10), 1.0f);
             }
-            else if (cr->age > cr->age_limit / 3) {
+            else if (cr->age > 300) {
                 standardBushes.emplace_back(cr->x, cr->y, as, 1.0f);
             }
             else {
