@@ -293,6 +293,8 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="slotPS.h" />
     <ClInclude Include="slotVS.h" />
+    <ClInclude Include="sunPS.h" />
+    <ClInclude Include="sunVS.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="VS.h" />

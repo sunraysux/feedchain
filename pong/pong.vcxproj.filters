@@ -322,6 +322,12 @@
     <ClInclude Include="GameMain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="sunPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="sunVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

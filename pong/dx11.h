@@ -629,6 +629,8 @@ namespace Shaders {
 		CreateVS(8, nameToPatchLPCWSTR("lightningVS.h"));
 		CreatePS(9, nameToPatchLPCWSTR("slotPS.h"));
 		CreateVS(9, nameToPatchLPCWSTR("slotVS.h"));
+		CreatePS(10, nameToPatchLPCWSTR("sunPS.h"));
+		CreateVS(10, nameToPatchLPCWSTR("sunVS.h"));
 	}
 
 	void vShader(unsigned int n)
