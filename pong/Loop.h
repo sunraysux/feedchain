@@ -160,7 +160,32 @@ void FillHeightmapBuffer(XMFLOAT4* buffer, int bufferSize, int terrainType = 0) 
         }
     }
 }
+void FillTemperaturepBuffer(XMFLOAT4* buffer, int bufferSize, int terrainType = 0) {
+    const int gridSize = 65;
+    const int totalPoints = gridSize * gridSize;
 
+    DiamondSquare ds(gridSize, 0.65f);
+    ds.generateRealistic();
+
+    for (int i = 0; i < bufferSize; i++) {
+        XMFLOAT4& element = buffer[i];
+
+        for (int comp = 0; comp < 4; comp++) {
+            int idx = i * 4 + comp;
+            float height = (idx < totalPoints) ?
+                ds.heightmap[idx] : 0.0f;
+
+            height = max(0.0f, min(1.0f, height));
+
+            switch (comp) {
+            case 0: element.x = height; break;
+            case 1: element.y = height; break;
+            case 2: element.z = height; break;
+            case 3: element.w = height; break;
+            }
+        }
+    }
+}
 
 void terraloop()
 {
@@ -255,10 +280,10 @@ void Loop() {
 		break;
 	}
 	//ShowGrow();
-    for (int i=0;i<256;i++)
+    for (int i = 0; i < 256; i++)
         for (int j = 0; j < 256; j++) {
             auto& chunk=population.getChunkByIndex(i, j);
-            chunk.temperature = 1-sqrt(pow((i * 128 - 64) - sunX, 2) + pow((j * 128 - 64) - sunY, 2))/10000;
+            chunk.temperature = 1-sqrt(torusDeltaA((i * 128 - 64) , sunX, base_rangex) + torusDeltaA((j * 128 - 64), sunY, base_rangey))/100;
         }
 	mouse();
 	ShowRacketAndBallFromVectors();
@@ -279,7 +304,8 @@ void Loop() {
     auto& chunk = population.getChunk(Camera::state.camX, Camera::state.camY);
 	ConstBuf::global[0] = XMFLOAT4(512, 512, Camera::state.camX, 0);
 	ConstBuf::global[1] = XMFLOAT4(0, chunk.temperature, Camera::state.camY, 0);
-    
+   // for (int i = 0; i < 257; i++)
+   //     ConstBuf::drawerP[i];
     const int SOURCE_SIZE = 256;
     const int DEST_SIZE = 64;  // изменено с 50 на 64
     const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4

@@ -1,5 +1,15 @@
 ﻿void ProcessCreatures(PopulationManager& pop) {
     tick++;
+    sunX += 100;
+    sunY += 100;
+    if (sunX > base_rangex) {
+
+        sunX -= base_rangex;
+    }
+    if (sunY > base_rangex){
+
+        sunY -= base_rangex;
+    }
     int dead_creature = 0;
 
     // Обработать всех существ
@@ -212,8 +222,7 @@ void DrawSun() {
         Shaders::vShader(10);
         Shaders::pShader(10);
         ConstBuf::global[0] = XMFLOAT4(sunX, sunY, sunZ+Camera::state.camZ, 2);
-        sunX += 1;
-        sunY += 1;
+
         ConstBuf::Update(5, ConstBuf::global);
         ConstBuf::ConstToVertex(5);
         Draw::NullDrawer(1, 1);

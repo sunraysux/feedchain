@@ -12,6 +12,47 @@ struct VS_OUTPUT
 };
 
 
+float GetTemperarure(int x, int y)
+{
+    int linearIndex = y * 65 + x;
+    int bufferIndex = linearIndex / 4;
+    int component = linearIndex % 4;
+
+    float4 element = gConst[bufferIndex];
+
+    if (component == 0) return element.x;
+    else if (component == 1) return element.y;
+    else if (component == 2) return element.z;
+    else return element.w;
+}
+
+float SampleTemperature(float2 uv)
+{
+    float2 scaledUV = uv * 64.0f;
+
+    int x0 = floor(scaledUV.x);
+    int y0 = floor(scaledUV.y);
+    int x1 = x0 + 1;
+    int y1 = y0 + 1;
+
+    x0 = x0 % 65;
+    x1 = x1 % 65;
+    y0 = y0 % 65;
+    y1 = y1 % 65;
+
+    float h00 = GetTemperarure(x0, y0);
+    float h10 = GetTemperarure(x1, y0);
+    float h01 = GetTemperarure(x0, y1);
+    float h11 = GetTemperarure(x1, y1);
+
+    float fracX = frac(scaledUV.x);
+    float fracY = frac(scaledUV.y);
+
+    float top = lerp(h00, h10, fracX);
+    float bottom = lerp(h01, h11, fracX);
+    return lerp(top, bottom, fracY);
+}
+
 float3 desertPalette(float h)
 {
     float3 deepWater = float3(0.08, 0.15, 0.25);
@@ -277,7 +318,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     // Конвертируем обратно в абсолютные значения для палитры
     float absolute_height = input.height;
     float3 color = fantasyPalette(absolute_height);
-    color.x += gConst[1].y;
     // // Эффекты эрозии
     // float erosionEffect = 0.9 + erosion * 0.2;
     // color *= erosionEffect;
@@ -293,5 +333,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //
     // color *= (0.85 + textureNoise);
     //
+    color.x += gConst[1].y;
      return float4(color, 1.0f);
 }
