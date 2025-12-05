@@ -60,7 +60,7 @@ int lightingSpawnTick = -5000;
 
 float sunX = 0;
 float sunY = 0;
-float sunZ = 10000;
+float sunZ = 500;
 
 int virus = 0;
 bool info = false;

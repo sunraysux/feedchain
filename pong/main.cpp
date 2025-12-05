@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 
 const float PI = 3.1415926535897;
+
 #include "framework.h"
 #include "windows.h"
 #include "timer.h"

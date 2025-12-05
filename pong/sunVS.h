@@ -26,9 +26,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Данные инстанса
     float x = gConst[0].x;      // X координата
     float y = gConst[0].y;      // Y координата
-    float sz = gConst[0].z;     // Размер билборда
-    float billboardHeight = gConst[iID].w; // Высота билборда
-
+    float z = gConst[0].z;     // Размер билборда
+    float sz = 50;
     int gridX = 64;
     int gridY = 64;
 
@@ -45,13 +44,13 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float worldZ = height * heightScale;
 
     // Базовая позиция билборда
-    float3 p = float3(x, y, worldZ);
+    float3 p = float3(x, y, z);
 
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0, 0, gConst[iID + 8].w); // Z - это высота
+    float3 cameraUp = float3(0, 0, gConst[0].w); // Z - это высота
 
-    float3 bottomLeft = p + 10000;
-    float3 bottomRight = p - 10000;
+    float3 bottomLeft = p + cameraRight*sz;
+    float3 bottomRight = p - cameraRight*sz;
     float3 topLeft = p + cameraRight * sz + cameraUp * sz;
     float3 topRight = p - cameraRight * sz + cameraUp * sz;
 

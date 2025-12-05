@@ -1,4 +1,5 @@
-﻿static int lastTick = -1;
+﻿
+static int lastTick = -1;
 int colorType = 1;
 struct DiamondSquare {
     int size;
@@ -237,7 +238,7 @@ void Loop() {
 	//}
 	Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
 	Draw::ClearDepth();
-	Rasterizer::Cull(Rasterizer::cullmode::back);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
 	switch (gameSpeed) {
 
 	case 1: // 1x → каждый кадр
@@ -254,8 +255,11 @@ void Loop() {
 		break;
 	}
 	//ShowGrow();
-
-
+    for (int i=0;i<256;i++)
+        for (int j = 0; j < 256; j++) {
+            auto& chunk=population.getChunkByIndex(i, j);
+            chunk.temperature = 1-sqrt(pow((i * 128 - 64) - sunX, 2) + pow((j * 128 - 64) - sunY, 2))/10000;
+        }
 	mouse();
 	ShowRacketAndBallFromVectors();
 
@@ -272,9 +276,10 @@ void Loop() {
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
-
+    auto& chunk = population.getChunk(Camera::state.camX, Camera::state.camY);
 	ConstBuf::global[0] = XMFLOAT4(512, 512, Camera::state.camX, 0);
-	ConstBuf::global[1] = XMFLOAT4(0, 0, Camera::state.camY, 0);
+	ConstBuf::global[1] = XMFLOAT4(0, chunk.temperature, Camera::state.camY, 0);
+    
     const int SOURCE_SIZE = 256;
     const int DEST_SIZE = 64;  // изменено с 50 на 64
     const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4

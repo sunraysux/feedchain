@@ -16,6 +16,7 @@ inline int coord_to_chunky(float coord) {
 
 
 struct ChunkWorld {
+    float temperature;
     int rabbit_sum;
     int wolf_sum;
     int bear_sum;

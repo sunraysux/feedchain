@@ -1288,6 +1288,7 @@ namespace Camera
 		// Числовые копии позиции (используются внешним кодом)
 		float camX = 100.0f;
 		float camY = 100.0f;
+		float camZ;
 		int camXChunk = 0;
 		int camYChunk = 0;
 	} static state;
@@ -1436,10 +1437,10 @@ namespace Camera
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 
-		const float maxZ = 20000.0f;
+		const float maxZ = 1500.0f;
 		newPosZ = min(newPosZ, maxZ);
 		newTargetZ = min(newTargetZ, maxZ- dz1);
-
+		state.camZ = newPosZ;
 		state.position = XMVectorSetZ(state.position, newPosZ);
 		state.target = XMVectorSetZ(state.target, newTargetZ);
 

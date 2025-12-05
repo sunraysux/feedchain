@@ -211,7 +211,7 @@ void DrawSun() {
 
         Shaders::vShader(10);
         Shaders::pShader(10);
-        ConstBuf::global[0] = XMFLOAT4(sunX, sunY, sunZ, 0);
+        ConstBuf::global[0] = XMFLOAT4(sunX, sunY, sunZ+Camera::state.camZ, 2);
         sunX += 1;
         sunY += 1;
         ConstBuf::Update(5, ConstBuf::global);

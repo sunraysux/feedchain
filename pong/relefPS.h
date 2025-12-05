@@ -277,6 +277,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     // Конвертируем обратно в абсолютные значения для палитры
     float absolute_height = input.height;
     float3 color = fantasyPalette(absolute_height);
+    color.x += gConst[1].y;
     // // Эффекты эрозии
     // float erosionEffect = 0.9 + erosion * 0.2;
     // color *= erosionEffect;
