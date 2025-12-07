@@ -1437,7 +1437,7 @@ namespace Camera
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 
-		const float maxZ = 1500.0f;
+		const float maxZ = 150000.0f;
 		newPosZ = min(newPosZ, maxZ);
 		newTargetZ = min(newTargetZ, maxZ- dz1);
 		state.camZ = newPosZ;

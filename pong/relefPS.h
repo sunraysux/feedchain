@@ -301,15 +301,30 @@ float fbm(float2 p)
 
     return value;
 }
+float base_rangey = 32768.0;
+float base_rangex = 32768.0;
+ inline float torusDeltaA(float from, float to, float size) {
+     float diff = to - from;
+     if (diff < 0)
+         diff = diff * (-1);
+
+     return diff;
+ }
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
 
 
     float normalized_height = input.height / 1500.0;
+float2 worldPos = input.wpos.xy;
+float sunX = gConst[1].x;
+float sunY = gConst[1].y;
+float dx = torusDeltaA((worldPos.x), sunX, base_rangex);
+float dy = torusDeltaA((worldPos.y), sunY, base_rangey);
+float Dd = dx*dx + dy*dy;
+float DD = sqrt(Dd)/10000;
+float temperature = 1-DD;
 
-
-    float2 worldPos = input.wpos.xy;
     
     float erosion = fbm(worldPos * 0.3);
     float n = fbm(worldPos * 0.8 + erosion * 0.5) * 0.1 - 0.05;
@@ -333,6 +348,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //
     // color *= (0.85 + textureNoise);
     //
-    color.x += gConst[1].y;
+    color.x += temperature;
      return float4(color, 1.0f);
 }

@@ -283,7 +283,7 @@ void Loop() {
     for (int i = 0; i < 256; i++)
         for (int j = 0; j < 256; j++) {
             auto& chunk=population.getChunkByIndex(i, j);
-            chunk.temperature = 1-sqrt(torusDeltaA((i * 128 - 64) , sunX, base_rangex) + torusDeltaA((j * 128 - 64), sunY, base_rangey))/100;
+            chunk.temperature = 1-sqrt(pow(torusDeltaA((i * 128 - 64) , sunX, base_rangex),2) + pow(torusDeltaA((j * 128 - 64), sunY, base_rangey),2))/100;
         }
 	mouse();
 	ShowRacketAndBallFromVectors();
@@ -301,9 +301,8 @@ void Loop() {
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
-    auto& chunk = population.getChunk(Camera::state.camX, Camera::state.camY);
-	ConstBuf::global[0] = XMFLOAT4(512, 512, Camera::state.camX, 0);
-	ConstBuf::global[1] = XMFLOAT4(0, chunk.temperature, Camera::state.camY, 0);
+	ConstBuf::global[0] = XMFLOAT4(512, 512, 0, 0);
+	ConstBuf::global[1] = XMFLOAT4(sunX, sunY, 0, 0);
    // for (int i = 0; i < 257; i++)
    //     ConstBuf::drawerP[i];
     const int SOURCE_SIZE = 256;
@@ -340,8 +339,8 @@ void Loop() {
    //        //    average = 100;
    //        ConstBuf::global[index].w = average;
    //    }
-	ConstBuf::ConstToVertex(5);
-	ConstBuf::ConstToPixel(5);
+	//ConstBuf::ConstToVertex(5);
+	//ConstBuf::ConstToPixel(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(1, 0, vertex);
 	Draw::NullDrawer(512*512,9);
