@@ -59,15 +59,16 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float worldZ = height * heightScale+z;
 
     // Базовая позиция билборда
-    float3 p = float3(x, y, z);
+    float3 p = float3(x, y, worldZ);
 
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0, 0, 2); // Z - это высота
+    float3 cameraUp = float3(view[0]._m01, view[0]._m11, view[0]._m21);
+    float3 Up = float3(0, 0, 2); 
 
-    float3 bottomLeft = p + cameraRight*sz;
-    float3 bottomRight = p - cameraRight*sz;
-    float3 topLeft = p + cameraRight * sz + cameraUp * sz;
-    float3 topRight = p - cameraRight * sz + cameraUp * sz;
+    float3 bottomLeft = p + cameraRight * sz - cameraUp * sz ;
+    float3 bottomRight = p - cameraRight * sz - cameraUp * sz ;
+    float3 topLeft = p + cameraRight * sz + cameraUp * sz ;
+    float3 topRight = p - cameraRight * sz + cameraUp * sz ;
 
     float3 quad[6] = {
         bottomLeft, topLeft,bottomRight,

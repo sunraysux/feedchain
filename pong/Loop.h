@@ -264,7 +264,7 @@ void Loop() {
 	//}
 	Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
 	Draw::ClearDepth();
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::back);
 	switch (gameSpeed) {
 
 	case 1: // 1x → каждый кадр
@@ -302,11 +302,11 @@ void Loop() {
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
-	ConstBuf::global[0] = XMFLOAT4(512, 512, 0, 0);
+	ConstBuf::global[0] = XMFLOAT4(128, 128, 0, 0);
 	ConstBuf::global[1] = XMFLOAT4(sunX, sunY, 0, 0);
    // for (int i = 0; i < 257; i++)
    //     ConstBuf::drawerP[i];
-    const int SOURCE_SIZE = 256;
+    const int SOURCE_SIZE = 128;
     const int DEST_SIZE = 64;  // изменено с 50 на 64
     const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4
 
@@ -344,7 +344,7 @@ void Loop() {
 	//ConstBuf::ConstToPixel(5);
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(1, 0, vertex);
-	Draw::NullDrawer(512*512,9);
+	Draw::NullDrawer(128*128,9);
 	
 	//Depth::Depth(Depth::depthmode::readonly);
 	//Textures::RenderTarget(0, 0);
