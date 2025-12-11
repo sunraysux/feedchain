@@ -3,7 +3,7 @@ SamplerState samplerState : register(s0);
 
 cbuffer global : register(b5)
 {
-    float4 gConst[32];
+    float4 gConst[4096];
 };
 
 
@@ -17,17 +17,21 @@ struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD0;
+    uint instanceID : TEXCOORD1;
 };
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-
     float4 color = tex.Sample(samplerState, input.uv);
+    int bufferID = input.instanceID+8;
+    
+    float temp = gConst[bufferID].w;
 
     // если фон чЄрный Ч отбросить пиксель
     if (color.r < 0.0001 && color.g < 0.0001 && color.b < 0.0001)
         discard;
     float4 color2 = float4(0.09, 0.09, 0.09, 0.09);
+    color2.x += temp;
     return color + color2;
 
 }

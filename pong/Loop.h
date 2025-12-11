@@ -245,63 +245,78 @@ void StartMenu() {
 
 void Loop() {
 
-	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
-	Camera::Update();
-	frameConst();
-	Textures::RenderTarget(0, 0);
-	if (tick - lastTick > 2) {
-		lastTick = tick;
-		colorType = rand() % 6;
+    Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+    Camera::Update();
+    frameConst();
+    Textures::RenderTarget(0, 0);
+    if (tick - lastTick > 2) {
+        lastTick = tick;
+        colorType = rand() % 6;
 
-	}
-	//switch (colorType) {
-	//case 0: Draw::Clear({ 1.0f, 0.0f, 0.0f, 1.0f }); break; // Красный
-	//case 1: Draw::Clear({ 0.0f, 1.0f, 0.0f, 1.0f }); break; // Зеленый
-	//case 2: Draw::Clear({ 0.0f, 0.0f, 1.0f, 1.0f }); break; // Синий
-	//case 3: Draw::Clear({ 1.0f, 0.0f, 1.0f, 1.0f }); break; // Пурпурный
-	//case 4: Draw::Clear({ 1.0f, 1.0f, 0.0f, 1.0f }); break; // Желтый
-	//case 5: Draw::Clear({ 0.0f, 1.0f, 1.0f, 1.0f }); break; // Голубой
-	//}
-	Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
-	Draw::ClearDepth();
-	Rasterizer::Cull(Rasterizer::cullmode::back);
-	switch (gameSpeed) {
+    }
+    //switch (colorType) {
+    //case 0: Draw::Clear({ 1.0f, 0.0f, 0.0f, 1.0f }); break; // Красный
+    //case 1: Draw::Clear({ 0.0f, 1.0f, 0.0f, 1.0f }); break; // Зеленый
+    //case 2: Draw::Clear({ 0.0f, 0.0f, 1.0f, 1.0f }); break; // Синий
+    //case 3: Draw::Clear({ 1.0f, 0.0f, 1.0f, 1.0f }); break; // Пурпурный
+    //case 4: Draw::Clear({ 1.0f, 1.0f, 0.0f, 1.0f }); break; // Желтый
+    //case 5: Draw::Clear({ 0.0f, 1.0f, 1.0f, 1.0f }); break; // Голубой
+    //}
+    Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
+    Draw::ClearDepth();
+    Rasterizer::Cull(Rasterizer::cullmode::back);
+    switch (gameSpeed) {
 
-	case 1: // 1x → каждый кадр
-		ProcessCreatures(population);
-		break;
-	case 2: // 2x → два раза за кадр
-		ProcessCreatures(population);
-		ProcessCreatures(population);
-		break;
-	case 3: // 4x → четыре раза за кадр
-		ProcessCreatures(population);
-		ProcessCreatures(population);
-		ProcessCreatures(population);
-		break;
-	}
-	//ShowGrow();
-    for (int i = 0; i < 256; i++)
+    case 1: // 1x → каждый кадр
+        ProcessCreatures(population);
+        break;
+    case 2: // 2x → два раза за кадр
+        ProcessCreatures(population);
+        ProcessCreatures(population);
+        break;
+    case 3: // 4x → четыре раза за кадр
+        ProcessCreatures(population);
+        ProcessCreatures(population);
+        ProcessCreatures(population);
+        break;
+    }
+    //ShowGrow();
+    //for (int i = 0; i < 256; i++) {
+    //    for (int j = 0; j < 256; j++) {
+    //        auto& chunk = population.getChunkByIndex(i, j);
+    //        float ctemp = chunk.temperature;
+    //        ctemp -= 0.01;
+    //        ctemp = max(0.0f, ctemp);
+    //        int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
+    //        int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
+    //        float dx = torusDeltaA(chunk_center_x, sunX, base_rangex);  // Расстояние по X
+    //        float dy = torusDeltaA(chunk_center_y, sunY, base_rangey);  // Расстояние по Y
+    //        float dx_squared = pow(dx, 2);  // или dx * dx
+    //        float dy_squared = pow(dy, 2);  // или dy * dy
+    //        float squared_distance = dx_squared + dy_squared;
+    //        float distance = sqrt(squared_distance);
+    //        float normalized_distance = distance / 100.0f;
+    //        float temperature = 1.0f - normalized_distance;
+    //        temperature = max(0.0f, temperature);
+    //        ctemp += temperature;
+    //        chunk.temperature = ctemp;
+
+    //    }
+    //}
+    for (int i = 0; i < 256; i++){
         for (int j = 0; j < 256; j++) {
             auto& chunk = population.getChunkByIndex(i, j);
-            float ctemp = chunk.temperature;
-            ctemp -= 0.01;
-            ctemp = max(0.0f, ctemp);
             int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
             int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
-            float dx = torusDeltaA(chunk_center_x, sunX, base_rangex);  // Расстояние по X
-            float dy = torusDeltaA(chunk_center_y, sunY, base_rangey);  // Расстояние по Y
-            float dx_squared = pow(dx, 2);  // или dx * dx
-            float dy_squared = pow(dy, 2);  // или dy * dy
-            float squared_distance = dx_squared + dy_squared;
-            float distance = sqrt(squared_distance);
-            float normalized_distance = distance / 100.0f;
-            float temperature = 1.0f - normalized_distance;
-            temperature = max(0.0f, temperature);
-            ctemp += temperature;
-            chunk.temperature = ctemp;
-            /*ConstBuf::global2[0] = XMFLOAT4(chunk.temperature, 0, 0, 0);*/
+            float dx = torusDeltaA((chunk_center_x), sunX, base_rangex);
+            float dy = torusDeltaA((chunk_center_y), sunY, base_rangey);
+            float Dd = dx * dx + dy * dy;
+            float DD = sqrt(Dd) / 10000;
+            float temperature = 1 - DD;
+            chunk.temperature = temperature;
         }
+    }
+    
 	mouse();
 	ShowRacketAndBallFromVectors();
 

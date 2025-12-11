@@ -221,6 +221,7 @@ void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instanc
 
         ConstBuf::Update(5, ConstBuf::global);
         ConstBuf::ConstToVertex(5);
+        ConstBuf::ConstToPixel(5);
         Textures::TextureToShader(1, 0, vertex);
         Draw::NullDrawer(1, static_cast<int>(count));
     }
@@ -276,81 +277,100 @@ void ShowRacketAndBallFromVectors()
 
         switch (cr->type) {
         case type_::wolf: {
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             float s = max(cr->age / SIZEWOLFS, 10.0f);
-            wolves.emplace_back(cr->x, cr->y, s, 1.0f);
+            wolves.emplace_back(cr->x, cr->y, s, temp);
             break;
         }
         case type_::rabbit: {
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             float s = max(cr->age / SIZERABBITS, 10.0f);
-            rabbits.emplace_back(cr->x, cr->y, s, 1.0f);
+            rabbits.emplace_back(cr->x, cr->y, s, temp);
             break;
         }
         case type_::bear: {
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             float s = max(cr->age / SIZEBEARS, 10.0f);
-            bears.emplace_back(cr->x, cr->y, s, 1.0f);
+            bears.emplace_back(cr->x, cr->y, s, temp);
             break;
         }
         case type_::eagle: {
             float s = max(cr->age / SIZEAGLES, 10.0f);
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             if (cr->gender == gender_::male) {
-                maleEagles.emplace_back(cr->x, cr->y, s, 2.0f);
+                maleEagles.emplace_back(cr->x, cr->y, s, temp);
             }
             else {
-                femaleEagles.emplace_back(cr->x, cr->y, s, 2.0f);
+                femaleEagles.emplace_back(cr->x, cr->y, s, temp);
             }
             break;
         }
         case type_::tree: {
             float as = cr->age / SIZETREES;
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             if (cr->age > cr->age_limit / 2) {
-                bigTrees.emplace_back(cr->x, cr->y, as, 2.0f);
+                bigTrees.emplace_back(cr->x, cr->y, as, temp);
             }
             else if (cr->age > cr->age_limit / 3) {
-                standardTrees.emplace_back(cr->x, cr->y, as, 2.0f);
+                standardTrees.emplace_back(cr->x, cr->y, as, temp);
             }
             else {
-                smallTrees.emplace_back(cr->x, cr->y, max(as, 1.0f), 2.0f);
+                smallTrees.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
             }
             break;
         }
         case type_::bush: {
             float as = cr->age / SIZEBUSHES;
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             if (cr->age > 500) {
-                bigBushes.emplace_back(cr->x, cr->y, min(as,10), 1.0f);
+                bigBushes.emplace_back(cr->x, cr->y, min(as,10), temp);
             }
             else if (cr->age > 300) {
-                standardBushes.emplace_back(cr->x, cr->y, as, 1.0f);
+                standardBushes.emplace_back(cr->x, cr->y, as, temp);
             }
             else {
-                smallBushes.emplace_back(cr->x, cr->y, max(as, 1.0f), 1.0f);
+                smallBushes.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
             }
             break;
         }
         case type_::berry: {
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             float s = max(cr->age / SIZEBERRYS, 10.0f);
-            berrys.emplace_back(cr->x, cr->y, s, 1.0f);
+            berrys.emplace_back(cr->x, cr->y, s, temp);
             break;
         }
         case type_::grass: {
             float as = cr->age / SIZEGRASS;
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
             if (cr->age > cr->age_limit / 2) {
-                bigGrass.emplace_back(cr->x, cr->y, as, 1.0f);
+                bigGrass.emplace_back(cr->x, cr->y, as, temp);
             }
             else if (cr->age > cr->age_limit / 3) {
-                standardGrass.emplace_back(cr->x, cr->y, as, 1.0f);
+                standardGrass.emplace_back(cr->x, cr->y, as, temp);
             }
             else {
-                smallGrass.emplace_back(cr->x, cr->y, max(as, 1.0f), 1.0f);
+                smallGrass.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
             }
             break;
         }
         case type_::rat: {
             float s = max(cr->age / SIZERATS, 10.0f);
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
+
             if (cr->infect) {
-                infectedRats.emplace_back(cr->x, cr->y, s, 1.0f);
+                infectedRats.emplace_back(cr->x, cr->y, s, temp);
             }
             else {
-                healthyRats.emplace_back(cr->x, cr->y, s, 1.0f);
+                healthyRats.emplace_back(cr->x, cr->y, s, temp);
             }
             break;
         }
@@ -360,6 +380,9 @@ void ShowRacketAndBallFromVectors()
     // Отрисовка всех групп
     // Животные с одной текстурой
     DrawSun();
+    Shaders::vShader(0);
+    Shaders::pShader(0);
+    
     DrawBatchedInstances(3, wolves);        // волки
     DrawBatchedInstances(2, rabbits);       // кролики  
     DrawBatchedInstances(28, bears);        // медведи

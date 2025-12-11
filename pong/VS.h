@@ -17,6 +17,7 @@ struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD0;
+    uint instanceID : TEXCOORD1;
 };
 
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
@@ -27,7 +28,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float x = gConst[iID+8].x;      // X координата
     float y = gConst[iID+8].y;      // Y координата
     float sz = gConst[iID+8].z;     // Размер билборда
-    float billboardHeight = gConst[iID].w; // Высота билборда
+    float billboardHeight = 1.0f; // Высота билборда
 
     int gridX = 64;
     int gridY = 64;
@@ -48,7 +49,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float3 p = float3(x, y, worldZ);
 
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0, 0, gConst[iID+8].w); // Z - это высота
+    float3 cameraUp = float3(0, 0, 1.0f); // Z - это высота
 
     float3 bottomLeft = p + cameraRight * sz;
     float3 bottomRight = p - cameraRight * sz;
@@ -74,6 +75,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 
     output.pos = projPos;  // Позиция в clip-пространстве
     output.uv = uvCoords[vID];            // UV-координаты
+    output.instanceID = iID;
 
     return output;
 }
