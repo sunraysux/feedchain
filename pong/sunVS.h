@@ -19,6 +19,17 @@ struct VS_OUTPUT
     float2 uv : TEXCOORD0;
 };
 
+inline float torusDeltaA(float from, float to, float size) {
+    float diff = to - from;
+    if (diff < 0)
+        diff = diff * (-1);
+
+    return diff;
+}
+
+float base_rangey = 32768.0;
+float base_rangex = 32768.0;
+
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
@@ -26,11 +37,15 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Данные инстанса
     float x = gConst[0].x;      // X координата
     float y = gConst[0].y;      // Y координата
-    float z = gConst[0].z;     // Размер билборда
+    float z =0;    
     float sz = 50;
     int gridX = 64;
     int gridY = 64;
-
+    float dx = torusDeltaA((gConst[1].z), x, base_rangex);
+    float dy = torusDeltaA((gConst[0].w), y, base_rangey);
+    float Dd = dx * dx + dy * dy;
+    float DD = sqrt(Dd) / gConst[0].z*1000;
+     z = 7800 - DD;
     const int TILE_COUNT = 8;
     const float CHUNK_SIZE = 32768.0f;
 
@@ -41,13 +56,13 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
 
     float heightScale = 1500;
-    float worldZ = height * heightScale;
+    float worldZ = height * heightScale+z;
 
     // Базовая позиция билборда
     float3 p = float3(x, y, z);
 
     float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0, 0, gConst[0].w); // Z - это высота
+    float3 cameraUp = float3(0, 0, 2); // Z - это высота
 
     float3 bottomLeft = p + cameraRight*sz;
     float3 bottomRight = p - cameraRight*sz;

@@ -244,6 +244,7 @@ void StartMenu() {
 }
 
 void Loop() {
+
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 	Camera::Update();
 	frameConst();
