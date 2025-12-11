@@ -283,8 +283,24 @@ void Loop() {
 	//ShowGrow();
     for (int i = 0; i < 256; i++)
         for (int j = 0; j < 256; j++) {
-            auto& chunk=population.getChunkByIndex(i, j);
-            chunk.temperature = 1-sqrt(pow(torusDeltaA((i * 128 - 64) , sunX, base_rangex),2) + pow(torusDeltaA((j * 128 - 64), sunY, base_rangey),2))/100;
+            auto& chunk = population.getChunkByIndex(i, j);
+            float ctemp = chunk.temperature;
+            ctemp -= 0.01;
+            ctemp = max(0.0f, ctemp);
+            int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
+            int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
+            float dx = torusDeltaA(chunk_center_x, sunX, base_rangex);  // Расстояние по X
+            float dy = torusDeltaA(chunk_center_y, sunY, base_rangey);  // Расстояние по Y
+            float dx_squared = pow(dx, 2);  // или dx * dx
+            float dy_squared = pow(dy, 2);  // или dy * dy
+            float squared_distance = dx_squared + dy_squared;
+            float distance = sqrt(squared_distance);
+            float normalized_distance = distance / 100.0f;
+            float temperature = 1.0f - normalized_distance;
+            temperature = max(0.0f, temperature);
+            ctemp += temperature;
+            chunk.temperature = ctemp;
+            /*ConstBuf::global2[0] = XMFLOAT4(chunk.temperature, 0, 0, 0);*/
         }
 	mouse();
 	ShowRacketAndBallFromVectors();
