@@ -227,11 +227,11 @@ void StartMenu() {
 	Draw::DrawUIimage(45, -0.56, -0.58, cursorY1, cursorY2);
 
 	if (settings) {
-		drawCursor();
+		//drawCursor();
 		Draw::DrawUIimage(46, -0.5, 0.5, -0.5, 0.5);
 	}
 	if (info) {
-		drawCursor();
+		//drawCursor();
 		Draw::DrawUIimage(55, -0.5, 0.5, -0.5, 0.5);
 	}
 
@@ -393,6 +393,21 @@ void Loop() {
 	//Depth::ResetRasterizer();
 	waterLevel = 600;
 	Draw::Present();
+}
+void Bakt() {
+    Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+    Camera::Update();
+    frameConst();
+    Textures::RenderTarget(0, 0);
+    Draw::Clear({ 1,1,1,0 });
+    Draw::ClearDepth();
+    tick++;
+    
+    Draw::DrawUIimage(44, -1, 1, -1, 1);
+    ProcessMikro();
+    ShowMicro();
+
+    Draw::Present();
 }
 
 void Looppause() {

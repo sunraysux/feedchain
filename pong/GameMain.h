@@ -139,7 +139,7 @@ extern std::vector<std::vector<Chunk>> chunk_grid(
     CHUNKS_PER_SIDEX,
     std::vector<Chunk>(CHUNKS_PER_SIDEY)
 );
-
+class CM;
 
 class Creature : public std::enable_shared_from_this<Creature> {
 public:
@@ -228,3 +228,73 @@ protected:
 };
 std::vector<std::shared_ptr<Creature>> creature;
 std::vector<std::shared_ptr<Creature>> new_creature;
+
+
+
+class Mikrobus : public std::enable_shared_from_this<Mikrobus> {
+public:
+    float x, y, age_limit, hunger, hunger_limit, eating_range, nutritional_value, move_range;
+    int age;
+    int current_chunk_x = -1;
+    int current_chunk_y = -1;
+    bool dead = false;
+    int id;
+    int cont = 2;
+    void process() {
+
+        x = 500;
+        y = 500;
+
+    }
+
+
+    void removeFromChunk() {
+        if (current_chunk_x < 0 || current_chunk_y < 0) return;
+        auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
+        for (int i = 1; i <= cont; i++) {
+
+
+            auto& container = chunk.micro;
+
+            // Удаляем weak_ptr, указывающий на текущий объект
+            container.erase(
+                std::remove_if(container.begin(), container.end(),
+                    [this](const std::weak_ptr<Mikrobus>& wp) {
+                        auto sp = wp.lock();
+                        return !sp || sp.get() == this;
+                    }),
+                container.end()
+            );
+        }
+
+        // Удаляем weak_ptr, указывающий на текущий объект
+
+        current_chunk_x = -1;
+        current_chunk_y = -1;
+    }
+     ~Mikrobus() = default;
+     void updateChunk() {
+        int new_cx = coord_to_chunkx(x);
+        int new_cy = coord_to_chunky(y);
+        if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
+            removeFromChunk();  // Удаляем из старого чанка
+            // Добавляем в новый чанк
+            current_chunk_x = new_cx;
+            current_chunk_y = new_cy;
+
+            addToChunk(chunk_grid[new_cx][new_cy]);
+        }
+    }
+
+
+    virtual bool shouldDie() const = 0;
+
+protected:
+
+    void addToChunk(Chunk& chunk) {
+        chunk.micro.push_back(weak_from_this());
+    }
+};
+std::vector<std::shared_ptr<Mikrobus>> Mikro;
+std::vector<std::shared_ptr<Mikrobus>> new_Mikro;
+

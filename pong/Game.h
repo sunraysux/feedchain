@@ -46,5 +46,21 @@ void drawWorld()
 		ShowCursor(false);
 		Looppause();
 		break;
+	case gameState_::mikro:
+		if (!initmenu) {
+
+
+			Textures::LoadTextureFromFile(44, L"Debug/newMenu.png");
+			Textures::LoadTextureFromFile(45, L"Debug/cursor.png");
+			Textures::LoadTextureFromFile(46, L"Debug/settings.png");
+			Textures::LoadTextureFromFile(55, L"Debug/info.png");
+
+			//Textures::LoadTextureFromFile(1, L"Debug/i.jpg");
+			Textures::ReadTextureToCPU(1);
+			initmenu = true;
+		}
+		ShowCursor(true);
+		Bakt();
+		break;
 	}
 }

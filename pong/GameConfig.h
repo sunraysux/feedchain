@@ -4,6 +4,7 @@
 #include <limits>
 
 int tick = 0;
+int tickloop = 0;
 float base_rangey = 32768.0;
 float base_rangex = 32768.0;
 float clamp(float x, float a, float b)
@@ -23,10 +24,10 @@ inline float Wrap(float x, float range) {
     return x;
 }
 enum class gameState_ {
-    MainMenu, game, pause
+    MainMenu, game, pause,mikro
 };
 
-gameState_  gameState = gameState_::MainMenu;
+gameState_  gameState = gameState_::mikro;
 
 
 //#include "ecosystem.h"

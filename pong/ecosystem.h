@@ -49,7 +49,56 @@
     }
     new_creature.clear();
 }
-//инициализация игры
+void ShowMicro()
+{
+    for (const auto& cr : Mikro) {
+        if (!cr) continue;
+        Draw::DrawUIimage(44, x- 0.1, x- 0.1, x+ 0.1, x+0.1);
+    }
+}
+void ProcessMikro() {
+    tick++;
+
+    // Обработать всех существ
+    for (auto& cr : Mikro) {
+        cr->process();
+    }
+
+    // Удалить мертвых существ напрямую
+    Mikro.erase(
+        std::remove_if(Mikro.begin(), Mikro.end(),
+            [&](const auto& entity) {
+                if (entity->shouldDie()) {
+                    
+                    entity->removeFromChunk();
+                    return true;
+                }
+                return false;
+            }
+        ),
+        Mikro.end()
+    );
+
+    // Добавить новых существ
+    Mikro.reserve(Mikro.size() + new_creature.size());
+    for (auto& entity : new_creature) {
+        entity->updateChunk();
+        Mikro.emplace_back(std::move(entity));
+    }
+    new_creature.clear();
+}
+void InitMicro() {
+    //инициализация игры
+    for (int i = 0; i < 10; i++) {
+        auto mikro = std::make_shared<Mikrobus>();
+        mikro->y = Random::Int(0, 1000);
+        mikro->x = Random::Int(0, 1000);
+        mikro->age = 0;
+        mikro->updateChunk();
+        Mikro.push_back(mikro);
+
+    }
+}
 void InitGame() {
     //std::random_device rd;
     //std::mt19937 gen(rd()); // генератор
@@ -242,8 +291,6 @@ void DrawSun() {
 
 void ShowRacketAndBallFromVectors()
 {
-    Shaders::vShader(0);
-    Shaders::pShader(0);
 
     // Группировка существ по типам
     std::vector<XMFLOAT4> wolves;

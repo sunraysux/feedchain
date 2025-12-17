@@ -1,4 +1,5 @@
-﻿class Plnt : public Creature {
+﻿
+class Plnt : public Creature {
 public:
     Plnt(type_ t) : Creature(t) {}
 
