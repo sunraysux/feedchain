@@ -47,6 +47,7 @@ void drawWorld()
 		Looppause();
 		break;
 	case gameState_::mikro:
+		
 		if (!initmenu) {
 
 
@@ -54,7 +55,7 @@ void drawWorld()
 			Textures::LoadTextureFromFile(45, L"Debug/cursor.png");
 			Textures::LoadTextureFromFile(46, L"Debug/settings.png");
 			Textures::LoadTextureFromFile(55, L"Debug/info.png");
-
+			InitMicro();
 			//Textures::LoadTextureFromFile(1, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(1);
 			initmenu = true;

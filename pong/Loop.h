@@ -403,10 +403,11 @@ void Bakt() {
     Draw::ClearDepth();
     tick++;
     
-    Draw::DrawUIimage(44, -1, 1, -1, 1);
-    ProcessMikro();
+    
+    //ProcessMikro();
     ShowMicro();
-
+    //Draw::DrawUIimage(44, 0, 1, 0, 1);
+    Draw::DrawUIimage(44, -1, 1, -1, 1);
     Draw::Present();
 }
 

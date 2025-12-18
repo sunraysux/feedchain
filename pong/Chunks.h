@@ -1,5 +1,4 @@
 struct Chunk {
-    std::vector<std::weak_ptr<Mikrobus>> micro;
     std::vector<std::weak_ptr<Creature>> trees;
     std::vector<std::weak_ptr<Creature>> Plants;
     std::vector<std::weak_ptr<Creature>> Animals;

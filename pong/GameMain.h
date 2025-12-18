@@ -139,7 +139,6 @@ extern std::vector<std::vector<Chunk>> chunk_grid(
     CHUNKS_PER_SIDEX,
     std::vector<Chunk>(CHUNKS_PER_SIDEY)
 );
-class CM;
 
 class Creature : public std::enable_shared_from_this<Creature> {
 public:
@@ -229,6 +228,15 @@ protected:
 std::vector<std::shared_ptr<Creature>> creature;
 std::vector<std::shared_ptr<Creature>> new_creature;
 
+class CM;
+extern std::vector<std::vector<CM>> chunk_gr(
+    CHUNKS_PER_SIDEX,
+    std::vector<CM>(CHUNKS_PER_SIDEY)
+);
+class Mikrobus;
+struct CM {
+    std::vector<std::weak_ptr<Mikrobus>> micro;
+};
 
 
 class Mikrobus : public std::enable_shared_from_this<Mikrobus> {
@@ -242,56 +250,59 @@ public:
     int cont = 2;
     void process() {
 
-        x = 500;
-        y = 500;
 
     }
 
 
     void removeFromChunk() {
-        if (current_chunk_x < 0 || current_chunk_y < 0) return;
-        auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
-        for (int i = 1; i <= cont; i++) {
-
-
-            auto& container = chunk.micro;
-
-            // Удаляем weak_ptr, указывающий на текущий объект
-            container.erase(
-                std::remove_if(container.begin(), container.end(),
-                    [this](const std::weak_ptr<Mikrobus>& wp) {
-                        auto sp = wp.lock();
-                        return !sp || sp.get() == this;
-                    }),
-                container.end()
-            );
+        if (current_chunk_x < 0 || current_chunk_y < 0 ||
+            current_chunk_x >= CHUNKS_PER_SIDEX ||
+            current_chunk_y >= CHUNKS_PER_SIDEY) {
+            return;
         }
 
-        // Удаляем weak_ptr, указывающий на текущий объект
+        auto& container = chunk_gr[current_chunk_x][current_chunk_y].micro;
+
+        // Более безопасный способ удаления
+        for (auto it = container.begin(); it != container.end(); ) {
+            if (auto sp = it->lock()) {
+                if (sp.get() == this) {
+                    it = container.erase(it);
+                }
+                else {
+                    ++it;
+                }
+            }
+            else {
+                it = container.erase(it);  // Удаляем истёкшие weak_ptr
+            }
+        }
 
         current_chunk_x = -1;
         current_chunk_y = -1;
     }
      ~Mikrobus() = default;
-     void updateChunk() {
-        int new_cx = coord_to_chunkx(x);
-        int new_cy = coord_to_chunky(y);
-        if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
-            removeFromChunk();  // Удаляем из старого чанка
-            // Добавляем в новый чанк
-            current_chunk_x = new_cx;
-            current_chunk_y = new_cy;
+     void updateChunk(std::shared_ptr<Mikrobus> self) {
+         int new_cx = coord_to_chunkx(x);
+         int new_cy = coord_to_chunky(y);
+         if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
+             removeFromChunk();
+             current_chunk_x = new_cx;
+             current_chunk_y = new_cy;
 
-            addToChunk(chunk_grid[new_cx][new_cy]);
-        }
-    }
+             chunk_gr[new_cx][new_cy].micro.push_back(self);
+         }
+     }
 
 
-    virtual bool shouldDie() const = 0;
+
+     bool shouldDie(){
+         return 0;
+     }
 
 protected:
 
-    void addToChunk(Chunk& chunk) {
+    void addToChunk(CM& chunk) {
         chunk.micro.push_back(weak_from_this());
     }
 };

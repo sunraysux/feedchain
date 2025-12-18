@@ -53,7 +53,7 @@ void ShowMicro()
 {
     for (const auto& cr : Mikro) {
         if (!cr) continue;
-        Draw::DrawUIimage(44, x- 0.1, x- 0.1, x+ 0.1, x+0.1);
+        Draw::DrawUIimage(44, cr->x- 0.1, cr->x+ 0.1, cr->y- 0.1, cr->y+0.1);
     }
 }
 void ProcessMikro() {
@@ -80,21 +80,21 @@ void ProcessMikro() {
     );
 
     // Добавить новых существ
-    Mikro.reserve(Mikro.size() + new_creature.size());
-    for (auto& entity : new_creature) {
-        entity->updateChunk();
+    Mikro.reserve(Mikro.size() + new_Mikro.size());
+    for (auto& entity : new_Mikro) {
+        entity->updateChunk(entity);
         Mikro.emplace_back(std::move(entity));
     }
-    new_creature.clear();
+    new_Mikro.clear();
 }
 void InitMicro() {
     //инициализация игры
     for (int i = 0; i < 10; i++) {
         auto mikro = std::make_shared<Mikrobus>();
-        mikro->y = Random::Int(0, 1000);
-        mikro->x = Random::Int(0, 1000);
+        mikro->y = Random::Float(-1, 1);
+        mikro->x = Random::Float(-1, 1);
         mikro->age = 0;
-        mikro->updateChunk();
+        mikro->updateChunk(mikro);
         Mikro.push_back(mikro);
 
     }
@@ -255,6 +255,8 @@ auto isVisible = [&](float x, float y) -> bool {
         ndcZ >= 0.0f && ndcZ <= 1.0f);
     };
 int BATCH_SIZE = 4000;
+
+
 
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
@@ -429,7 +431,6 @@ void ShowRacketAndBallFromVectors()
     DrawSun();
     Shaders::vShader(0);
     Shaders::pShader(0);
-    
     DrawBatchedInstances(3, wolves);        // волки
     DrawBatchedInstances(2, rabbits);       // кролики  
     DrawBatchedInstances(28, bears);        // медведи
