@@ -386,8 +386,8 @@ void Loop() {
 	Shaders::vShader(4);
 	Shaders::pShader(4);
 
-	ConstBuf::global[0] = XMFLOAT4(600, 0, 0, 0);
-	ConstBuf::ConstToVertex(5);
+	ConstBuf::global[0] = XMFLOAT4(600, sunX, sunY, 0);
+    ConstBuf::Update(5, ConstBuf::global);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
 	Draw::NullDrawer(1,9);
 	//Depth::ResetRasterizer();

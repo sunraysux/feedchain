@@ -31,8 +31,25 @@ float waterNoise(float2 p)
     return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
 }
 
+
+inline float torusDeltaA(float from, float to, float size) {
+    float diff;
+    if (from < 0)
+        from += size;
+    if (from > size)
+        from -= size;
+    diff = from - to;
+    if (diff > size / 2)
+        diff = to + size - from;
+    if (diff < -size / 2)
+        diff = from + size - to;
+    return diff;
+}
+
 float4 PS(PS_INPUT input) : SV_Target
 {
+    float base_rangey = 32768.0;
+float base_rangex = 32768.0;
     const float HEIGHT_SCALE = 1500.0;
 
     // получаем высоту и глубину рельефа
@@ -52,9 +69,16 @@ float4 PS(PS_INPUT input) : SV_Target
     
     float specular = pow(noiseValue, 4.0) * 0.1;
     waterColor += float3(specular * 0.5, specular * 0.7, specular);
-    
+    float sunX = gConst[0].y;
+    float sunY = gConst[0].z;
+    float dx = torusDeltaA((input.wpos.x), sunX, base_rangex);
+    float dy = torusDeltaA((input.wpos.y), sunY, base_rangey);
+    float Dd = dx * dx + dy * dy;
+    float DD = sqrt(Dd) / 10000;
+    float temperature = 2 - DD;
+
     // прозрачность по глубине
-    float alpha = depth*0.8 ;
+    float alpha = depth* temperature;
     
     return float4(waterColor, alpha);
 }

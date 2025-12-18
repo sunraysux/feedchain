@@ -1,8 +1,8 @@
 ﻿void ProcessCreatures(PopulationManager& pop) {
     tick++;
-    float rot = 3.14*2;
-    sunX += 10*cos(rot);
-    sunY += 10 * sin(rot);
+    float rot = 3.14;
+    sunX += 100*cos(rot);
+    sunY += 100 * sin(rot);
     if (sunX > base_rangex) {
 
         sunX -= base_rangex;
