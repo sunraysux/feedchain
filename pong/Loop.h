@@ -369,7 +369,6 @@ void WATER() {
 
     mouse();
     ShowFish();
-
     Showpopulations();
 
     //рельеф

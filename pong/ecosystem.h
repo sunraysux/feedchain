@@ -313,7 +313,7 @@ void DrawBatchedInstancesF(int textureIndex, const std::vector<XMFLOAT4>& instan
         ConstBuf::ConstToVertex(5);
         ConstBuf::ConstToPixel(5);
         Textures::TextureToShader(1, 0, vertex);
-        Draw::NullDrawer(1, static_cast<int>(count));
+        Draw::NullDrawer(6, static_cast<int>(count));
     }
 }
 
@@ -513,12 +513,10 @@ void ShowFish()
 
 
         auto& chunk = population.getChunk(cr->x, cr->y);
-        float temp = chunk.temperature;
-        float s = max(1000, 10.0f);
-        wolves.emplace_back(cr->x, cr->y, s, temp);
+        wolves.emplace_back(cr->x, cr->y, cr->z, 100);
     }
 
     Shaders::vShader(11);
-    Shaders::pShader(0);
+    Shaders::pShader(11);
     DrawBatchedInstancesF(3, wolves);        // волки
 }

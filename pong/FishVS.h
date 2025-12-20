@@ -27,8 +27,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     // Данные инстанса
     float x = gConst[iID + 8].x;      // X координата
     float y = gConst[iID + 8].y;      // Y координата
-    float sz = gConst[iID + 8].z;     // Размер билборда
-    float billboardHeight = 100.0f; // Высота билборда
+    float z = gConst[iID + 8].z;     // Размер билборда
+    float sz = 100.0f; // Высота билборда
 
     int gridX = 64;
     int gridY = 64;
@@ -40,41 +40,39 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     if (regionUV.y < 0.00001)regionUV.y = 1;
     if (regionUV.x < 0.00001)regionUV.x = 1;
     // 6) sample высоты (как в terrain)
-    float height = heightMap.SampleLevel(sampLinear, regionUV, 0).r;
-
-    float heightScale = 1500;
-    float worldZ = height * heightScale;
 
     // Базовая позиция билборда
-    float3 p = float3(x, y, worldZ);
+    float3 p = float3(x, y, z);
 
-    float3 cameraRight = float3(view[0]._m00, view[0]._m10, view[0]._m20);
-    float3 cameraUp = float3(0, 0, 1.0f); // Z - это высота
 
-    float3 bottomLeft = p + cameraRight * sz;
-    float3 bottomRight = p - cameraRight * sz;
-    float3 topLeft = p + cameraRight * sz + cameraUp * sz;
-    float3 topRight = p - cameraRight * sz + cameraUp * sz;
+    float3 quad[36] = { 
+        // передняя сторона (Z = 0)
+        float3(0, 0, 0), float3(1, 0, 0), float3(0, 1, 0),
+        float3(1, 0, 0), float3(1, 1, 0), float3(0, 1, 0),
 
-    float3 quad[6] = {
-        bottomLeft, topLeft,bottomRight,
-        bottomRight, topLeft,topRight
+        float3(0, 1, 1), float3(1, 0, 1), float3(0, 0, 1),
+        float3(1, 0, 1), float3(0, 1, 1), float3(1, 1, 1),
+
+
+        float3(0, 0, 1), float3(1, 0, 0), float3(0, 0, 0),
+        float3(1, 0, 0), float3(0, 0, 1), float3(1, 0, 1),
+
+        float3(1, 1, 0), float3(1, 1, 1), float3(0, 1, 1),
+        float3(0, 1, 0), float3(1, 1, 0), float3(0, 1, 1),
+        
+
+        float3(0, 0, 0), float3(0, 1, 0), float3(0, 0, 1),
+        float3(0, 0, 1), float3(0, 1, 0), float3(0, 1, 1),
+
+        float3(1, 0, 0), float3(1, 0, 1), float3(1, 1, 0),
+        float3(1, 0, 1), float3(1, 1, 1), float3(1, 1, 0)
     };
-    float2 uvCoords[6] = {
-        float2(0, 1),
-        float2(0, 0),
-        float2(1, 1),
-
-        float2(1, 1),
-        float2(0, 0),
-        float2(1, 0)
-    };
-    float3 wpos = float3(quad[vID].xy, quad[vID].z);
+    float3 wpos = float3(quad[vID])*sz+p;
     float4 viewPos = mul(float4(wpos, 1.0f), view[0]);
     float4 projPos = mul(viewPos, proj[0]);
 
     output.pos = projPos;  // Позиция в clip-пространстве
-    output.uv = uvCoords[vID];            // UV-координаты
+    output.uv = float2(wpos.x, wpos.z);          // UV-координаты
     output.instanceID = iID;
 
     return output;
