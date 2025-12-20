@@ -327,8 +327,7 @@ extern std::vector<std::vector<std::vector<FC>>> chunk_grand(
 struct FC {
     std::vector<std::weak_ptr<FISH>> Fish;
 };
-std::vector<std::shared_ptr<FISH>> Fish;
-std::vector<std::shared_ptr<FISH>> new_Fish;
+
 
 class FISH : public std::enable_shared_from_this<FISH> {
 public:
@@ -400,5 +399,7 @@ protected:
         chunk.Fish.push_back(weak_from_this());
     }
 };
+std::vector<std::shared_ptr<FISH>> Fish;
+std::vector<std::shared_ptr<FISH>> new_Fish;
 std::vector<std::shared_ptr<Mikrobus>> Mikro;
 std::vector<std::shared_ptr<Mikrobus>> new_Mikro;

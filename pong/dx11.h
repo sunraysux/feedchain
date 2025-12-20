@@ -631,6 +631,8 @@ namespace Shaders {
 		CreateVS(9, nameToPatchLPCWSTR("slotVS.h"));
 		CreatePS(10, nameToPatchLPCWSTR("sunPS.h"));
 		CreateVS(10, nameToPatchLPCWSTR("sunVS.h"));
+		CreatePS(11, nameToPatchLPCWSTR("FishPS.h"));
+		CreateVS(11, nameToPatchLPCWSTR("FishVS.h"));
 	}
 
 	void vShader(unsigned int n)

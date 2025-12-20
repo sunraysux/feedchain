@@ -328,6 +328,12 @@
     <ClInclude Include="sunVS.h">
       <Filter>shaders</Filter>
     </ClInclude>
+    <ClInclude Include="FishPS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="FishVS.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

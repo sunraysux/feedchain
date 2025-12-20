@@ -99,6 +99,29 @@ void InitMicro() {
 
     }
 }
+void InitFish() {
+    //инициализация игры
+    int f = 0;
+    while (f == 0) {
+        for (int i = 0; i < 10; i++) {
+
+            float y = Random::Float(0, 100);
+            float x = Random::Float(0, 100);
+            float z = Random::Float(0, 600);
+            //if (heightW(x, y)) {
+                auto mikro = std::make_shared<FISH>();
+                mikro->age = 0;
+                mikro->y = y;
+                mikro->x = x;
+                mikro->z = z;
+                f++;
+                mikro->updateChunk(mikro);
+                Fish.push_back(mikro);
+            //}
+
+        }
+    }
+}
 void InitGame() {
     //std::random_device rd;
     //std::mt19937 gen(rd()); // генератор
@@ -259,6 +282,25 @@ int BATCH_SIZE = 4000;
 
 
 void DrawBatchedInstances(int textureIndex, const std::vector<XMFLOAT4>& instances) {
+    if (instances.empty()) return;
+
+    context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
+    for (size_t start = 0; start < instances.size(); start += BATCH_SIZE) {
+        size_t count = min(BATCH_SIZE, static_cast<int>(instances.size() - start));
+
+        const int OFFSET = 8;
+        std::copy(instances.begin() + start, instances.begin() + start + count, ConstBuf::global + OFFSET);
+
+        ConstBuf::global[0] = XMFLOAT4(Camera::state.camXChunk, Camera::state.camYChunk, 0, 0);
+
+        ConstBuf::Update(5, ConstBuf::global);
+        ConstBuf::ConstToVertex(5);
+        ConstBuf::ConstToPixel(5);
+        Textures::TextureToShader(1, 0, vertex);
+        Draw::NullDrawer(1, static_cast<int>(count));
+    }
+}
+void DrawBatchedInstancesF(int textureIndex, const std::vector<XMFLOAT4>& instances) {
     if (instances.empty()) return;
 
     context->PSSetShaderResources(0, 1, &Textures::Texture[textureIndex].TextureResView);
@@ -473,15 +515,15 @@ void ShowFish()
     for (const auto& cr : Fish) {
         if (!cr) continue;
 
-        
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            float s = max(cr->age / SIZEWOLFS, 10.0f);
-            wolves.emplace_back(cr->x, cr->y, s, temp);
-            break;
-        }
 
-    Shaders::vShader(0);
+        auto& chunk = population.getChunk(cr->x, cr->y);
+        float temp = chunk.temperature;
+        float s = max(cr->age / SIZEWOLFS, 10.0f);
+        wolves.emplace_back(cr->x, cr->y, s, temp);
+        break;
+    }
+
+    Shaders::vShader(11);
     Shaders::pShader(0);
-    DrawBatchedInstances(3, wolves);        // волки
+    DrawBatchedInstancesF(3, wolves);        // волки
 }

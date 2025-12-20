@@ -75,6 +75,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     static int terrainType = 1; // Можно менять для разных ландшафтов
     FillHeightmapBuffer(ConstBuf::global, 4096, terrainType);
     terraloop();
+    
     //Camera::Camera();
     // Main message loop:
     while (msg.message != WM_QUIT)

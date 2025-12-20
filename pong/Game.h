@@ -17,6 +17,7 @@ void drawWorld()
 
 			//Textures::LoadTextureFromFile(1, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(1);
+			InitFish();
 			initmenu = true;
 		}
 		if (settings || info) {
@@ -42,6 +43,7 @@ void drawWorld()
 		if (!initgame) {
 			InitGame();
 			initgame = true;
+			
 		}
 		ShowCursor(false);
 		WATER();
@@ -64,8 +66,10 @@ void drawWorld()
 			Textures::LoadTextureFromFile(46, L"Debug/settings.png");
 			Textures::LoadTextureFromFile(55, L"Debug/info.png");
 			InitMicro();
+			
 			//Textures::LoadTextureFromFile(1, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(1);
+			InitFish();
 			initmenu = true;
 		}
 		ShowCursor(true);

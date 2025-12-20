@@ -269,6 +269,8 @@
     <ClInclude Include="ClassesMain.h" />
     <ClInclude Include="dx11.h" />
     <ClInclude Include="ecosystem.h" />
+    <ClInclude Include="FishPS.h" />
+    <ClInclude Include="FishVS.h" />
     <ClInclude Include="fonPS.h" />
     <ClInclude Include="fonVS.h" />
     <ClInclude Include="framework.h" />
