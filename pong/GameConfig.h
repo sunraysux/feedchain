@@ -24,7 +24,7 @@ inline float Wrap(float x, float range) {
     return x;
 }
 enum class gameState_ {
-    MainMenu, game, pause,mikro
+    MainMenu, game, pause,mikro,water
 };
 
 gameState_  gameState = gameState_::mikro;

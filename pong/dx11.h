@@ -1434,11 +1434,18 @@ namespace Camera
 		float newPosZ = XMVectorGetZ(state.position) + dz;
 		float newTargetZ = XMVectorGetZ(state.target) + dz;
 		float dz1 = newPosZ - newTargetZ;
+		if (newPosZ < groundPos + minAboveGround&& newPosZ<waterLevel)
+			gameState = gameState_::mikro;
+		else if(newPosZ < waterLevel)
+			gameState = gameState_::water;
+		else
+			gameState = gameState_::game;
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 
 		const float maxZ = 150000.0f;
 		newPosZ = min(newPosZ, maxZ);
+		
 		newTargetZ = min(newTargetZ, maxZ- dz1);
 		state.camZ = newPosZ;
 		state.position = XMVectorSetZ(state.position, newPosZ);

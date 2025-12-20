@@ -13,6 +13,13 @@ inline int coord_to_chunky(float coord) {
     int index = static_cast<int>(normalized / CHUNK_SIZE);
     return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
 }
+inline int coord_to_chunkz(float coord) {
+    // Смещаем координату из [-50,50] в [0,100]
+    float normalized = coord ;
+    // Вычисляем индекс и ограничиваем его
+    int index = static_cast<int>(normalized / 60);
+    return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
+}
 
 
 struct ChunkWorld {
@@ -306,6 +313,92 @@ protected:
         chunk.micro.push_back(weak_from_this());
     }
 };
+
+
+class FISH;
+class FC;
+extern std::vector<std::vector<std::vector<FC>>> chunk_grand(
+    CHUNKS_PER_SIDEX,
+    std::vector<std::vector<FC>>(
+        CHUNKS_PER_SIDEY,
+        std::vector<FC>(10) // третье измерение
+    )
+);
+struct FC {
+    std::vector<std::weak_ptr<FISH>> Fish;
+};
+std::vector<std::shared_ptr<FISH>> Fish;
+std::vector<std::shared_ptr<FISH>> new_Fish;
+
+class FISH : public std::enable_shared_from_this<FISH> {
+public:
+    float x, y, z, age_limit, hunger, hunger_limit, eating_range, nutritional_value, move_range;
+    int age;
+    int current_chunk_x = -1;
+    int current_chunk_y = -1;
+    int current_chunk_z = -1;
+    bool dead = false;
+    int id;
+    int cont = 2;
+    void process() {
+
+
+    }
+
+
+    void removeFromChunk() {
+        if (current_chunk_x < 0 || current_chunk_y < 0 || current_chunk_z < 0 ||
+            current_chunk_x >= CHUNKS_PER_SIDEX ||
+            current_chunk_y >= CHUNKS_PER_SIDEY||
+            current_chunk_z >= 10) {
+            return;
+        }
+
+        auto& container = chunk_grand[current_chunk_x][current_chunk_y][current_chunk_z].Fish;
+
+        // Более безопасный способ удаления
+        for (auto it = container.begin(); it != container.end(); ) {
+            if (auto sp = it->lock()) {
+                if (sp.get() == this) {
+                    it = container.erase(it);
+                }
+                else {
+                    ++it;
+                }
+            }
+            else {
+                it = container.erase(it);  // Удаляем истёкшие weak_ptr
+            }
+        }
+
+        current_chunk_x = -1;
+        current_chunk_y = -1;
+    }
+    ~FISH() = default;
+    void updateChunk(std::shared_ptr<FISH> self) {
+        int new_cx = coord_to_chunkx(x);
+        int new_cy = coord_to_chunky(y);
+        int new_cz = coord_to_chunkz(z);
+        if (new_cx != current_chunk_x || new_cy != current_chunk_y || new_cz != current_chunk_z) {
+            removeFromChunk();
+            current_chunk_x = new_cx;
+            current_chunk_y = new_cy;
+            current_chunk_z = new_cz;
+            chunk_grand[new_cx][new_cy][new_cz].Fish.push_back(self);
+        }
+    }
+
+
+
+    bool shouldDie() {
+        return 0;
+    }
+
+protected:
+
+    void addToChunk(FC& chunk) {
+        chunk.Fish.push_back(weak_from_this());
+    }
+};
 std::vector<std::shared_ptr<Mikrobus>> Mikro;
 std::vector<std::shared_ptr<Mikrobus>> new_Mikro;
-

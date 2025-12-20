@@ -213,7 +213,7 @@ void terraloop()
 	Draw::Present();
 }
 void StartMenu() {
-
+    Rasterizer::Cull(Rasterizer::cullmode::back);
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 	Camera::Update();
 	frameConst();
@@ -249,19 +249,6 @@ void Loop() {
     Camera::Update();
     frameConst();
     Textures::RenderTarget(0, 0);
-    if (tick - lastTick > 2) {
-        lastTick = tick;
-        colorType = rand() % 6;
-
-    }
-    //switch (colorType) {
-    //case 0: Draw::Clear({ 1.0f, 0.0f, 0.0f, 1.0f }); break; // Красный
-    //case 1: Draw::Clear({ 0.0f, 1.0f, 0.0f, 1.0f }); break; // Зеленый
-    //case 2: Draw::Clear({ 0.0f, 0.0f, 1.0f, 1.0f }); break; // Синий
-    //case 3: Draw::Clear({ 1.0f, 0.0f, 1.0f, 1.0f }); break; // Пурпурный
-    //case 4: Draw::Clear({ 1.0f, 1.0f, 0.0f, 1.0f }); break; // Желтый
-    //case 5: Draw::Clear({ 0.0f, 1.0f, 1.0f, 1.0f }); break; // Голубой
-    //}
     Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
     Draw::ClearDepth();
     Rasterizer::Cull(Rasterizer::cullmode::back);
@@ -280,29 +267,6 @@ void Loop() {
         ProcessCreatures(population);
         break;
     }
-    //ShowGrow();
-    //for (int i = 0; i < 256; i++) {
-    //    for (int j = 0; j < 256; j++) {
-    //        auto& chunk = population.getChunkByIndex(i, j);
-    //        float ctemp = chunk.temperature;
-    //        ctemp -= 0.01;
-    //        ctemp = max(0.0f, ctemp);
-    //        int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
-    //        int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
-    //        float dx = torusDeltaA(chunk_center_x, sunX, base_rangex);  // Расстояние по X
-    //        float dy = torusDeltaA(chunk_center_y, sunY, base_rangey);  // Расстояние по Y
-    //        float dx_squared = pow(dx, 2);  // или dx * dx
-    //        float dy_squared = pow(dy, 2);  // или dy * dy
-    //        float squared_distance = dx_squared + dy_squared;
-    //        float distance = sqrt(squared_distance);
-    //        float normalized_distance = distance / 100.0f;
-    //        float temperature = 1.0f - normalized_distance;
-    //        temperature = max(0.0f, temperature);
-    //        ctemp += temperature;
-    //        chunk.temperature = ctemp;
-
-    //    }
-    //}
     for (int i = 0; i < 256; i++){
         for (int j = 0; j < 256; j++) {
             auto& chunk = population.getChunkByIndex(i, j);
@@ -321,67 +285,22 @@ void Loop() {
 	ShowRacketAndBallFromVectors();
 
 	Showpopulations();
-	//UpdateAllGrass();
-
-	//mouse2();
-
-
-	//вода
-
-
-
+	
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
 	ConstBuf::global[0] = XMFLOAT4(128, 128, 0, 0);
 	ConstBuf::global[1] = XMFLOAT4(sunX, sunY, 0, 0);
-   // for (int i = 0; i < 257; i++)
-   //     ConstBuf::drawerP[i];
+   
     const int SOURCE_SIZE = 128;
     const int DEST_SIZE = 64;  // изменено с 50 на 64
     const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4
 
-   //for (int blockX = 0; blockX < DEST_SIZE; blockX++)
-   //    for (int blockY = 0; blockY < DEST_SIZE; blockY++)
-   //    {
-   //        float sum = 0.0f;
-   //        int count = 0;
-   //
-   //        // Проходим по блоку 4x4 в исходных данных
-   //        for (int dx = 0; dx < BLOCK_SIZE; dx++)
-   //            for (int dy = 0; dy < BLOCK_SIZE; dy++)
-   //            {
-   //                int x = blockX * BLOCK_SIZE + dx;
-   //                int y = blockY * BLOCK_SIZE + dy;
-   //
-   //                ChunkWorld& currentChunk = population.getChunkByIndex(x, y);
-   //                sum += currentChunk.grass_sum;
-   //                count++;
-   //            }
-   //
-   //        // Усредняем значения
-   //        float average = sum / count;
-   //        
-   //        int index = blockX + blockY * DEST_SIZE;
-   //       if (index > DEST_SIZE* DEST_SIZE-100)
-   //           average = 1;
-   //        else if (index < 100)
-   //            average = 1;
-   //        else
-   //        //    average = 100;
-   //        ConstBuf::global[index].w = average;
-   //    }
-	//ConstBuf::ConstToVertex(5);
-	//ConstBuf::ConstToPixel(5);
+  
 	ConstBuf::Update(5, ConstBuf::global);
 	Textures::TextureToShader(1, 0, vertex);
 	Draw::NullDrawer(128*128,9);
 	
-	//Depth::Depth(Depth::depthmode::readonly);
-	//Textures::RenderTarget(0, 0);
-	//Depth::SetWaterRasterizer(); 
-
-
 	Textures::TextureToShader(1, 0);
 	Shaders::vShader(4);
 	Shaders::pShader(4);
@@ -390,12 +309,12 @@ void Loop() {
 	ConstBuf::ConstToVertex(5);
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
 	Draw::NullDrawer(1,9);
-	//Depth::ResetRasterizer();
 	waterLevel = 600;
 	Draw::Present();
 }
 void Bakt() {
     Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+    Rasterizer::Cull(Rasterizer::cullmode::back);
     Camera::Update();
     frameConst();
     Textures::RenderTarget(0, 0);
@@ -410,9 +329,79 @@ void Bakt() {
     Draw::DrawUIimage(44, -1, 1, -1, 1);
     Draw::Present();
 }
+void WATER() {
+
+    Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+    Camera::Update();
+    frameConst();
+    Textures::RenderTarget(0, 0);
+    Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
+    Draw::ClearDepth();
+    Rasterizer::Cull(Rasterizer::cullmode::back);
+    switch (gameSpeed) {
+
+    case 1: // 1x → каждый кадр
+        ProcessCreatures(population);
+        break;
+    case 2: // 2x → два раза за кадр
+        ProcessCreatures(population);
+        ProcessCreatures(population);
+        break;
+    case 3: // 4x → четыре раза за кадр
+        ProcessCreatures(population);
+        ProcessCreatures(population);
+        ProcessCreatures(population);
+        break;
+    }
+    for (int i = 0; i < 256; i++) {
+        for (int j = 0; j < 256; j++) {
+            auto& chunk = population.getChunkByIndex(i, j);
+            int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
+            int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
+            float dx = torusDeltaA((chunk_center_x), sunX, base_rangex);
+            float dy = torusDeltaA((chunk_center_y), sunY, base_rangey);
+            float Dd = dx * dx + dy * dy;
+            float DD = sqrt(Dd) / 10000;
+            float temperature = 1 - DD;
+            chunk.temperature = temperature;
+        }
+    }
+
+    mouse();
+    ShowFish();
+
+    Showpopulations();
+
+    //рельеф
+    Shaders::vShader(3);
+    Shaders::pShader(3);
+    ConstBuf::global[0] = XMFLOAT4(128, 128, 0, 0);
+    ConstBuf::global[1] = XMFLOAT4(sunX, sunY, 0, 0);
+
+    const int SOURCE_SIZE = 128;
+    const int DEST_SIZE = 64;  // изменено с 50 на 64
+    const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4
+
+
+    ConstBuf::Update(5, ConstBuf::global);
+    Textures::TextureToShader(1, 0, vertex);
+    Draw::NullDrawer(128 * 128, 9);
+    Rasterizer::Cull(Rasterizer::cullmode::front);
+    Textures::TextureToShader(1, 0);
+    Shaders::vShader(4);
+    Shaders::pShader(4);
+
+    ConstBuf::global[0] = XMFLOAT4(600, 0, 0, 0);
+    ConstBuf::ConstToVertex(5);
+    ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
+    Draw::NullDrawer(1, 9);
+    waterLevel = 600;
+    Draw::Present();
+}
 
 void Looppause() {
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
+    Rasterizer::Cull(Rasterizer::cullmode::back);
 	Camera::Update();
 	frameConst();
 	Textures::RenderTarget(0, 0);

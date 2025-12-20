@@ -38,6 +38,14 @@ void drawWorld()
 		ShowCursor(false);
 		Loop();
 		break;
+	case gameState_::water:
+		if (!initgame) {
+			InitGame();
+			initgame = true;
+		}
+		ShowCursor(false);
+		WATER();
+		break;
 	case gameState_::pause:
 		if (!initgame) {
 			InitGame();

@@ -457,3 +457,31 @@ void ShowRacketAndBallFromVectors()
     DrawBatchedInstances(17, infectedRats); // зараженные крысы
     DrawBatchedInstances(15, healthyRats);  // здоровые крысы
 }
+
+void ShowFish()
+{
+
+    // Группировка существ по типам
+    std::vector<XMFLOAT4> wolves;
+
+    // Предварительное резервирование памяти (оптимизация)
+    size_t totalCreatures = Fish.size();
+    size_t estimatedPerType = totalCreatures / 10; // примерная оценка
+
+
+    // Обработка всех существ в одном цикле
+    for (const auto& cr : Fish) {
+        if (!cr) continue;
+
+        
+            auto& chunk = population.getChunk(cr->x, cr->y);
+            float temp = chunk.temperature;
+            float s = max(cr->age / SIZEWOLFS, 10.0f);
+            wolves.emplace_back(cr->x, cr->y, s, temp);
+            break;
+        }
+
+    Shaders::vShader(0);
+    Shaders::pShader(0);
+    DrawBatchedInstances(3, wolves);        // волки
+}
