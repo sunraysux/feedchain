@@ -283,7 +283,7 @@ void Loop() {
     
 	mouse();
 	ShowRacketAndBallFromVectors();
-
+    ShowFish();
 	Showpopulations();
 	
 	//рельеф
@@ -448,7 +448,7 @@ void Looppause() {
 	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
 	Draw::NullDrawer(1, 81);
 	//Depth::ResetRasterizer();
-	waterLevel = 0.6;
+	waterLevel = 600;
 	Draw::Present();
 
 }

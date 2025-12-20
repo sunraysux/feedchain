@@ -101,26 +101,23 @@ void InitMicro() {
 }
 void InitFish() {
     //инициализация игры
-    int f = 0;
-    while (f == 0) {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1000; i++) {
 
-            float y = Random::Float(0, 100);
-            float x = Random::Float(0, 100);
+            float y = Random::Float(0, 30000);
+            float x = Random::Float(0, 30000);
             float z = Random::Float(0, 600);
-            //if (heightW(x, y)) {
+            if (heightW(x, y)) {
                 auto mikro = std::make_shared<FISH>();
                 mikro->age = 0;
                 mikro->y = y;
                 mikro->x = x;
                 mikro->z = z;
-                f++;
                 mikro->updateChunk(mikro);
                 Fish.push_back(mikro);
-            //}
+            }
 
         }
-    }
+    
 }
 void InitGame() {
     //std::random_device rd;
@@ -510,7 +507,6 @@ void ShowFish()
     size_t totalCreatures = Fish.size();
     size_t estimatedPerType = totalCreatures / 10; // примерная оценка
 
-
     // Обработка всех существ в одном цикле
     for (const auto& cr : Fish) {
         if (!cr) continue;
@@ -518,9 +514,8 @@ void ShowFish()
 
         auto& chunk = population.getChunk(cr->x, cr->y);
         float temp = chunk.temperature;
-        float s = max(cr->age / SIZEWOLFS, 10.0f);
+        float s = max(1000, 10.0f);
         wolves.emplace_back(cr->x, cr->y, s, temp);
-        break;
     }
 
     Shaders::vShader(11);

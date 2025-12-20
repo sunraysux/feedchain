@@ -28,7 +28,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float x = gConst[iID + 8].x;      // X координата
     float y = gConst[iID + 8].y;      // Y координата
     float sz = gConst[iID + 8].z;     // Размер билборда
-    float billboardHeight = 1.0f; // Высота билборда
+    float billboardHeight = 100.0f; // Высота билборда
 
     int gridX = 64;
     int gridY = 64;

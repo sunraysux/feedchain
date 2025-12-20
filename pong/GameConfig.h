@@ -83,7 +83,7 @@ float SIZEBERRYS = 50.0f;
 
 
 
-float waterLevel = 0.6 + cos(timer::frameBeginTime * .01 * 0.3) * 0.02;
+float waterLevel = 600;
 
 POINT p;
 
