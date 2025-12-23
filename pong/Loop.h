@@ -252,40 +252,11 @@ void Loop() {
     Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
     Draw::ClearDepth();
     Rasterizer::Cull(Rasterizer::cullmode::back);
-    switch (gameSpeed) {
-
-    case 1: // 1x → каждый кадр
-        ProcessCreatures(population);
-        break;
-    case 2: // 2x → два раза за кадр
-        ProcessCreatures(population);
-        ProcessCreatures(population);
-        break;
-    case 3: // 4x → четыре раза за кадр
-        ProcessCreatures(population);
-        ProcessCreatures(population);
-        ProcessCreatures(population);
-        break;
-    }
-    for (int i = 0; i < 256; i++){
-        for (int j = 0; j < 256; j++) {
-            auto& chunk = population.getChunkByIndex(i, j);
-            int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
-            int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
-            float dx = torusDeltaA((chunk_center_x), sunX, base_rangex);
-            float dy = torusDeltaA((chunk_center_y), sunY, base_rangey);
-            float Dd = dx * dx + dy * dy;
-            float DD = sqrt(Dd) / 10000;
-            float temperature = 1 - DD;
-            chunk.temperature = temperature;
-        }
-    }
     
 	mouse();
-	ShowRacketAndBallFromVectors();
-    ShowFish();
+    g_fishSystem.process();
 	Showpopulations();
-	
+    ShowFishOptimized();
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
@@ -324,7 +295,7 @@ void Bakt() {
     
     
     //ProcessMikro();
-    ShowMicro();
+    //ShowMicro();
     //Draw::DrawUIimage(44, 0, 1, 0, 1);
     Draw::DrawUIimage(44, -1, 1, -1, 1);
     Draw::Present();
@@ -341,34 +312,23 @@ void WATER() {
     switch (gameSpeed) {
 
     case 1: // 1x → каждый кадр
-        ProcessCreatures(population);
+        g_fishSystem.process();
+       // ProcessCreatures(population);
         break;
     case 2: // 2x → два раза за кадр
-        ProcessCreatures(population);
-        ProcessCreatures(population);
+       // ProcessCreatures(population);
+       // ProcessCreatures(population);
         break;
     case 3: // 4x → четыре раза за кадр
-        ProcessCreatures(population);
-        ProcessCreatures(population);
-        ProcessCreatures(population);
+       // ProcessCreatures(population);
+      //  ProcessCreatures(population);
+      //  ProcessCreatures(population);
         break;
     }
-    for (int i = 0; i < 256; i++) {
-        for (int j = 0; j < 256; j++) {
-            auto& chunk = population.getChunkByIndex(i, j);
-            int chunk_center_x = i * 128 - 64;  // X-координата центра чанка
-            int chunk_center_y = j * 128 - 64;  // Y-координата центра чанка
-            float dx = torusDeltaA((chunk_center_x), sunX, base_rangex);
-            float dy = torusDeltaA((chunk_center_y), sunY, base_rangey);
-            float Dd = dx * dx + dy * dy;
-            float DD = sqrt(Dd) / 10000;
-            float temperature = 1 - DD;
-            chunk.temperature = temperature;
-        }
-    }
+   
 
     mouse();
-    ShowFish();
+    ShowFishOptimized();
     Showpopulations();
 
     //рельеф
@@ -411,7 +371,7 @@ void Looppause() {
 	//ShowGrow();
 
 	mouse();
-	ShowRacketAndBallFromVectors();
+	//ShowRacketAndBallFromVectors();
 
 	Showpopulations();
 

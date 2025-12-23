@@ -714,6 +714,154 @@ namespace Sampler
 
 }
 
+// ==================== OPTIMIZED INSTANCE BUFFER ====================
+class OptimizedInstanceBuffer {
+private:
+	// Triple buffering для избежания конфликтов CPU-GPU
+	static constexpr int FRAME_COUNT = 3;
+
+	struct FrameData {
+		ID3D11Buffer* buffer = nullptr;
+		ID3D11ShaderResourceView* srv = nullptr;
+		size_t instanceCount = 0;
+	};
+
+	FrameData frames[FRAME_COUNT];
+	int currentFrame = 0;
+	int textureId;
+	size_t capacity;
+
+public:
+	OptimizedInstanceBuffer() : textureId(-1), capacity(0) {
+		memset(frames, 0, sizeof(frames));
+	}
+
+	~OptimizedInstanceBuffer() {
+		Release();
+	}
+
+	void Init(int texId, size_t initialCapacity = 1024) {
+		textureId = texId;
+		capacity = initialCapacity;
+
+		for (int i = 0; i < FRAME_COUNT; i++) {
+			D3D11_BUFFER_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.ByteWidth = sizeof(XMFLOAT4) * initialCapacity;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+			desc.StructureByteStride = sizeof(XMFLOAT4);
+
+			device->CreateBuffer(&desc, nullptr, &frames[i].buffer);
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+			ZeroMemory(&srvDesc, sizeof(srvDesc));
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+			srvDesc.Buffer.FirstElement = 0;
+			srvDesc.Buffer.NumElements = initialCapacity;
+
+			device->CreateShaderResourceView(frames[i].buffer, &srvDesc, &frames[i].srv);
+		}
+	}
+
+	void Update(const std::vector<XMFLOAT4>& data) {
+		if (data.empty()) {
+			frames[currentFrame].instanceCount = 0;
+			currentFrame = (currentFrame + 1) % FRAME_COUNT;
+			return;
+		}
+
+		// Проверяем, нужно ли увеличить буфер
+		if (data.size() > capacity) {
+			// Увеличиваем capacity в 2 раза
+			size_t newCapacity = data.size() * 2;
+			Resize(newCapacity);
+		}
+
+		// Копируем данные прямо в GPU-буфер
+		D3D11_BOX destRegion;
+		destRegion.left = 0;
+		destRegion.right = sizeof(XMFLOAT4) * data.size();
+		destRegion.top = 0;
+		destRegion.bottom = 1;
+		destRegion.front = 0;
+		destRegion.back = 1;
+
+		context->UpdateSubresource(
+			frames[currentFrame].buffer,
+			0,
+			&destRegion,
+			data.data(),
+			sizeof(XMFLOAT4),
+			0
+		);
+
+		frames[currentFrame].instanceCount = data.size();
+
+		// Переключаем на следующий буфер
+		currentFrame = (currentFrame + 1) % FRAME_COUNT;
+	}
+
+	void Render(int shaderId, int vertexCountPerInstance) {
+		// Получаем буфер предыдущего кадра (который уже обновлён)
+		int renderFrame = (currentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
+
+		if (frames[renderFrame].instanceCount == 0) return;
+
+		// Устанавливаем шейдеры
+		Shaders::vShader(shaderId);
+		Shaders::pShader(shaderId);
+
+		// Устанавливаем текстуру
+		if (textureId >= 0) {
+			context->PSSetShaderResources(0, 1,
+				&Textures::Texture[textureId].TextureResView);
+		}
+
+		// Устанавливаем буфер инстансов
+		context->VSSetShaderResources(1, 1, &frames[renderFrame].srv);
+
+		// Отрисовываем
+		context->DrawInstanced(
+			vertexCountPerInstance,
+			(UINT)frames[renderFrame].instanceCount,
+			0, 0
+		);
+	}
+
+	void Release() {
+		for (int i = 0; i < FRAME_COUNT; i++) {
+			if (frames[i].srv) {
+				frames[i].srv->Release();
+				frames[i].srv = nullptr;
+			}
+			if (frames[i].buffer) {
+				frames[i].buffer->Release();
+				frames[i].buffer = nullptr;
+			}
+			frames[i].instanceCount = 0;
+		}
+		currentFrame = 0;
+		capacity = 0;
+	}
+
+private:
+	void Resize(size_t newCapacity) {
+		// Освобождаем старые буферы
+		Release();
+
+		// Создаём новые с увеличенным размером
+		capacity = newCapacity;
+		Init(textureId, newCapacity);
+	}
+};
+
+// Глобальный буфер для рыб
+OptimizedInstanceBuffer g_fishInstanceBuffer;
+OptimizedInstanceBuffer g_treeInstanceBuffer;
+
 namespace ConstBuf
 {
 	ID3D11Buffer* buffer[6];

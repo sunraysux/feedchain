@@ -465,153 +465,153 @@ void mouse()
         return;
     }
 
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-
-        auto add_new_entities = [](auto& dest, auto& src) {
-            dest.reserve(dest.size() + src.size());
-            for (auto& entity : src) {
-                entity->updateChunk();
-                dest.emplace_back(std::move(entity));
-            }
-            src.clear();
-            };
-
-        switch (currentType) {
-        case type_::wolf: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddWolf(static_cast<int>(new_creature.size())) && tick - wolfSpawnTick > hunterTick) {
-                auto wolf = std::make_shared<Wolf>();
-                wolf->y = Wrap(Camera::state.mouseY, base_rangey);
-                wolf->x = Wrap(Camera::state.mouseX, base_rangex);
-                wolf->hunger = 0;
-                wolf->age = 0;
-                new_creature.push_back(wolf);
-                wolfSpawnTick = tick;
-            }
-            break;
-        }
-        case type_::rabbit: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddRabbit(static_cast<int>(new_creature.size())) && tick - rabbitSpawnTick > herbivoresTick) {
-                auto rabbit = std::make_shared<Rabbit>();
-                rabbit->y = Wrap(Camera::state.mouseY, base_rangey);
-                rabbit->x = Wrap(Camera::state.mouseX, base_rangex);
-                rabbit->hunger = 0;
-                rabbit->age = 0;
-                new_creature.push_back(rabbit);
-                rabbitSpawnTick = tick;
-            }
-            break;
-        }
-        case type_::tree: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddTree(static_cast<int>(new_creature.size()))) {
-                auto tree = std::make_shared<Tree>();
-                tree->y = Wrap(Camera::state.mouseY, base_rangey);
-                tree->x = Wrap(Camera::state.mouseX, base_rangex);
-                tree->age = 0;
-                plant_id += 1;
-                tree->id = plant_id;
-                tree->updateChunk();
-                new_creature.push_back(tree);
-            }
-            break;
-        }
-        case type_::grass: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddGrass(static_cast<int>(new_creature.size()))) {
-                auto gras = std::make_shared<Grass>();
-                gras->y = Wrap(Camera::state.mouseY, base_rangey);
-                gras->x = Wrap(Camera::state.mouseX, base_rangex);
-                gras->age = 0;
-                plant_id += 1;
-                gras->id = plant_id;
-                gras->updateChunk();
-                new_creature.push_back(gras);
-            }
-            break;
-        }
-        case type_::bush: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddBush(static_cast<int>(new_creature.size()))) {
-                auto bush = std::make_shared<Bush>();
-                bush->y = Wrap(Camera::state.mouseY, base_rangey);
-                bush->x = Wrap(Camera::state.mouseX, base_rangex);
-                bush->age = 0;
-                plant_id += 1;
-                bush->id = plant_id;
-                new_creature.push_back(bush);
-            }
-            break;
-        }
-                        /*case type_::eagle: {
-                            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                                return;
-                            }
-                            if (population.canAddEagle(static_cast<int>(new_eagles.size())) && tick - eagleSpawnTick > hunterTick) {
-                                auto eagle = std::make_shared<Eagle>();
-                                eagle->y = Wrap(Camera::state.mouseY, base_rangey);
-                                eagle->x = Wrap(Camera::state.mouseX, base_rangex);
-                                eagle->hunger = 0;
-                                eagle->age = 0;
-                                new_eagles.push_back(eagle);
-                                population.eagle_count++;
-                                eagleSpawnTick = tick;
-                            }
-                            break;
-                        }*/
-        case type_::rat: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddRat(static_cast<int>(new_creature.size())) && tick - ratSpawnTick > herbivoresTick) {
-                auto rat = std::make_shared<Rat>();
-                rat->y = Wrap(Camera::state.mouseY, base_rangey);
-                rat->x = Wrap(Camera::state.mouseX, base_rangex);
-                rat->hunger = 0;
-                rat->age = 0;
-                new_creature.push_back(rat);
-                ratSpawnTick = tick;
-            }
-            break;
-        }
-        case type_::lightning: {
-            if (tick - lightingSpawnTick > deadTick) {
-                kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 50);
-                seed += 1;
-                lightingSpawnTick = tick;
-            }
-            break;
-        }
-        case type_::bear: {
-            if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
-                return;
-            }
-            if (population.canAddBear(static_cast<int>(new_creature.size())) && tick - bearSpawnTick > hunterTick) {
-                auto bear = std::make_shared<Bear>();
-                bear->y = Wrap(Camera::state.mouseY, base_rangey);
-                bear->x = Wrap(Camera::state.mouseX, base_rangex);
-                bear->hunger = 0;
-                bear->age = 0;
-                new_creature.push_back(bear);
-                bearSpawnTick = tick;
-            }
-            break;
-        }
-        }
-
-        add_new_entities(creature, new_creature);
-    }
+    //if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+    //
+    //    auto add_new_entities = [](auto& dest, auto& src) {
+    //        dest.reserve(dest.size() + src.size());
+    //        for (auto& entity : src) {
+    //            entity->updateChunk();
+    //            dest.emplace_back(std::move(entity));
+    //        }
+    //        src.clear();
+    //        };
+    //
+    //    switch (currentType) {
+    //    case type_::wolf: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddWolf(static_cast<int>(new_creature.size())) && tick - wolfSpawnTick > hunterTick) {
+    //            auto wolf = std::make_shared<Wolf>();
+    //            wolf->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            wolf->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            wolf->hunger = 0;
+    //            wolf->age = 0;
+    //            new_creature.push_back(wolf);
+    //            wolfSpawnTick = tick;
+    //        }
+    //        break;
+    //    }
+    //    case type_::rabbit: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddRabbit(static_cast<int>(new_creature.size())) && tick - rabbitSpawnTick > herbivoresTick) {
+    //            auto rabbit = std::make_shared<Rabbit>();
+    //            rabbit->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            rabbit->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            rabbit->hunger = 0;
+    //            rabbit->age = 0;
+    //            new_creature.push_back(rabbit);
+    //            rabbitSpawnTick = tick;
+    //        }
+    //        break;
+    //    }
+    //    case type_::tree: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddTree(static_cast<int>(new_creature.size()))) {
+    //            auto tree = std::make_shared<Tree>();
+    //            tree->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            tree->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            tree->age = 0;
+    //            plant_id += 1;
+    //            tree->id = plant_id;
+    //            tree->updateChunk();
+    //            new_creature.push_back(tree);
+    //        }
+    //        break;
+    //    }
+    //    case type_::grass: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddGrass(static_cast<int>(new_creature.size()))) {
+    //            auto gras = std::make_shared<Grass>();
+    //            gras->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            gras->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            gras->age = 0;
+    //            plant_id += 1;
+    //            gras->id = plant_id;
+    //            gras->updateChunk();
+    //            new_creature.push_back(gras);
+    //        }
+    //        break;
+    //    }
+    //    case type_::bush: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddBush(static_cast<int>(new_creature.size()))) {
+    //            auto bush = std::make_shared<Bush>();
+    //            bush->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            bush->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            bush->age = 0;
+    //            plant_id += 1;
+    //            bush->id = plant_id;
+    //            new_creature.push_back(bush);
+    //        }
+    //        break;
+    //    }
+    //                    /*case type_::eagle: {
+    //                        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //                            return;
+    //                        }
+    //                        if (population.canAddEagle(static_cast<int>(new_eagles.size())) && tick - eagleSpawnTick > hunterTick) {
+    //                            auto eagle = std::make_shared<Eagle>();
+    //                            eagle->y = Wrap(Camera::state.mouseY, base_rangey);
+    //                            eagle->x = Wrap(Camera::state.mouseX, base_rangex);
+    //                            eagle->hunger = 0;
+    //                            eagle->age = 0;
+    //                            new_eagles.push_back(eagle);
+    //                            population.eagle_count++;
+    //                            eagleSpawnTick = tick;
+    //                        }
+    //                        break;
+    //                    }*/
+    //    case type_::rat: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddRat(static_cast<int>(new_creature.size())) && tick - ratSpawnTick > herbivoresTick) {
+    //            auto rat = std::make_shared<Rat>();
+    //            rat->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            rat->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            rat->hunger = 0;
+    //            rat->age = 0;
+    //            new_creature.push_back(rat);
+    //            ratSpawnTick = tick;
+    //        }
+    //        break;
+    //    }
+    //    case type_::lightning: {
+    //        if (tick - lightingSpawnTick > deadTick) {
+    //            kill_creatures_in_radius(Camera::state.mouseX, Camera::state.mouseY, 50);
+    //            seed += 1;
+    //            lightingSpawnTick = tick;
+    //        }
+    //        break;
+    //    }
+    //    case type_::bear: {
+    //        if (heightW(Camera::state.mouseX, Camera::state.mouseY)) {
+    //            return;
+    //        }
+    //        if (population.canAddBear(static_cast<int>(new_creature.size())) && tick - bearSpawnTick > hunterTick) {
+    //            auto bear = std::make_shared<Bear>();
+    //            bear->y = Wrap(Camera::state.mouseY, base_rangey);
+    //            bear->x = Wrap(Camera::state.mouseX, base_rangex);
+    //            bear->hunger = 0;
+    //            bear->age = 0;
+    //            new_creature.push_back(bear);
+    //            bearSpawnTick = tick;
+    //        }
+    //        break;
+    //    }
+    //    }
+    //
+    //    add_new_entities(creature, new_creature);
+    //}
 }
 
 void DrawNumber(int number, float startX, float startY, float digitWidth, float digitHeight) {
@@ -628,7 +628,7 @@ void DrawNumber(int number, float startX, float startY, float digitWidth, float 
     }
 }
 
-void DrawSTAT(PopulationManager& pop)
+void DrawSTAT()
 {
     Shaders::vShader(2);
     Shaders::pShader(2);
@@ -673,9 +673,9 @@ void Showpopulations() {
 
     if (tick - tickSTAT >= 60) {
         tickSTAT = tick;
-        int plants_p = population.bush_count + population.tree_count + population.grass_count;
-        int herbivores_p = population.rabbit_count + population.rat_count;
-        int hunter_p = population.bear_count + population.eagle_count + population.wolf_count;
+        int plants_p= 0;
+        int herbivores_p = 0;
+        int hunter_p = 0;
 
         if (stat_size < 100) {
             plants_pop[stat_size] = plants_p;
@@ -779,7 +779,7 @@ void Showpopulations() {
         DrawNumber(plants_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.5, 0.05, 0.05);
         DrawNumber(herbivores_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.3, 0.05, 0.05);
         DrawNumber(hunter_pop[stat_size - 1], statistikX + 0.05, statistikY + 0.1, 0.05, 0.05);
-        DrawSTAT(population);
+        DrawSTAT();
         Draw::DrawUIimage(47, statistikX, statistikX + statistikW, statistikY, statistikY + statistikH);
 
         // Отображаем текущие значения массивов

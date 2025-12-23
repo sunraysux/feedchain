@@ -1,405 +1,225 @@
-﻿inline int coord_to_chunkx(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + xmin - Camera::state.camX;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / CHUNK_SIZE);
-    return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
+﻿XMFLOAT2 sampleHeightDepthBilinear(const std::vector<XMFLOAT4>& data,
+    int width, int height,
+    float u, float v)
+{
+    float x = u * (width - 1);
+    float y = v * (height - 1);
+
+    int x0 = floor(x);
+    int y0 = floor(y);
+    int x1 = min(x0 + 1, width - 1);
+    int y1 = min(y0 + 1, height - 1);
+
+    float tx = x - x0;
+    float ty = y - y0;
+
+    auto get = [&](int X, int Y) { return data[Y * width + X]; };
+
+    XMFLOAT4 h00 = get(x0, y0);
+    XMFLOAT4 h10 = get(x1, y0);
+    XMFLOAT4 h01 = get(x0, y1);
+    XMFLOAT4 h11 = get(x1, y1);
+
+    float h0 = h00.x * (1 - tx) + h10.x * tx;
+    float h1 = h01.x * (1 - tx) + h11.x * tx;
+    float h = h0 * (1 - ty) + h1 * ty;
+
+    float d0 = h00.y * (1 - tx) + h10.y * tx;
+    float d1 = h01.y * (1 - tx) + h11.y * tx;
+    float d = d0 * (1 - ty) + d1 * ty;
+
+    return { h, d };
+}
+float heightH(float x, float y)
+{
+    auto& heightMap = Textures::Texture[1];
+
+    // 1. Нормализация
+    float normalizedX = (x) / 32768.0f;
+    float normalizedY = (y) / 32768.0f;
+
+    // 2. Жёсткое ограничение
+    normalizedX = clamp(normalizedX, 0.0f, 1.0f);
+    normalizedY = clamp(normalizedY, 0.0f, 1.0f);
+
+    // 3. Текстурные координаты
+    UINT texX = static_cast<UINT>(normalizedX * (heightMap.size.x - 1));
+    UINT texY = static_cast<UINT>(normalizedY * (heightMap.size.y - 1));
+
+    // 4. ОДИНАКОВОЕ ограничение
+    texX = min(texX, static_cast<UINT>(heightMap.size.x - 1));
+    texY = min(texY, static_cast<UINT>(heightMap.size.y - 1));
+    XMFLOAT2 hd = sampleHeightDepthBilinear(heightMap.cpuData, heightMap.size.x, heightMap.size.y, normalizedX, normalizedY);
+
+    float height = hd.x;
+    float depth = hd.y;
+
+    float heightScale = 1500;
+    height = height * heightScale;
+    return height;
+}
+bool heightW(float worldX, float worldY) {
+    auto& heightMap = Textures::Texture[1];
+
+    // 1. Нормализация
+    float normalizedX = (worldX) / 32768.0f;
+    float normalizedY = (worldY) / 32768.0f;
+
+    // 2. Жёсткое ограничение
+    normalizedX = clamp(normalizedX, 0.0f, 1.0f);
+    normalizedY = clamp(normalizedY, 0.0f, 1.0f);
+
+    // 3. Текстурные координаты
+    UINT texX = static_cast<UINT>(normalizedX * (heightMap.size.x - 1));
+    UINT texY = static_cast<UINT>(normalizedY * (heightMap.size.y - 1));
+
+    // 4. ОДИНАКОВОЕ ограничение
+    texX = min(texX, static_cast<UINT>(heightMap.size.x - 1));
+    texY = min(texY, static_cast<UINT>(heightMap.size.y - 1));
+    XMFLOAT2 hd = sampleHeightDepthBilinear(heightMap.cpuData, heightMap.size.x, heightMap.size.y, normalizedX, normalizedY);
+
+    float height = hd.x;
+    float depth = hd.y;
+
+    float heightScale = 1500;
+    height = height * heightScale;
+
+    return height < waterLevel;
 }
 
-inline int coord_to_chunky(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord + ymin - Camera::state.camY;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / CHUNK_SIZE);
-    return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
-}
-inline int coord_to_chunkz(float coord) {
-    // Смещаем координату из [-50,50] в [0,100]
-    float normalized = coord ;
-    // Вычисляем индекс и ограничиваем его
-    int index = static_cast<int>(normalized / 60);
-    return clamp(index, 0, CHUNKS_PER_SIDEY - 1);
-}
 
+// ==================== OPTIMIZED FISH SYSTEM (SoA) ====================
+class FishSystem {
+private:
+    // Structure of Arrays (SoA) - для лучшей производительности
+    std::vector<float> fishX;       // Позиция X
+    std::vector<float> fishY;       // Позиция Y  
+    std::vector<float> fishZ;       // Позиция Z (глубина)
+    std::vector<float> fishSizes;   // Размер рыб
+    std::vector<bool> fishActive;   // Активна ли рыба
+    std::vector<uint32_t> freeIndices; // Свободные индексы для повторного использования
+    std::vector<uint32_t> activeList;  // Список активных индексов
 
-struct ChunkWorld {
-    float temperature;
-    int rabbit_sum;
-    int wolf_sum;
-    int bear_sum;
-    int eagle_sum;
-    int tree_sum;
-    int bush_sum;
-    int grass_sum;
-    int berry_sum;
-    int rat_sum;
-};
-
-class PopulationManager {
 public:
-    int rabbit_count = 0;
-    int tree_count = 0;
-    int wolf_count = 0;
-    int bush_count = 0;
-    int eagle_count = 0;
-    int grass_count = 0;
-    int rat_count = 0;
-    int berry_count = 0;
-    int bear_count = 0;
-    const int grass_limit = 5000;
-    const int wolf_limit = 5000;
-    const int rabbit_limit = 5000;
-    const int tree_limit = 5000;
-    const int bush_limit = 5000;
-    const int eagle_limit = 1000;
-    const int rat_limit = 5000;
-    const int berry_limit = 50000;
-    const int bear_limit = 5000;
+    // Добавить рыбу - возвращает ID
+    uint32_t AddFish(float x, float y, float z, float size = 100.0f) {
+        uint32_t id;
 
+        if (!freeIndices.empty()) {
+            // Используем освобождённый индекс
+            id = freeIndices.back();
+            freeIndices.pop_back();
 
-    std::vector<std::vector<ChunkWorld>> chunks;
+            fishX[id] = x;
+            fishY[id] = y;
+            fishZ[id] = z;
+            fishSizes[id] = size;
+            fishActive[id] = true;
+        }
+        else {
+            // Добавляем новый элемент
+            id = fishX.size();
 
-    // Конструктор
-    PopulationManager() : chunks(CHUNKS_PER_SIDE_LARGE, std::vector<ChunkWorld>(CHUNKS_PER_SIDE_LARGE)) {}
+            fishX.push_back(x);
+            fishY.push_back(y);
+            fishZ.push_back(z);
+            fishSizes.push_back(size);
+            fishActive.push_back(true);
+        }
 
-    // Методы для работы с чанками
-    ChunkWorld& getChunk(int worldX, int worldY) {
-        int chunkX = coord_to_large_chunkx(worldX);
-        int chunkY = coord_to_large_chunky(worldY);
-        return chunks[chunkX][chunkY];
-    }
-    ChunkWorld& getChunkByIndex(int chunkX, int chunkY) {
-        return chunks[chunkX][chunkY];
+        activeList.push_back(id);
+        return id;
     }
 
-    // Обновление статистики в чанке при добавлении/удалении существа
-    void addToChunkWorld(int worldX, int worldY, type_ type) {
+    // Удалить рыбу
+    void RemoveFish(uint32_t id) {
+        if (id >= fishActive.size() || !fishActive[id]) return;
 
-        auto& chunk = getChunkByIndex(worldX, worldY);
-        switch (type) {
-        case type_::rabbit: chunk.rabbit_sum++;rabbit_count++; break;
-        case type_::wolf:chunk.wolf_sum++;wolf_count++; break;
-        case type_::bear: chunk.bear_sum++;   bear_count++; break;
-        case type_::eagle: chunk.eagle_sum++; eagle_count++; break;
-        case type_::rat: chunk.rat_sum++;     rat_count++;  break;
-        case type_::tree: chunk.tree_sum++;   tree_count++; break;
-        case type_::berry: chunk.berry_sum++; berry_count++; break;
-        case type_::grass: chunk.grass_sum++; grass_count++; break;
-        case type_::bush: chunk.bush_sum++;   bush_count++; break;
+        fishActive[id] = false;
+        freeIndices.push_back(id);
+
+        // Удаляем из активного списка
+        auto it = std::find(activeList.begin(), activeList.end(), id);
+        if (it != activeList.end()) {
+            *it = activeList.back();
+            activeList.pop_back();
         }
     }
 
-    void removeFromChunkWorld(int worldX, int worldY, type_ type) {
-        if (worldX < 0 || worldY < 0) return;
-        auto& chunk = getChunkByIndex(worldX, worldY);
-        switch (type) {
-        case type_::rabbit: chunk.rabbit_sum--;rabbit_count--; break;
-        case type_::wolf: chunk.wolf_sum--; wolf_count--; break;
-        
-
-        case type_::bear: chunk.bear_sum--;  bear_count--;  break;
-        case type_::eagle: chunk.eagle_sum--;eagle_count--; break;
-        case type_::rat: chunk.rat_sum--;    rat_count--;   break;
-        case type_::tree: chunk.tree_sum--;  tree_count--; break;
-        case type_::berry: chunk.berry_sum--;berry_count--; break;
-        case type_::grass: chunk.grass_sum--;grass_count--; break;
-        case type_::bush: chunk.bush_sum--;  bush_count--; break;
-        }
+    // Геттеры
+    bool IsActive(uint32_t id) const {
+        return id < fishActive.size() ? fishActive[id] : false;
     }
 
-    bool canAddWolf(int pending = 0) const {
-        return wolf_count + pending < wolf_limit;
+    float GetX(uint32_t id) const { return fishX[id]; }
+    float GetY(uint32_t id) const { return fishY[id]; }
+    float GetZ(uint32_t id) const { return fishZ[id]; }
+    float GetSize(uint32_t id) const { return fishSizes[id]; }
+
+    // Сеттеры
+    void SetPosition(uint32_t id, float x, float y, float z) {
+        fishX[id] = x;
+        fishY[id] = y;
+        fishZ[id] = z;
     }
 
-    bool canAddRabbit(int pending = 0) const {
-        return rabbit_count + pending < rabbit_limit;
+    // Получить количество активных рыб
+    size_t GetActiveCount() const {
+        return activeList.size();
     }
 
-    bool canAddTree(int pending = 0) const {
-        return tree_count + pending < tree_limit;
-    }
-    bool canAddBush(int pending = 0) const {
-        return bush_count + pending < bush_limit;
-    }
+    // Собрать данные для рендеринга (только активных рыб)
+    void GatherRenderData(std::vector<XMFLOAT4>& outData) {
+        outData.clear();
+        outData.reserve(activeList.size());
 
-    bool canAddEagle(int pending = 0) const {
-        return eagle_count + pending < eagle_limit;
-    }
-    bool canAddRat(int pending = 0) const {
-        return rat_count + pending < rat_limit;
-    }
-    bool canAddGrass(int pending = 0) const {
-        return grass_count + pending < grass_limit;
-    }
-    bool canAddBerrys(int pending = 0) const {
-        return berry_count + pending < berry_limit;
-    }
-    bool canAddBear(int pending = 0) const {
-        return bear_count + pending < bear_limit;
-    }
-
-};
-
-PopulationManager population;
-class Chunk;
-extern std::vector<std::vector<Chunk>> chunk_grid(
-    CHUNKS_PER_SIDEX,
-    std::vector<Chunk>(CHUNKS_PER_SIDEY)
-);
-
-class Creature : public std::enable_shared_from_this<Creature> {
-public:
-    float x, y, widht, age_limit, limit, hunger, hunger_limit, maturity_age, eating_range, nutritional_value, nextPositionX, nextPositionY, move_range, step;
-    int age;
-    int current_chunkWORLD_x = -1;
-    int current_chunkWORLD_y = -1;
-    int current_chunk_x = -1;
-    int current_chunk_y = -1;
-    gender_ gender;
-    type_ type;
-    bool dead = false;
-    bool eating = false;
-    bool isDirectionSelect = false;
-    float birth_tick;
-    int berry_count;
-    int blossoming_age = 0;
-    int berry_limit;
-    bool infect = false;
-    bool isUsedInfection = false;
-    bool isRotten = false;
-    int id;
-    int cont = 2;
-    Creature(type_ t) : type(t) {}
-    virtual void process(PopulationManager& pop) = 0;
-    
-
-    void removeFromChunk(bool world) {
-        if (current_chunk_x < 0 || current_chunk_y < 0) return;
-        if (world)
-            population.removeFromChunkWorld(current_chunkWORLD_x,
-                current_chunkWORLD_y, type);
-        auto& chunk = chunk_grid[current_chunk_x][current_chunk_y];
-        for (int i = 1;i <= cont;i++) {
-
-
-            auto& container = getChunkContainer(chunk, i);
-
-            // Удаляем weak_ptr, указывающий на текущий объект
-            container.erase(
-                std::remove_if(container.begin(), container.end(),
-                    [this](const std::weak_ptr<Creature>& wp) {
-                        auto sp = wp.lock();
-                        return !sp || sp.get() == this;
-                    }),
-                container.end()
+        for (uint32_t id : activeList) {
+            outData.emplace_back(
+                fishX[id],
+                fishY[id],
+                fishZ[id],
+                fishSizes[id]
             );
         }
-
-        // Удаляем weak_ptr, указывающий на текущий объект
-
-        current_chunk_x = -1;
-        current_chunk_y = -1;
     }
-    virtual ~Creature() = default;
-    virtual void updateChunk() {
-        int new_cx = coord_to_chunkx(x);
-        int new_cy = coord_to_chunky(y);
-        int chunkWORLD_x = coord_to_large_chunkx(x);
-        int chunkWORLD_y = coord_to_large_chunky(y);
-        if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
-            removeFromChunk(false);  // Удаляем из старого чанка
-            // Добавляем в новый чанк
-            current_chunk_x = new_cx;
-            current_chunk_y = new_cy;
+    void process()
+    {
+        int fixedCount = 0;
 
-            addToChunk(chunk_grid[new_cx][new_cy], false);
-        }
-        if (chunkWORLD_x != current_chunkWORLD_x || chunkWORLD_y != current_chunkWORLD_y) {
-            population.removeFromChunkWorld(current_chunkWORLD_x,
-                current_chunkWORLD_y, type);
-            current_chunkWORLD_x = chunkWORLD_x;
-            current_chunkWORLD_y = chunkWORLD_y;
-            addToChunk(chunk_grid[new_cx][new_cy], true);
-        }
-    }
-
-
-    virtual bool shouldDie() const = 0;
-
-protected:
-    // Виртуальный метод для получения нужного контейнера в чанке
-    virtual std::vector<std::weak_ptr<Creature>>& getChunkContainer(Chunk& chunk, int i) = 0;
-    // Виртуальный метод для добавления в чанк (уже объявлен)
-    virtual void addToChunk(Chunk& chunk, bool world) = 0;
-};
-std::vector<std::shared_ptr<Creature>> creature;
-std::vector<std::shared_ptr<Creature>> new_creature;
-
-class CM;
-extern std::vector<std::vector<CM>> chunk_gr(
-    CHUNKS_PER_SIDEX,
-    std::vector<CM>(CHUNKS_PER_SIDEY)
-);
-class Mikrobus;
-struct CM {
-    std::vector<std::weak_ptr<Mikrobus>> micro;
-};
-
-
-class Mikrobus : public std::enable_shared_from_this<Mikrobus> {
-public:
-    float x, y, age_limit, hunger, hunger_limit, eating_range, nutritional_value, move_range;
-    int age;
-    int current_chunk_x = -1;
-    int current_chunk_y = -1;
-    bool dead = false;
-    int id;
-    int cont = 2;
-    void process() {
-
-
-    }
-
-
-    void removeFromChunk() {
-        if (current_chunk_x < 0 || current_chunk_y < 0 ||
-            current_chunk_x >= CHUNKS_PER_SIDEX ||
-            current_chunk_y >= CHUNKS_PER_SIDEY) {
-            return;
-        }
-
-        auto& container = chunk_gr[current_chunk_x][current_chunk_y].micro;
-
-        // Более безопасный способ удаления
-        for (auto it = container.begin(); it != container.end(); ) {
-            if (auto sp = it->lock()) {
-                if (sp.get() == this) {
-                    it = container.erase(it);
-                }
-                else {
-                    ++it;
-                }
+        // Вариант 1: Стандартный
+        for (uint32_t id : activeList) {
+            if (fishZ[id] > 600) {
+                fishZ[id] = 500;
+                fixedCount++;
             }
-            else {
-                it = container.erase(it);  // Удаляем истёкшие weak_ptr
-            }
+            float H = heightH(fishX[id], fishY[id]);
+            if (fishZ[id] < H)
+                fishZ[id] = H - 100;
         }
 
-        current_chunk_x = -1;
-        current_chunk_y = -1;
+        // Вариант 2: С отладкой каждой рыбы
+        // for (uint32_t id : activeList) {
+        //     printf("Fish %d: z = %.2f\n", id, fishZ[id]);
+        //     if (fishZ[id] > 600) {
+        //         printf("  -> Fixing to 500\n");
+        //         fishZ[id] = 500;
+        //         fixedCount++;
+        //     }
+        // }
+
     }
-     ~Mikrobus() = default;
-     void updateChunk(std::shared_ptr<Mikrobus> self) {
-         int new_cx = coord_to_chunkx(x);
-         int new_cy = coord_to_chunky(y);
-         if (new_cx != current_chunk_x || new_cy != current_chunk_y) {
-             removeFromChunk();
-             current_chunk_x = new_cx;
-             current_chunk_y = new_cy;
 
-             chunk_gr[new_cx][new_cy].micro.push_back(self);
-         }
-     }
-
-
-
-     bool shouldDie(){
-         return 0;
-     }
-
-protected:
-
-    void addToChunk(CM& chunk) {
-        chunk.micro.push_back(weak_from_this());
+    // Очистить все данные
+    void Clear() {
+        fishX.clear();
+        fishY.clear();
+        fishZ.clear();
+        fishSizes.clear();
+        fishActive.clear();
+        freeIndices.clear();
+        activeList.clear();
     }
 };
 
-
-class FISH;
-class FC;
-extern std::vector<std::vector<std::vector<FC>>> chunk_grand(
-    CHUNKS_PER_SIDEX,
-    std::vector<std::vector<FC>>(
-        CHUNKS_PER_SIDEY,
-        std::vector<FC>(10) // третье измерение
-    )
-);
-struct FC {
-    std::vector<std::weak_ptr<FISH>> Fish;
-};
-
-
-class FISH : public std::enable_shared_from_this<FISH> {
-public:
-    float x, y, z, age_limit, hunger, hunger_limit, eating_range, nutritional_value, move_range;
-    int age;
-    int current_chunk_x = -1;
-    int current_chunk_y = -1;
-    int current_chunk_z = -1;
-    bool dead = false;
-    int id;
-    int cont = 2;
-    void process() {
-
-
-    }
-
-
-    void removeFromChunk() {
-        if (current_chunk_x < 0 || current_chunk_y < 0 || current_chunk_z < 0 ||
-            current_chunk_x >= CHUNKS_PER_SIDEX ||
-            current_chunk_y >= CHUNKS_PER_SIDEY||
-            current_chunk_z >= 10) {
-            return;
-        }
-
-        auto& container = chunk_grand[current_chunk_x][current_chunk_y][current_chunk_z].Fish;
-
-        // Более безопасный способ удаления
-        for (auto it = container.begin(); it != container.end(); ) {
-            if (auto sp = it->lock()) {
-                if (sp.get() == this) {
-                    it = container.erase(it);
-                }
-                else {
-                    ++it;
-                }
-            }
-            else {
-                it = container.erase(it);  // Удаляем истёкшие weak_ptr
-            }
-        }
-
-        current_chunk_x = -1;
-        current_chunk_y = -1;
-    }
-    ~FISH() = default;
-    void updateChunk(std::shared_ptr<FISH> self) {
-        int new_cx = coord_to_chunkx(x);
-        int new_cy = coord_to_chunky(y);
-        int new_cz = coord_to_chunkz(z);
-        if (new_cx != current_chunk_x || new_cy != current_chunk_y || new_cz != current_chunk_z) {
-            removeFromChunk();
-            current_chunk_x = new_cx;
-            current_chunk_y = new_cy;
-            current_chunk_z = new_cz;
-            chunk_grand[new_cx][new_cy][new_cz].Fish.push_back(self);
-        }
-    }
-
-
-
-    bool shouldDie() {
-        return 0;
-    }
-
-protected:
-
-    void addToChunk(FC& chunk) {
-        chunk.Fish.push_back(weak_from_this());
-    }
-};
-std::vector<std::shared_ptr<FISH>> Fish;
-std::vector<std::shared_ptr<FISH>> new_Fish;
-std::vector<std::shared_ptr<Mikrobus>> Mikro;
-std::vector<std::shared_ptr<Mikrobus>> new_Mikro;
+// Глобальный экземпляр
+FishSystem g_fishSystem;

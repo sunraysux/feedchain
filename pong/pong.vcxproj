@@ -195,6 +195,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\feedchain\pong\Debug\dice_texture.png" />
     <Image Include="..\Debug\back.bmp" />
     <Image Include="..\Debug\ball.bmp" />
     <Image Include="..\Debug\racket.bmp" />

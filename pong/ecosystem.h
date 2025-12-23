@@ -1,124 +1,124 @@
-﻿void ProcessCreatures(PopulationManager& pop) {
-    tick++;
-    float rot = 3.14*2;
-    sunX += 10*cos(rot);
-    sunY += 10 * sin(rot);
-    if (sunX > base_rangex) {
-
-        sunX -= base_rangex;
-    }
-    if (sunY > base_rangex){
-
-        sunY -= base_rangex;
-    }
-    if (sunX < 0) {
-
-        sunX += base_rangex;
-    }
-    if (sunY < 0) {
-
-        sunY += base_rangex;
-    }
-    int dead_creature = 0;
-
-    // Обработать всех существ
-    for (auto& cr : creature) {
-        cr->process(pop);
-    }
-
-    // Удалить мертвых существ напрямую
-    creature.erase(
-        std::remove_if(creature.begin(), creature.end(),
-            [&](const auto& entity) {
-                if (entity->shouldDie()) {
-                    dead_creature++;
-                    entity->removeFromChunk(true);
-                    return true;
-                }
-                return false;
-            }
-        ),
-        creature.end()
-    );
-
-    // Добавить новых существ
-    creature.reserve(creature.size() + new_creature.size());
-    for (auto& entity : new_creature) {
-        entity->updateChunk();
-        creature.emplace_back(std::move(entity));
-    }
-    new_creature.clear();
-}
-void ShowMicro()
-{
-    for (const auto& cr : Mikro) {
-        if (!cr) continue;
-        Draw::DrawUIimage(44, cr->x- 0.1, cr->x+ 0.1, cr->y- 0.1, cr->y+0.1);
-    }
-}
-void ProcessMikro() {
-    tick++;
-
-    // Обработать всех существ
-    for (auto& cr : Mikro) {
-        cr->process();
-    }
-
-    // Удалить мертвых существ напрямую
-    Mikro.erase(
-        std::remove_if(Mikro.begin(), Mikro.end(),
-            [&](const auto& entity) {
-                if (entity->shouldDie()) {
-                    
-                    entity->removeFromChunk();
-                    return true;
-                }
-                return false;
-            }
-        ),
-        Mikro.end()
-    );
-
-    // Добавить новых существ
-    Mikro.reserve(Mikro.size() + new_Mikro.size());
-    for (auto& entity : new_Mikro) {
-        entity->updateChunk(entity);
-        Mikro.emplace_back(std::move(entity));
-    }
-    new_Mikro.clear();
-}
-void InitMicro() {
-    //инициализация игры
-    for (int i = 0; i < 10; i++) {
-        auto mikro = std::make_shared<Mikrobus>();
-        mikro->y = Random::Float(-1, 1);
-        mikro->x = Random::Float(-1, 1);
-        mikro->age = 0;
-        mikro->updateChunk(mikro);
-        Mikro.push_back(mikro);
-
-    }
-}
-void InitFish() {
-    //инициализация игры
-        for (int i = 0; i < 1000; i++) {
-
-            float y = Random::Float(0, 30000);
-            float x = Random::Float(0, 30000);
-            float z = Random::Float(0, 600);
-            if (heightW(x, y)) {
-                auto mikro = std::make_shared<FISH>();
-                mikro->age = 0;
-                mikro->y = y;
-                mikro->x = x;
-                mikro->z = z;
-                mikro->updateChunk(mikro);
-                Fish.push_back(mikro);
-            }
-
-        }
-    
-}
+﻿//void ProcessCreatures(PopulationManager& pop) {
+//    tick++;
+//    float rot = 3.14*2;
+//    sunX += 10*cos(rot);
+//    sunY += 10 * sin(rot);
+//    if (sunX > base_rangex) {
+//
+//        sunX -= base_rangex;
+//    }
+//    if (sunY > base_rangex){
+//
+//        sunY -= base_rangex;
+//    }
+//    if (sunX < 0) {
+//
+//        sunX += base_rangex;
+//    }
+//    if (sunY < 0) {
+//
+//        sunY += base_rangex;
+//    }
+//    int dead_creature = 0;
+//
+//    // Обработать всех существ
+//    for (auto& cr : creature) {
+//        cr->process(pop);
+//    }
+//
+//    // Удалить мертвых существ напрямую
+//    creature.erase(
+//        std::remove_if(creature.begin(), creature.end(),
+//            [&](const auto& entity) {
+//                if (entity->shouldDie()) {
+//                    dead_creature++;
+//                    entity->removeFromChunk(true);
+//                    return true;
+//                }
+//                return false;
+//            }
+//        ),
+//        creature.end()
+//    );
+//
+//    // Добавить новых существ
+//    creature.reserve(creature.size() + new_creature.size());
+//    for (auto& entity : new_creature) {
+//        entity->updateChunk();
+//        creature.emplace_back(std::move(entity));
+//    }
+//    new_creature.clear();
+//}
+//void ShowMicro()
+//{
+//    for (const auto& cr : Mikro) {
+//        if (!cr) continue;
+//        Draw::DrawUIimage(44, cr->x- 0.1, cr->x+ 0.1, cr->y- 0.1, cr->y+0.1);
+//    }
+//}
+//void ProcessMikro() {
+//    tick++;
+//
+//    // Обработать всех существ
+//    for (auto& cr : Mikro) {
+//        cr->process();
+//    }
+//
+//    // Удалить мертвых существ напрямую
+//    Mikro.erase(
+//        std::remove_if(Mikro.begin(), Mikro.end(),
+//            [&](const auto& entity) {
+//                if (entity->shouldDie()) {
+//                    
+//                    entity->removeFromChunk();
+//                    return true;
+//                }
+//                return false;
+//            }
+//        ),
+//        Mikro.end()
+//    );
+//
+//    // Добавить новых существ
+//    Mikro.reserve(Mikro.size() + new_Mikro.size());
+//    for (auto& entity : new_Mikro) {
+//        entity->updateChunk(entity);
+//        Mikro.emplace_back(std::move(entity));
+//    }
+//    new_Mikro.clear();
+//}
+//void InitMicro() {
+//    //инициализация игры
+//    for (int i = 0; i < 10; i++) {
+//        auto mikro = std::make_shared<Mikrobus>();
+//        mikro->y = Random::Float(-1, 1);
+//        mikro->x = Random::Float(-1, 1);
+//        mikro->age = 0;
+//        mikro->updateChunk(mikro);
+//        Mikro.push_back(mikro);
+//
+//    }
+//}
+//void InitFish() {
+//    //инициализация игры
+//        for (int i = 0; i < 1000; i++) {
+//
+//            float y = Random::Float(0, 30000);
+//            float x = Random::Float(0, 30000);
+//            float z = Random::Float(0, 600);
+//            if (heightW(x, y)) {
+//                auto mikro = std::make_shared<FISH>();
+//                mikro->age = 0;
+//                mikro->y = y;
+//                mikro->x = x;
+//                mikro->z = z;
+//                mikro->updateChunk(mikro);
+//                Fish.push_back(mikro);
+//            }
+//
+//        }
+//    
+//}
 void InitGame() {
     //std::random_device rd;
     //std::mt19937 gen(rd()); // генератор
@@ -127,24 +127,24 @@ void InitGame() {
 
 
     Textures::LoadTextureFromFile(2, L"Debug/animal.png");
- //   Textures::CreateDepthForTexture(2);
+    //   Textures::CreateDepthForTexture(2);
     Textures::LoadTextureFromFile(3, L"Debug/wolf.png");
-  //  Textures::CreateDepthForTexture(3);
+    //  Textures::CreateDepthForTexture(3);
     Textures::LoadTextureFromFile(4, L"Debug/grass.jpg");
-  //  Textures::CreateDepthForTexture(4);
+    //  Textures::CreateDepthForTexture(4);
     Textures::LoadTextureFromFile(5, L"Debug/grass2.jpg");
-  //  Textures::CreateDepthForTexture(5);
+    //  Textures::CreateDepthForTexture(5);
     Textures::LoadTextureFromFile(6, L"Debug/grass3.jpg");
-  //  Textures::CreateDepthForTexture(6);
+    //  Textures::CreateDepthForTexture(6);
     Textures::LoadTextureFromFile(7, L"Debug/smallBush.png");
-   // Textures::CreateDepthForTexture(7);
+    // Textures::CreateDepthForTexture(7);
     Textures::LoadTextureFromFile(8, L"Debug/eagleMale.png");
-   // Textures::CreateDepthForTexture(8);
+    // Textures::CreateDepthForTexture(8);
     Textures::LoadTextureFromFile(9, L"Debug/smallTree.png");
-  //  Textures::CreateDepthForTexture(9);
-   // Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
-   // Textures::ReadTextureToCPU(10);
-   // Textures::CreateDepthForTexture(10);
+    //  Textures::CreateDepthForTexture(9);
+     // Textures::LoadTextureFromFile(10, L"Debug/i.jpg");
+     // Textures::ReadTextureToCPU(10);
+     // Textures::CreateDepthForTexture(10);
     Textures::LoadTextureFromFile(11, L"Debug/standartTree.png");
     Textures::LoadTextureFromFile(12, L"Debug/bigTree.png");
     Textures::LoadTextureFromFile(13, L"Debug/standartBush.png");
@@ -179,6 +179,7 @@ void InitGame() {
     Textures::LoadTextureFromFile(107, L"Debug/7.png");
     Textures::LoadTextureFromFile(108, L"Debug/8.png");
     Textures::LoadTextureFromFile(109, L"Debug/9.png");
+    Textures::LoadTextureFromFile(55, L"Debug/dice_texture.png");
     // Начальные растения
    //for (int i = 0; i < 1000; i++) {
    //    auto tree = std::make_shared<Tree>();
@@ -330,193 +331,234 @@ void DrawSun() {
     
 }
 
-void ShowRacketAndBallFromVectors()
-{
+//void ShowRacketAndBallFromVectors()
+//{
+//
+//    // Группировка существ по типам
+//    std::vector<XMFLOAT4> wolves;
+//    std::vector<XMFLOAT4> rabbits;
+//    std::vector<XMFLOAT4> bears;
+//    std::vector<XMFLOAT4> maleEagles;
+//    std::vector<XMFLOAT4> femaleEagles;
+//    std::vector<XMFLOAT4> smallTrees;
+//    std::vector<XMFLOAT4> standardTrees;
+//    std::vector<XMFLOAT4> bigTrees;
+//    std::vector<XMFLOAT4> smallBushes;
+//    std::vector<XMFLOAT4> standardBushes;
+//    std::vector<XMFLOAT4> bigBushes;
+//    std::vector<XMFLOAT4> berrys;
+//    std::vector<XMFLOAT4> smallGrass;
+//    std::vector<XMFLOAT4> standardGrass;
+//    std::vector<XMFLOAT4> bigGrass;
+//    std::vector<XMFLOAT4> infectedRats;
+//    std::vector<XMFLOAT4> healthyRats;
+//
+//    // Предварительное резервирование памяти (оптимизация)
+//    size_t totalCreatures = creature.size();
+//    size_t estimatedPerType = totalCreatures / 10; // примерная оценка
+//
+//    wolves.reserve(estimatedPerType);
+//    rabbits.reserve(estimatedPerType);
+//
+//    // Обработка всех существ в одном цикле
+//    for (const auto& cr : creature) {
+//        if (!cr) continue;
+//
+//        switch (cr->type) {
+//        case type_::wolf: {
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            float s = max(cr->age / SIZEWOLFS, 10.0f);
+//            wolves.emplace_back(cr->x, cr->y, s, temp);
+//            break;
+//        }
+//        case type_::rabbit: {
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            float s = max(cr->age / SIZERABBITS, 10.0f);
+//            rabbits.emplace_back(cr->x, cr->y, s, temp);
+//            break;
+//        }
+//        case type_::bear: {
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            float s = max(cr->age / SIZEBEARS, 10.0f);
+//            bears.emplace_back(cr->x, cr->y, s, temp);
+//            break;
+//        }
+//        case type_::eagle: {
+//            float s = max(cr->age / SIZEAGLES, 10.0f);
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            if (cr->gender == gender_::male) {
+//                maleEagles.emplace_back(cr->x, cr->y, s, temp);
+//            }
+//            else {
+//                femaleEagles.emplace_back(cr->x, cr->y, s, temp);
+//            }
+//            break;
+//        }
+//        case type_::tree: {
+//            float as = cr->age / SIZETREES;
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            if (cr->age > cr->age_limit / 2) {
+//                bigTrees.emplace_back(cr->x, cr->y, as, temp);
+//            }
+//            else if (cr->age > cr->age_limit / 3) {
+//                standardTrees.emplace_back(cr->x, cr->y, as, temp);
+//            }
+//            else {
+//                smallTrees.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
+//            }
+//            break;
+//        }
+//        case type_::bush: {
+//            float as = cr->age / SIZEBUSHES;
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            if (cr->age > 500) {
+//                bigBushes.emplace_back(cr->x, cr->y, min(as,10), temp);
+//            }
+//            else if (cr->age > 300) {
+//                standardBushes.emplace_back(cr->x, cr->y, as, temp);
+//            }
+//            else {
+//                smallBushes.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
+//            }
+//            break;
+//        }
+//        case type_::berry: {
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            float s = max(cr->age / SIZEBERRYS, 10.0f);
+//            berrys.emplace_back(cr->x, cr->y, s, temp);
+//            break;
+//        }
+//        case type_::grass: {
+//            float as = cr->age / SIZEGRASS;
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//            if (cr->age > cr->age_limit / 2) {
+//                bigGrass.emplace_back(cr->x, cr->y, as, temp);
+//            }
+//            else if (cr->age > cr->age_limit / 3) {
+//                standardGrass.emplace_back(cr->x, cr->y, as, temp);
+//            }
+//            else {
+//                smallGrass.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
+//            }
+//            break;
+//        }
+//        case type_::rat: {
+//            float s = max(cr->age / SIZERATS, 10.0f);
+//            auto& chunk = population.getChunk(cr->x, cr->y);
+//            float temp = chunk.temperature;
+//
+//            if (cr->infect) {
+//                infectedRats.emplace_back(cr->x, cr->y, s, temp);
+//            }
+//            else {
+//                healthyRats.emplace_back(cr->x, cr->y, s, temp);
+//            }
+//            break;
+//        }
+//        }
+//    }
+//
+//    // Отрисовка всех групп
+//    // Животные с одной текстурой
+//    DrawSun();
+//    Shaders::vShader(0);
+//    Shaders::pShader(0);
+//    DrawBatchedInstances(3, wolves);        // волки
+//    DrawBatchedInstances(2, rabbits);       // кролики  
+//    DrawBatchedInstances(28, bears);        // медведи
+//    DrawBatchedInstances(27, berrys);       // ягоды
+//
+//    // Животные с разделением по полу
+//    DrawBatchedInstances(8, maleEagles);    // орлы-самцы
+//    DrawBatchedInstances(16, femaleEagles); // орлы-самки
+//
+//    // Растения с разделением по размеру
+//    DrawBatchedInstances(9, smallTrees);    // маленькие деревья
+//    DrawBatchedInstances(11, standardTrees);// средние деревья  
+//    DrawBatchedInstances(12, bigTrees);     // большие деревья
+//
+//    DrawBatchedInstances(7, smallBushes);   // маленькие кусты
+//    DrawBatchedInstances(13, standardBushes);// средние кусты
+//    DrawBatchedInstances(14, bigBushes);    // большие кусты
+//
+//    DrawBatchedInstances(19, smallGrass);   // маленькая трава
+//    DrawBatchedInstances(20, standardGrass);// средняя трава
+//    DrawBatchedInstances(21, bigGrass);     // большая трава
+//
+//    // Животные с проверкой заражения
+//    DrawBatchedInstances(17, infectedRats); // зараженные крысы
+//    DrawBatchedInstances(15, healthyRats);  // здоровые крысы
+//}
+//
+//void ShowFish()
+//{
+//
+//    // Группировка существ по типам
+//    std::vector<XMFLOAT4> wolves;
+//
+//    // Предварительное резервирование памяти (оптимизация)
+//    size_t totalCreatures = Fish.size();
+//    size_t estimatedPerType = totalCreatures / 10; // примерная оценка
+//
+//    // Обработка всех существ в одном цикле
+//    for (const auto& cr : Fish) {
+//        if (!cr) continue;
+//
+//
+//        auto& chunk = population.getChunk(cr->x, cr->y);
+//        wolves.emplace_back(cr->x, cr->y, cr->z, 100);
+//    }
+//
+//    Shaders::vShader(11);
+//    Shaders::pShader(11);
+//    DrawBatchedInstancesF(55, wolves);        // волки
+//}
+void InitFishOptimized(int texID) {
+    // Очищаем старую систему
+    g_fishSystem.Clear();
 
-    // Группировка существ по типам
-    std::vector<XMFLOAT4> wolves;
-    std::vector<XMFLOAT4> rabbits;
-    std::vector<XMFLOAT4> bears;
-    std::vector<XMFLOAT4> maleEagles;
-    std::vector<XMFLOAT4> femaleEagles;
-    std::vector<XMFLOAT4> smallTrees;
-    std::vector<XMFLOAT4> standardTrees;
-    std::vector<XMFLOAT4> bigTrees;
-    std::vector<XMFLOAT4> smallBushes;
-    std::vector<XMFLOAT4> standardBushes;
-    std::vector<XMFLOAT4> bigBushes;
-    std::vector<XMFLOAT4> berrys;
-    std::vector<XMFLOAT4> smallGrass;
-    std::vector<XMFLOAT4> standardGrass;
-    std::vector<XMFLOAT4> bigGrass;
-    std::vector<XMFLOAT4> infectedRats;
-    std::vector<XMFLOAT4> healthyRats;
+    // Создаём рыб
+    for (int i = 0; i < 100000; i++) {
+        float x = Random::Float(0, base_rangex);
+        float y = Random::Float(0, base_rangey);
+        float z = Random::Float(0, 1500);
 
-    // Предварительное резервирование памяти (оптимизация)
-    size_t totalCreatures = creature.size();
-    size_t estimatedPerType = totalCreatures / 10; // примерная оценка
-
-    wolves.reserve(estimatedPerType);
-    rabbits.reserve(estimatedPerType);
-
-    // Обработка всех существ в одном цикле
-    for (const auto& cr : creature) {
-        if (!cr) continue;
-
-        switch (cr->type) {
-        case type_::wolf: {
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            float s = max(cr->age / SIZEWOLFS, 10.0f);
-            wolves.emplace_back(cr->x, cr->y, s, temp);
-            break;
-        }
-        case type_::rabbit: {
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            float s = max(cr->age / SIZERABBITS, 10.0f);
-            rabbits.emplace_back(cr->x, cr->y, s, temp);
-            break;
-        }
-        case type_::bear: {
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            float s = max(cr->age / SIZEBEARS, 10.0f);
-            bears.emplace_back(cr->x, cr->y, s, temp);
-            break;
-        }
-        case type_::eagle: {
-            float s = max(cr->age / SIZEAGLES, 10.0f);
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            if (cr->gender == gender_::male) {
-                maleEagles.emplace_back(cr->x, cr->y, s, temp);
-            }
-            else {
-                femaleEagles.emplace_back(cr->x, cr->y, s, temp);
-            }
-            break;
-        }
-        case type_::tree: {
-            float as = cr->age / SIZETREES;
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            if (cr->age > cr->age_limit / 2) {
-                bigTrees.emplace_back(cr->x, cr->y, as, temp);
-            }
-            else if (cr->age > cr->age_limit / 3) {
-                standardTrees.emplace_back(cr->x, cr->y, as, temp);
-            }
-            else {
-                smallTrees.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
-            }
-            break;
-        }
-        case type_::bush: {
-            float as = cr->age / SIZEBUSHES;
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            if (cr->age > 500) {
-                bigBushes.emplace_back(cr->x, cr->y, min(as,10), temp);
-            }
-            else if (cr->age > 300) {
-                standardBushes.emplace_back(cr->x, cr->y, as, temp);
-            }
-            else {
-                smallBushes.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
-            }
-            break;
-        }
-        case type_::berry: {
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            float s = max(cr->age / SIZEBERRYS, 10.0f);
-            berrys.emplace_back(cr->x, cr->y, s, temp);
-            break;
-        }
-        case type_::grass: {
-            float as = cr->age / SIZEGRASS;
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-            if (cr->age > cr->age_limit / 2) {
-                bigGrass.emplace_back(cr->x, cr->y, as, temp);
-            }
-            else if (cr->age > cr->age_limit / 3) {
-                standardGrass.emplace_back(cr->x, cr->y, as, temp);
-            }
-            else {
-                smallGrass.emplace_back(cr->x, cr->y, max(as, 1.0f), temp);
-            }
-            break;
-        }
-        case type_::rat: {
-            float s = max(cr->age / SIZERATS, 10.0f);
-            auto& chunk = population.getChunk(cr->x, cr->y);
-            float temp = chunk.temperature;
-
-            if (cr->infect) {
-                infectedRats.emplace_back(cr->x, cr->y, s, temp);
-            }
-            else {
-                healthyRats.emplace_back(cr->x, cr->y, s, temp);
-            }
-            break;
-        }
+        if (heightW(x, y)) {
+            g_fishSystem.AddFish(x, y, z, 100.0f);
         }
     }
+    //OptimizedInstanceBuffer g_treeInstanceBuffer;
+    // Инициализируем буфер (емкость примерно на 20% больше)
+    g_fishInstanceBuffer.Init(texID, (size_t)(g_fishSystem.GetActiveCount() * 1.2f));
 
-    // Отрисовка всех групп
-    // Животные с одной текстурой
-    DrawSun();
-    Shaders::vShader(0);
-    Shaders::pShader(0);
-    DrawBatchedInstances(3, wolves);        // волки
-    DrawBatchedInstances(2, rabbits);       // кролики  
-    DrawBatchedInstances(28, bears);        // медведи
-    DrawBatchedInstances(27, berrys);       // ягоды
-
-    // Животные с разделением по полу
-    DrawBatchedInstances(8, maleEagles);    // орлы-самцы
-    DrawBatchedInstances(16, femaleEagles); // орлы-самки
-
-    // Растения с разделением по размеру
-    DrawBatchedInstances(9, smallTrees);    // маленькие деревья
-    DrawBatchedInstances(11, standardTrees);// средние деревья  
-    DrawBatchedInstances(12, bigTrees);     // большие деревья
-
-    DrawBatchedInstances(7, smallBushes);   // маленькие кусты
-    DrawBatchedInstances(13, standardBushes);// средние кусты
-    DrawBatchedInstances(14, bigBushes);    // большие кусты
-
-    DrawBatchedInstances(19, smallGrass);   // маленькая трава
-    DrawBatchedInstances(20, standardGrass);// средняя трава
-    DrawBatchedInstances(21, bigGrass);     // большая трава
-
-    // Животные с проверкой заражения
-    DrawBatchedInstances(17, infectedRats); // зараженные крысы
-    DrawBatchedInstances(15, healthyRats);  // здоровые крысы
 }
 
-void ShowFish()
-{
-
-    // Группировка существ по типам
-    std::vector<XMFLOAT4> wolves;
-
-    // Предварительное резервирование памяти (оптимизация)
-    size_t totalCreatures = Fish.size();
-    size_t estimatedPerType = totalCreatures / 10; // примерная оценка
-
-    // Обработка всех существ в одном цикле
-    for (const auto& cr : Fish) {
-        if (!cr) continue;
-
-
-        auto& chunk = population.getChunk(cr->x, cr->y);
-        wolves.emplace_back(cr->x, cr->y, cr->z, 100);
+// ==================== ОТРИСОВКА РЫБ ====================
+void ShowFishOptimized() {
+    static bool initialized = false;
+    if (!initialized) {
+        // Инициализация при первом вызове
+        g_fishInstanceBuffer.Init(55, 1024);
+        initialized = true;
     }
 
-    Shaders::vShader(11);
-    Shaders::pShader(11);
-    DrawBatchedInstancesF(3, wolves);        // волки
+    // Собираем данные для рендеринга
+    std::vector<XMFLOAT4> fishData;
+    g_fishSystem.GatherRenderData(fishData);
+
+    if (fishData.empty()) return;
+
+    // Обновляем буфер на GPU
+    g_fishInstanceBuffer.Update(fishData);
+
+    // Рендерим (6 квадов * 6 вершин = 36 вершин на куб)
+    g_fishInstanceBuffer.Render(11, 36);
 }
