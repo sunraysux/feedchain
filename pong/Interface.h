@@ -74,7 +74,7 @@ void checkButtons()
 
     if (shiftHeld)
     {
-        if (gameSpeed == 6) gameState = gameState_::game;
+        //if (gameSpeed == 6) gameState = gameState_::game;
         if (keyPressed['1']) gameSpeed = 1;
         if (keyPressed['2']) gameSpeed = 2;
         if (keyPressed['3']) gameSpeed = 3;

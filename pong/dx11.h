@@ -860,7 +860,6 @@ private:
 
 // Глобальный буфер для рыб
 OptimizedInstanceBuffer g_fishInstanceBuffer;
-OptimizedInstanceBuffer g_treeInstanceBuffer;
 
 namespace ConstBuf
 {
@@ -1584,12 +1583,16 @@ namespace Camera
 		float newPosZ = XMVectorGetZ(state.position) + dz;
 		float newTargetZ = XMVectorGetZ(state.target) + dz;
 		float dz1 = newPosZ - newTargetZ;
-		if (newPosZ < groundPos + minAboveGround&& newPosZ<waterLevel)
+		if (newPosZ < groundPos + minAboveGround && newPosZ < waterLevel)
 			gameState = gameState_::mikro;
-		else if(newPosZ < waterLevel)
-			gameState = gameState_::water;
-		else
+		else if (newPosZ < waterLevel) {
+			OldgameState = gameState;gameState = gameState_::water;
+		}
+		else if (gameState == gameState_::water)
+			gameState = OldgameState;
+		else if(gameState==gameState_::mikro)
 			gameState = gameState_::game;
+
 		newPosZ = max(newPosZ, groundPos + minAboveGround);
 		newTargetZ = max(newTargetZ, groundTarget + minAboveGround);
 

@@ -28,6 +28,7 @@ enum class gameState_ {
 };
 
 gameState_  gameState = gameState_::mikro;
+gameState_  OldgameState = gameState_::game;
 
 
 //#include "ecosystem.h"

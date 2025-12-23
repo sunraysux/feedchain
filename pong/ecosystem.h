@@ -530,10 +530,15 @@ void InitFishOptimized(int texID) {
         float x = Random::Float(0, base_rangex);
         float y = Random::Float(0, base_rangey);
         float z = Random::Float(0, 1500);
-
-        if (heightW(x, y)) {
-            g_fishSystem.AddFish(x, y, z, 100.0f);
+        if (z > 600) {
+            z = 500;
         }
+        else {
+            float H = heightH(x, y);
+            if (z < H)
+                z = H + 100;
+        }
+        g_fishSystem.AddFish(x, y, z, texID, 0,100.0f);
     }
     //OptimizedInstanceBuffer g_treeInstanceBuffer;
     // Инициализируем буфер (емкость примерно на 20% больше)
@@ -542,17 +547,17 @@ void InitFishOptimized(int texID) {
 }
 
 // ==================== ОТРИСОВКА РЫБ ====================
-void ShowFishOptimized() {
+void ShowFishOptimized(int i) {
     static bool initialized = false;
     if (!initialized) {
         // Инициализация при первом вызове
-        g_fishInstanceBuffer.Init(55, 1024);
+        g_fishInstanceBuffer.Init(i, 1024);
         initialized = true;
     }
 
     // Собираем данные для рендеринга
     std::vector<XMFLOAT4> fishData;
-    g_fishSystem.GatherRenderData(fishData);
+    g_fishSystem.GatherRenderData(fishData, i);
 
     if (fishData.empty()) return;
 

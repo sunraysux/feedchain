@@ -246,7 +246,8 @@ void StartMenu() {
 void Loop() {
 
     Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
-    Camera::Update();
+    
+        Camera::Update();
     frameConst();
     Textures::RenderTarget(0, 0);
     Draw::Clear({ 0.0f, 0.0f, 0.0f, 1.0f });
@@ -256,7 +257,7 @@ void Loop() {
 	mouse();
     g_fishSystem.process();
 	Showpopulations();
-    ShowFishOptimized();
+    ShowFishOptimized(55);
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
@@ -312,7 +313,7 @@ void WATER() {
     switch (gameSpeed) {
 
     case 1: // 1x → каждый кадр
-        g_fishSystem.process();
+       // g_fishSystem.process();
        // ProcessCreatures(population);
         break;
     case 2: // 2x → два раза за кадр
@@ -328,7 +329,8 @@ void WATER() {
    
 
     mouse();
-    ShowFishOptimized();
+    //ShowFishOptimized(55);
+    ShowFishOptimized(55);
     Showpopulations();
 
     //рельеф
@@ -371,44 +373,31 @@ void Looppause() {
 	//ShowGrow();
 
 	mouse();
-	//ShowRacketAndBallFromVectors();
+    Showpopulations();
+    ShowFishOptimized(55);
+    //рельеф
+    Shaders::vShader(3);
+    Shaders::pShader(3);
+    ConstBuf::global[0] = XMFLOAT4(128, 128, 0, 0);
+    ConstBuf::global[1] = XMFLOAT4(sunX, sunY, 0, 0);
 
-	Showpopulations();
-
-	//mouse2();
-
-
-	//вода
-
-
-
-
-	Shaders::vShader(3);
-	Shaders::pShader(3);
-
-	ConstBuf::global[0] = XMFLOAT4(64, 64, Camera::state.camXChunk, Camera::state.camYChunk);
-	ConstBuf::global[1] = XMFLOAT4(1024, 1024, 0, 0);
-	ConstBuf::ConstToVertex(5);
-	ConstBuf::Update(5, ConstBuf::global);
-	Textures::TextureToShader(1, 0, vertex);
-	Draw::NullDrawer(32768 / 8, 81);
-
-	//Depth::Depth(Depth::depthmode::readonly);
-	//Textures::RenderTarget(0, 0);
-	//Depth::SetWaterRasterizer(); 
+    const int SOURCE_SIZE = 128;
+    const int DEST_SIZE = 64;  // изменено с 50 на 64
+    const int BLOCK_SIZE = SOURCE_SIZE / DEST_SIZE;  // 256 / 64 = 4
 
 
-	Textures::TextureToShader(1, 0);
-	Shaders::vShader(4);
-	Shaders::pShader(4);
+    ConstBuf::Update(5, ConstBuf::global);
+    Textures::TextureToShader(1, 0, vertex);
+    Draw::NullDrawer(128 * 128, 9);
 
-	ConstBuf::global[0] = XMFLOAT4(waterLevel, Camera::state.camXChunk, Camera::state.camYChunk, 0);
-	ConstBuf::ConstToVertex(5);
-	ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
-	Draw::NullDrawer(1, 81);
-	//Depth::ResetRasterizer();
-	waterLevel = 600;
-	Draw::Present();
+    Textures::TextureToShader(1, 0);
+    Shaders::vShader(4);
+    Shaders::pShader(4);
 
+    ConstBuf::global[0] = XMFLOAT4(600, 0, 0, 0);
+    ConstBuf::ConstToVertex(5);
+    ConstBuf::Update(ConstBuf::getbyname::global, ConstBuf::global);
+    Draw::NullDrawer(1, 9);
+    waterLevel = 600;
+    Draw::Present();
 }
-

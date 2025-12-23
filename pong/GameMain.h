@@ -99,30 +99,37 @@ private:
     std::vector<bool> fishActive;   // Активна ли рыба
     std::vector<uint32_t> freeIndices; // Свободные индексы для повторного использования
     std::vector<uint32_t> activeList;  // Список активных индексов
+    std::vector<uint32_t> idtexture;
+    std::vector<uint32_t> age;
+    std::vector<uint32_t> ww;
 
 public:
     // Добавить рыбу - возвращает ID
-    uint32_t AddFish(float x, float y, float z, float size = 100.0f) {
+    uint32_t AddFish(float x, float y, float z, int tex, int years, float size = 100.0f) {
         uint32_t id;
 
         if (!freeIndices.empty()) {
             // Используем освобождённый индекс
             id = freeIndices.back();
             freeIndices.pop_back();
-
+            age[id] = years;
             fishX[id] = x;
             fishY[id] = y;
             fishZ[id] = z;
             fishSizes[id] = size;
+            idtexture[id] = tex;
+            ww[id] = 0;
             fishActive[id] = true;
         }
         else {
             // Добавляем новый элемент
             id = fishX.size();
-
+            age.push_back(years);
             fishX.push_back(x);
             fishY.push_back(y);
             fishZ.push_back(z);
+            ww.push_back(0);
+            idtexture.push_back(tex);
             fishSizes.push_back(size);
             fishActive.push_back(true);
         }
@@ -167,45 +174,69 @@ public:
     size_t GetActiveCount() const {
         return activeList.size();
     }
+    // Преобразование мировых координат в экранные
+    XMFLOAT2 WorldToScreen(const XMVECTOR& worldPos)
+    {
+        XMMATRIX viewProj = Camera::state.viewMatrix * Camera::state.projMatrix;
+        XMVECTOR clipPos = XMVector3TransformCoord(worldPos, viewProj);
 
+        float x = XMVectorGetX(clipPos);
+        float y = XMVectorGetY(clipPos);
+
+        // Преобразование в экранные координаты
+        float screenX = (x + 1.0f) * 0.5f * Camera::state.width;
+        float screenY = (1.0f - y) * 0.5f * Camera::state.height;
+
+        return XMFLOAT2(screenX, screenY);
+    }
+
+    // Проверка видимости объекта с учетом размера
+    bool IsObjectVisible(const XMVECTOR& objectPos, float objectSize)
+    {
+        // Преобразуем позицию объекта в экранные координаты
+        XMFLOAT2 screenPos = WorldToScreen(objectPos);
+
+        // Проверяем, находится ли в пределах экрана с запасом
+        float margin = objectSize*10 ; // Коэффициент можно настроить
+
+        return (screenPos.x >= -margin && screenPos.x <= Camera::state.width + margin &&
+            screenPos.y >= -margin && screenPos.y <= Camera::state.height + margin &&
+            XMVectorGetZ(objectPos) > 0); // Проверка глубины (перед камерой)
+    }
     // Собрать данные для рендеринга (только активных рыб)
-    void GatherRenderData(std::vector<XMFLOAT4>& outData) {
+    void GatherRenderData(std::vector<XMFLOAT4>& outData,int i) {
         outData.clear();
         outData.reserve(activeList.size());
 
         for (uint32_t id : activeList) {
-            outData.emplace_back(
-                fishX[id],
-                fishY[id],
-                fishZ[id],
-                fishSizes[id]
-            );
+
+            if (int(idtexture[id]) == i && IsObjectVisible(XMVectorSet( fishX[id],fishY[id], fishZ[id],0),100 ))
+            {
+                outData.emplace_back(
+                    fishX[id],
+                    fishY[id],
+                    fishZ[id],
+                    fishSizes[id]
+                );
+            }
         }
     }
     void process()
     {
-        int fixedCount = 0;
-
-        // Вариант 1: Стандартный
+        
         for (uint32_t id : activeList) {
-            if (fishZ[id] > 600) {
-                fishZ[id] = 500;
-                fixedCount++;
+            age[id]+=Random::Int(0,1000);
+            if (!heightW(fishX[id], fishY[id])|| fishZ[id]>500) {
+                fishX[id] += Random::Float(-10, 10);
+                fishY[id] += Random::Float(-10, 10);
+                fishZ[id] = heightH(fishX[id], fishY[id]);
+                ww[id]+=Random::Int(-1, 2);
             }
-            float H = heightH(fishX[id], fishY[id]);
-            if (fishZ[id] < H)
-                fishZ[id] = H - 100;
+            if (age[id] > 1000000||ww[id]>1000)
+                RemoveFish(id);
         }
+        
 
-        // Вариант 2: С отладкой каждой рыбы
-        // for (uint32_t id : activeList) {
-        //     printf("Fish %d: z = %.2f\n", id, fishZ[id]);
-        //     if (fishZ[id] > 600) {
-        //         printf("  -> Fixing to 500\n");
-        //         fishZ[id] = 500;
-        //         fixedCount++;
-        //     }
-        // }
 
     }
 

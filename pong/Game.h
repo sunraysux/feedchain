@@ -72,6 +72,7 @@ void drawWorld()
 			
 			//Textures::LoadTextureFromFile(1, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(1);
+			InitFishOptimized(55);
 			//InitFish();
 			initmenu = true;
 		}
