@@ -1585,7 +1585,7 @@ namespace Camera
 		float dz1 = newPosZ - newTargetZ;
 		if (newPosZ < groundPos + minAboveGround && newPosZ < waterLevel)
 			gameState = gameState_::mikro;
-		else if (newPosZ < waterLevel) {
+		else if (newPosZ < waterLevel && gameState!= gameState_::water) {
 			OldgameState = gameState;gameState = gameState_::water;
 		}
 		else if (gameState == gameState_::water)

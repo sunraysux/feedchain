@@ -361,6 +361,10 @@ void WATER() {
 }
 
 void Looppause() {
+    if (gameSpeed != 6){
+        gameState = gameState_::game; 
+        return;
+}
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
     Rasterizer::Cull(Rasterizer::cullmode::back);
 	Camera::Update();
