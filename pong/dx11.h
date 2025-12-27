@@ -1522,8 +1522,8 @@ namespace Camera
 
 		// Мир от -16384 до +16384 (всего 32768)
 		XMFLOAT2 normalizedPos;
-		normalizedPos.x = (worldX ) / 32768.0f;  // Преобразуем -16384..+16384 в 0..1
-		normalizedPos.y = (worldY ) / 32768.0f;
+		normalizedPos.x = (worldX ) / 30000.0f;  // Преобразуем -16384..+16384 в 0..1
+		normalizedPos.y = (worldY ) / 30000.0f;
 
 		// Ограничение координат
 		normalizedPos.x = fmaxf(0.0f, fminf(1.0f, normalizedPos.x));
@@ -1706,16 +1706,16 @@ namespace Camera
 		// Всего 8x8 чанков, каждый от -8192 до +8192
 
 		// Вычисляем номер чанка для камеры
-		int chunkX = (int)floor((ox + 8192.0f) / 2048.0f);
-		int chunkY = (int)floor((oy + 8192.0f) / 2048.0f);
+		//int chunkX = (int)floor((ox + 8192.0f) / 2048.0f);
+		//int chunkY = (int)floor((oy + 8192.0f) / 2048.0f);
 
 		// Ограничиваем диапазон 0..7
-		chunkX = max(0, min(7, chunkX));
-		chunkY = max(0, min(7, chunkY));
+		//chunkX = max(0, min(7, chunkX));
+		//chunkY = max(0, min(7, chunkY));
 
 		// Обновляем состояние
-		state.camXChunk = chunkX;
-		state.camYChunk = chunkY;
+		//state.camXChunk = chunkX;
+		//state.camYChunk = chunkY;
 		ox = Wrap(ox, base_rangex);
 		oy = Wrap(oy, base_rangey);
 		state.position = XMVectorSet(ox, oy, XMVectorGetZ(state.position), 0.0f);

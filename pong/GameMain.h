@@ -35,8 +35,8 @@ float heightH(float x, float y)
     auto& heightMap = Textures::Texture[1];
 
     // 1. Нормализация
-    float normalizedX = (x) / 32768.0f;
-    float normalizedY = (y) / 32768.0f;
+    float normalizedX = (x) / 30000.0;
+    float normalizedY = (y) / 30000.0;
 
     // 2. Жёсткое ограничение
     normalizedX = clamp(normalizedX, 0.0f, 1.0f);
@@ -62,8 +62,8 @@ bool heightW(float worldX, float worldY) {
     auto& heightMap = Textures::Texture[1];
 
     // 1. Нормализация
-    float normalizedX = (worldX) / 32768.0f;
-    float normalizedY = (worldY) / 32768.0f;
+    float normalizedX = (worldX) / 30000.0f;
+    float normalizedY = (worldY) / 30000.0f;
 
     // 2. Жёсткое ограничение
     normalizedX = clamp(normalizedX, 0.0f, 1.0f);
@@ -88,61 +88,158 @@ bool heightW(float worldX, float worldY) {
 }
 
 
-// ==================== OPTIMIZED FISH SYSTEM (SoA) ====================
+
+class Chank {
+private:
+    std::vector<uint32_t> activeList;
+    std::vector<uint32_t> typeList;
+
+public:
+    // Добавить рыбу
+    void AddFish(uint32_t fishId, uint32_t Tt) {
+        // Проверяем, нет ли уже этой рыбы в чанке
+        if (!ContainsFish(fishId)) {
+            activeList.push_back(fishId);
+            typeList.push_back(Tt);
+        }
+    }
+
+    // Удалить рыбу
+    void RemoveFish(uint32_t fishId) {
+        auto it = std::find(activeList.begin(), activeList.end(), fishId);
+        if (it != activeList.end()) {
+            *it = activeList.back();
+            activeList.pop_back();
+        }
+    }
+
+    // Проверить наличие рыбы
+    bool ContainsFish(uint32_t fishId) const {
+        return std::find(activeList.begin(), activeList.end(), fishId) != activeList.end();
+    }
+
+    // Получить количество рыб
+    size_t GetFishCount() const {
+        return activeList.size();
+    }
+
+    // Получить список рыб
+    const std::vector<uint32_t>& GetFishList() const {
+        return activeList;
+    }
+    std::vector<uint32_t> GetObjectsByType(int type) const {
+        std::vector<uint32_t> result;
+
+        // Собираем все ID, у которых нужный тип
+        for (size_t i = 0; i < activeList.size(); ++i) {
+            if (typeList[i] == type) {  // Используем индекс i, а не значение id
+                result.push_back(activeList[i]);
+            }
+        }
+
+        return result;
+    }
+
+    // Очистить чанк
+    void Clear() {
+        activeList.clear();
+    }
+};
+
+Chank chank[300][300][15];
 class FishSystem {
 private:
-    // Structure of Arrays (SoA) - для лучшей производительности
-    std::vector<float> fishX;       // Позиция X
-    std::vector<float> fishY;       // Позиция Y  
-    std::vector<float> fishZ;       // Позиция Z (глубина)
-    std::vector<float> fishSizes;   // Размер рыб
-    std::vector<bool> fishActive;   // Активна ли рыба
-    std::vector<uint32_t> freeIndices; // Свободные индексы для повторного использования
-    std::vector<uint32_t> activeList;  // Список активных индексов
+    std::vector<float> x;       // Позиция X
+    std::vector<float> y;       // Позиция Y  
+    std::vector<float> z;       // Позиция Z (глубина)
+    std::vector<float> sz;  
+    std::vector<bool> gender;
+    std::vector<bool> Active;
+    std::vector<bool> dead;   
+    std::vector<uint32_t> freeIndices;
+    std::vector<uint32_t> activeList; 
     std::vector<uint32_t> idtexture;
     std::vector<uint32_t> age;
+    std::vector<uint32_t> hunger;
+    std::vector<uint32_t> nutritional_value;
     std::vector<uint32_t> ww;
+    std::vector<uint32_t> CchunkX;
+    std::vector<uint32_t> CchunkY;
+    std::vector<uint32_t> CchunkZ;
+    std::vector<uint32_t> maturity_age;
+    std::vector<uint32_t> birth_tick;
+    std::vector<uint32_t> MATURITY_TICKS;
+    std::vector<uint32_t> deadlist;
+    struct NewFish {
+        float x, y, z;
+        int tex;
+        int years;
+        float size;
+    };
+    std::vector<NewFish> newFishes;
 
 public:
     // Добавить рыбу - возвращает ID
-    uint32_t AddFish(float x, float y, float z, int tex, int years, float size = 100.0f) {
+    uint32_t AddFish(float X, float Y, float Z, int tex, int years,int nut, float size = 100.0f) {
         uint32_t id;
 
         if (!freeIndices.empty()) {
             // Используем освобождённый индекс
             id = freeIndices.back();
             freeIndices.pop_back();
+            gender[id] = Random::Int(0, 1);
             age[id] = years;
-            fishX[id] = x;
-            fishY[id] = y;
-            fishZ[id] = z;
-            fishSizes[id] = size;
+            x[id] = X;
+            y[id] = Y;
+            z[id] = Z;
+            sz[id] = size;
             idtexture[id] = tex;
+            maturity_age[id] = 100;
+            birth_tick[id] = tick;
+            MATURITY_TICKS[id] = 100;
+            nutritional_value[id] = nut;
+            hunger[id] = 0;
+            dead[id] = 0;
             ww[id] = 0;
-            fishActive[id] = true;
+            Active[id] = true;
+            CchunkX[id] = coord_to_chunk(X);
+            CchunkY[id] = coord_to_chunk(Y);
+            CchunkZ[id] = coord_to_chunk(Z);
         }
         else {
             // Добавляем новый элемент
-            id = fishX.size();
+            id = x.size();
             age.push_back(years);
-            fishX.push_back(x);
-            fishY.push_back(y);
-            fishZ.push_back(z);
+            x.push_back(X);
+            y.push_back(Y);
+            z.push_back(Z);
             ww.push_back(0);
+            gender.push_back(Random::Int(0, 1));
             idtexture.push_back(tex);
-            fishSizes.push_back(size);
-            fishActive.push_back(true);
+            hunger.push_back(0);
+            sz.push_back(size);
+            nutritional_value.push_back(nut);
+            dead.push_back(0);
+            maturity_age.push_back(100);
+            birth_tick.push_back(tick);
+            MATURITY_TICKS.push_back(100);
+            Active.push_back(true);
+            CchunkX.push_back(coord_to_chunk(X));
+            CchunkY.push_back(coord_to_chunk(Y));
+            CchunkZ.push_back(coord_to_chunk(Z));
         }
-
+        
+        
         activeList.push_back(id);
+        chank[CchunkX[id]][CchunkY[id]][CchunkZ[id]].AddFish(id, idtexture[id]);
         return id;
     }
 
     // Удалить рыбу
     void RemoveFish(uint32_t id) {
-        if (id >= fishActive.size() || !fishActive[id]) return;
+        if (id >= Active.size() || !Active[id]) return;
 
-        fishActive[id] = false;
+        Active[id] = false;
         freeIndices.push_back(id);
 
         // Удаляем из активного списка
@@ -155,19 +252,19 @@ public:
 
     // Геттеры
     bool IsActive(uint32_t id) const {
-        return id < fishActive.size() ? fishActive[id] : false;
+        return id < Active.size() ? Active[id] : false;
     }
 
-    float GetX(uint32_t id) const { return fishX[id]; }
-    float GetY(uint32_t id) const { return fishY[id]; }
-    float GetZ(uint32_t id) const { return fishZ[id]; }
-    float GetSize(uint32_t id) const { return fishSizes[id]; }
+    float GetX(uint32_t id) const { return x[id]; }
+    float GetY(uint32_t id) const { return y[id]; }
+    float GetZ(uint32_t id) const { return z[id]; }
+    float GetSize(uint32_t id) const { return sz[id]; }
 
     // Сеттеры
-    void SetPosition(uint32_t id, float x, float y, float z) {
-        fishX[id] = x;
-        fishY[id] = y;
-        fishZ[id] = z;
+    void SetPosition(uint32_t id, float X, float Y, float Z) {
+        x[id] = X;
+        y[id] = Y;
+        z[id] = Z;
     }
 
     // Получить количество активных рыб
@@ -197,7 +294,7 @@ public:
         XMFLOAT2 screenPos = WorldToScreen(objectPos);
 
         // Проверяем, находится ли в пределах экрана с запасом
-        float margin = objectSize*10 ; // Коэффициент можно настроить
+        float margin = objectSize*100 ; // Коэффициент можно настроить
 
         return (screenPos.x >= -margin && screenPos.x <= Camera::state.width + margin &&
             screenPos.y >= -margin && screenPos.y <= Camera::state.height + margin &&
@@ -210,13 +307,13 @@ public:
 
         for (uint32_t id : activeList) {
 
-            if (int(idtexture[id]) == i && IsObjectVisible(XMVectorSet( fishX[id],fishY[id], fishZ[id],0),100 ))
+            if (int(idtexture[id]) == i && IsObjectVisible(XMVectorSet( x[id],y[id], sz[id],0),100 ))
             {
                 outData.emplace_back(
-                    fishX[id],
-                    fishY[id],
-                    fishZ[id],
-                    fishSizes[id]
+                    x[id],
+                    y[id],
+                    z[id],
+                    sz[id]
                 );
             }
         }
@@ -225,28 +322,59 @@ public:
     {
         
         for (uint32_t id : activeList) {
-            age[id]+=Random::Int(0,1000);
-            if (!heightW(fishX[id], fishY[id])|| fishZ[id]>500) {
-                fishX[id] += Random::Float(-10, 10);
-                fishY[id] += Random::Float(-10, 10);
-                fishZ[id] = heightH(fishX[id], fishY[id]);
-                ww[id]+=Random::Int(-1, 2);
+            age[id]++;
+            hunger[id]++;
+            if (age[id] < maturity_age[id] || (tick - birth_tick[id]) < MATURITY_TICKS[id] || dead[id]) continue;
+
+            int base_cx = CchunkX[id];
+            int base_cy = CchunkY[id];
+            int base_cz = CchunkZ[id];
+            for (auto& w : chank[base_cx][base_cy][base_cz].GetObjectsByType(idtexture[id]))
+            {
+                if (w == id)continue;
+                if (dead[w] == 1) continue;
+                if (gender[w] == gender[id]) continue;
+                if (age[w] < maturity_age[w] || (tick - birth_tick[w]) < MATURITY_TICKS[w]) continue;
+
+                // расстояние с учётом тора
+                float dx = torusDeltaSigned(x[id], x[w], base_rangex);
+                float dy = torusDeltaSigned(y[id], y[w], base_rangey);
+                float dist2 = dx * dx + dy * dy;
+
+                if (dist2 < 500.0f * 500.0f) {
+
+                    int xB = Wrap(x[id] + Random::Int(-500, 500), 30000);
+                    int yB = Wrap(y[id] + Random::Int(-500, 500), 30000);
+                    int zB = clamp(z[id] + Random::Int(-500, 500), 0, 1500);
+                    bool gender = Random::Int(0, 1);
+
+                    // Обновляем cooldown родителей
+                    birth_tick[id] = tick;
+                    birth_tick[w] = tick;
+
+                    newFishes.emplace_back(NewFish{ (float)xB, (float)yB,(float)zB,(int)idtexture[id],0,100.0f });
+                }
             }
-            if (age[id] > 1000000||ww[id]>1000)
-                RemoveFish(id);
+
+
+            if (hunger[id] > 500)
+                deadlist.push_back(id);
+
         }
-        
-
-
+        for (uint32_t id : deadlist) 
+            RemoveFish(id);
+        deadlist.clear();
+        for (auto& newFish : newFishes)
+            AddFish(newFish.x, newFish.y, newFish.z, newFish.tex, newFish.years, newFish.size);
+        newFishes.clear();
     }
-
     // Очистить все данные
     void Clear() {
-        fishX.clear();
-        fishY.clear();
-        fishZ.clear();
-        fishSizes.clear();
-        fishActive.clear();
+        x.clear();
+        y.clear();
+        z.clear();
+        sz.clear();
+        Active.clear();
         freeIndices.clear();
         activeList.clear();
     }

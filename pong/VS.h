@@ -34,7 +34,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     int gridY = 64;
 
     const int TILE_COUNT = 8;
-    const float CHUNK_SIZE = 32768.0f;
+    const float CHUNK_SIZE = 30000.0f;
 
     float2 regionUV = (float2(x, y)) / CHUNK_SIZE;
     if (regionUV.y < 0.00001)regionUV.y = 1;

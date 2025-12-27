@@ -39,7 +39,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     };
     float2 localPos = positions[vID];
 
-    const float REGION_SIZE = 32768.0;
+    const float REGION_SIZE = 30000.0;
 
     // Смещение региона
     float2 regionOffset = float2(regionX * REGION_SIZE, regionY * REGION_SIZE);

@@ -34,7 +34,7 @@ void drawWorld()
 	case gameState_::game:
 		if (!initgame) {
 			InitGame();
-			InitFishOptimized(55);
+			InitFishOptimized(55,1000);
 			initgame = true;
 		}
 		ShowCursor(false);
@@ -43,7 +43,7 @@ void drawWorld()
 	case gameState_::water:
 		if (!initgame) {
 			InitGame();
-			InitFishOptimized(55);
+			InitFishOptimized(55,1000);
 			initgame = true;
 			
 		}
@@ -53,7 +53,7 @@ void drawWorld()
 	case gameState_::pause:
 		if (!initgame) {
 			InitGame();
-			InitFishOptimized(55);
+			InitFishOptimized(55,1000);
 			initgame = true;
 		}
 		ShowCursor(false);
@@ -72,7 +72,8 @@ void drawWorld()
 			
 			//Textures::LoadTextureFromFile(1, L"Debug/i.jpg");
 			Textures::ReadTextureToCPU(1);
-			InitFishOptimized(55);
+			InitFishOptimized(55,1000);
+			InitFishOptimized(3,100);
 			//InitFish();
 			initmenu = true;
 		}

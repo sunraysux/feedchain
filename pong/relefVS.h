@@ -32,7 +32,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     int quadID = vID / 6;
     int localVertex = vID % 6;
 
-    const float AREA_SIZE = 32768.0;
+    const float AREA_SIZE = 30000.0;
     const uint INSTANCE_COUNT = 9; 
 
     float2 offset;

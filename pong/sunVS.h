@@ -27,8 +27,8 @@ inline float torusDeltaA(float from, float to, float size) {
     return diff;
 }
 
-float base_rangey = 32768.0;
-float base_rangex = 32768.0;
+float base_rangey = 30000.0;
+float base_rangex = 30000.0;
 
 VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
 {
@@ -47,7 +47,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     float DD = sqrt(Dd) / gConst[0].z*1000;
      z = 7800 - DD;
     const int TILE_COUNT = 8;
-    const float CHUNK_SIZE = 32768.0f;
+    const float CHUNK_SIZE = 30000.0f;
 
     float2 regionUV = (float2(x, y)) / CHUNK_SIZE;
     if (regionUV.y < 0.00001)regionUV.y = 1;

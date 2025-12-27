@@ -521,24 +521,19 @@ void DrawSun() {
 //    Shaders::pShader(11);
 //    DrawBatchedInstancesF(55, wolves);        // волки
 //}
-void InitFishOptimized(int texID) {
+void InitFishOptimized(int texID, int nut) {
     // Очищаем старую систему
-    g_fishSystem.Clear();
+    //g_fishSystem.Clear();
 
     // Создаём рыб
-    for (int i = 0; i < 100000; i++) {
-        float x = Random::Float(0, base_rangex);
-        float y = Random::Float(0, base_rangey);
-        float z = Random::Float(0, 1500);
-        if (z > 600) {
-            z = 500;
-        }
-        else {
-            float H = heightH(x, y);
-            if (z < H)
-                z = H + 100;
-        }
-        g_fishSystem.AddFish(x, y, z, texID, 0,100.0f);
+    for (int i = 0; i < 10000; i++) {
+        float x = Random::Float(0, 30000);
+        float y = Random::Float(0, 30000);
+        float z = heightH(x, y);
+
+
+        if(z<550)
+        g_fishSystem.AddFish(x, y, z, texID, 0,nut, 100.0f);
     }
     //OptimizedInstanceBuffer g_treeInstanceBuffer;
     // Инициализируем буфер (емкость примерно на 20% больше)
@@ -548,7 +543,7 @@ void InitFishOptimized(int texID) {
 
 // ==================== ОТРИСОВКА РЫБ ====================
 void ShowFishOptimized(int i) {
-    static bool initialized = false;
+     bool initialized = false;
     if (!initialized) {
         // Инициализация при первом вызове
         g_fishInstanceBuffer.Init(i, 1024);

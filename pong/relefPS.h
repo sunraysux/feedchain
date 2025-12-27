@@ -301,8 +301,8 @@ float fbm(float2 p)
 
     return value;
 }
-float base_rangey = 32768.0;
-float base_rangex = 32768.0;
+float base_rangey = 30000.0;
+float base_rangex = 30000.0;
  inline float torusDeltaA(float from, float to, float size) {
      float diff = to - from;
      if (diff < 0)

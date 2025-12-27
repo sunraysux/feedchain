@@ -5,8 +5,14 @@
 
 int tick = 0;
 int tickloop = 0;
-float base_rangey = 32768.0;
-float base_rangex = 32768.0;
+float base_rangey = 30000.0;
+float base_rangex = 30000.0;
+const int CHUNK_SIZE = 100; // Размер чанка
+const int CHUNKS_PER_SIDEX = base_rangex / CHUNK_SIZE;
+const int CHUNKS_PER_SIDEY = base_rangey / CHUNK_SIZE;
+
+static const int LARGE_CHUNK_SIZE = 500;
+static const int CHUNKS_PER_SIDE_LARGE = base_rangex / LARGE_CHUNK_SIZE;
 float clamp(float x, float a, float b)
 {
     return fmax(fmin(x, b), a);
@@ -20,13 +26,19 @@ int slot_number = 1;
 int typeSelect = 1;
 inline float Wrap(float x, float range) {
     if (x >= range) x -= range;
-    if (x < 0) x += range;
+    if (x <= 0) x += range;
     return x;
 }
 enum class gameState_ {
     MainMenu, game, pause,mikro,water
 };
-
+inline int coord_to_chunk(float coord) {
+    // Смещаем координату из [-50,50] в [0,100]
+    float normalized = coord ;
+    // Вычисляем индекс и ограничиваем его
+    int index = static_cast<int>(normalized / CHUNK_SIZE);
+    return clamp(index, 0, CHUNKS_PER_SIDEX - 1);
+}
 gameState_  gameState = gameState_::mikro;
 gameState_  OldgameState = gameState_::game;
 
@@ -106,14 +118,7 @@ float DegreesToRadians(float degrees)
 
 
 
-const int CHUNK_SIZE = 8; // Размер чанка
-int xmin = 1024*4;
-int ymin = 1024*4;
-const int CHUNKS_PER_SIDEX = xmin * 2 / CHUNK_SIZE;
-const int CHUNKS_PER_SIDEY = ymin * 2 / CHUNK_SIZE;
 
-static const int LARGE_CHUNK_SIZE = 128; 
-static const int CHUNKS_PER_SIDE_LARGE = base_rangex/128;
 // секция данных игры  
 class Creature;
 

@@ -255,9 +255,32 @@ void Loop() {
     Rasterizer::Cull(Rasterizer::cullmode::back);
     
 	mouse();
-    g_fishSystem.process();
+    switch (gameSpeed) {
+
+    case 1: // 1x → каждый кадр
+        g_fishSystem.process();
+        tick++;
+        break;
+    case 2: // 2x → два раза за кадр
+        g_fishSystem.process();
+        tick++;
+        g_fishSystem.process();
+        tick++;
+        break;
+    case 3: // 4x → четыре раза за кадр
+        g_fishSystem.process();
+        tick++;
+        g_fishSystem.process();
+        tick++;
+        g_fishSystem.process();
+        tick++;
+        break;
+    }
+    
 	Showpopulations();
+    ShowFishOptimized(3);
     ShowFishOptimized(55);
+    
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
