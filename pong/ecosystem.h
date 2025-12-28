@@ -542,7 +542,7 @@ void InitFishOptimized(int texID, int nut) {
 }
 
 // ==================== ОТРИСОВКА РЫБ ====================
-void ShowFishOptimized(int i) {
+void ShowFishOptimized(int i, int shaderid) {
      bool initialized = false;
     if (!initialized) {
         // Инициализация при первом вызове
@@ -560,5 +560,5 @@ void ShowFishOptimized(int i) {
     g_fishInstanceBuffer.Update(fishData);
 
     // Рендерим (6 квадов * 6 вершин = 36 вершин на куб)
-    g_fishInstanceBuffer.Render(11, 36);
+    g_fishInstanceBuffer.Render(shaderid, 36);
 }

@@ -294,30 +294,49 @@ public:
         XMFLOAT2 screenPos = WorldToScreen(objectPos);
 
         // Проверяем, находится ли в пределах экрана с запасом
-        float margin = objectSize*100 ; // Коэффициент можно настроить
+        float margin = objectSize*1 ; // Коэффициент можно настроить
 
         return (screenPos.x >= -margin && screenPos.x <= Camera::state.width + margin &&
             screenPos.y >= -margin && screenPos.y <= Camera::state.height + margin &&
             XMVectorGetZ(objectPos) > 0); // Проверка глубины (перед камерой)
     }
     // Собрать данные для рендеринга (только активных рыб)
-    void GatherRenderData(std::vector<XMFLOAT4>& outData,int i) {
+    void GatherRenderData(std::vector<XMFLOAT4>& outData, int textureType) {
         outData.clear();
         outData.reserve(activeList.size());
 
-        for (uint32_t id : activeList) {
+        const float WORLD_SIZE = 30000.0f; // Размер вашего мира
 
-            if (int(idtexture[id]) == i && IsObjectVisible(XMVectorSet( x[id],y[id], sz[id],0),100 ))
-            {
-                outData.emplace_back(
-                    x[id],
-                    y[id],
-                    z[id],
-                    sz[id]
-                );
+        for (uint32_t id : activeList) {
+            if (int(idtexture[id]) != textureType) continue;
+
+            float baseX = x[id];
+            float baseY = y[id];
+            float baseZ = z[id];
+            float baseSize = sz[id];
+
+
+            for (int dx = -1; dx <= 1 ; dx++) {
+                for (int dy = -1; dy <= 1 ; dy++) {
+                    float offsetX = baseX + dx * WORLD_SIZE;
+                    float offsetY = baseY + dy * WORLD_SIZE;
+
+                    XMVECTOR pos = XMVectorSet(offsetX, offsetY, baseZ, 0);
+
+                    if (IsObjectVisible(pos, baseSize)) {
+                        outData.emplace_back(
+                            offsetX,
+                            offsetY,
+                            baseZ,
+                            baseSize
+                        );
+                    }
+                }
             }
         }
     }
+
+
     void process()
     {
         

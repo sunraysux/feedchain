@@ -278,9 +278,11 @@ void Loop() {
     }
     
 	Showpopulations();
-    ShowFishOptimized(3);
-    ShowFishOptimized(55);
-    
+    ShowFishOptimized(3,11);
+    ShowFishOptimized(55,11);
+    ShowFishOptimized(12,11);
+    ShowFishOptimized(15,11);
+    ShowFishOptimized(28,11);
 	//рельеф
 	Shaders::vShader(3);
 	Shaders::pShader(3);
@@ -353,7 +355,7 @@ void WATER() {
 
     mouse();
     //ShowFishOptimized(55);
-    ShowFishOptimized(55);
+    ShowFishOptimized(55, 11);
     Showpopulations();
 
     //рельеф
@@ -401,7 +403,7 @@ void Looppause() {
 
 	mouse();
     Showpopulations();
-    ShowFishOptimized(55);
+    ShowFishOptimized(55, 11);
     //рельеф
     Shaders::vShader(3);
     Shaders::pShader(3);
