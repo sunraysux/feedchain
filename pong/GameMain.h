@@ -343,35 +343,45 @@ public:
         for (uint32_t id : activeList) {
             age[id]++;
             hunger[id]++;
-            if (age[id] < maturity_age[id] || (tick - birth_tick[id]) < MATURITY_TICKS[id] || dead[id]) continue;
+            if (idtexture[id] == 55) {
 
-            int base_cx = CchunkX[id];
-            int base_cy = CchunkY[id];
-            int base_cz = CchunkZ[id];
-            for (auto& w : chank[base_cx][base_cy][base_cz].GetObjectsByType(idtexture[id]))
-            {
-                if (w == id)continue;
-                if (dead[w] == 1) continue;
-                if (gender[w] == gender[id]) continue;
-                if (age[w] < maturity_age[w] || (tick - birth_tick[w]) < MATURITY_TICKS[w]) continue;
+                x[id] += Random::Float(-10, 10);
+                y[id] += Random::Float(-10, 10);
+                int zB = heightH(x[id], y[id]) + 50;
+                CchunkX[id] = coord_to_chunk(x[id]);
+                CchunkY[id] = coord_to_chunk(y[id]);
+                CchunkZ[id] = coord_to_chunk(z[id]);
 
-                // расстояние с учётом тора
-                float dx = torusDeltaSigned(x[id], x[w], base_rangex);
-                float dy = torusDeltaSigned(y[id], y[w], base_rangey);
-                float dist2 = dx * dx + dy * dy;
+                if (age[id] < maturity_age[id] || (tick - birth_tick[id]) < MATURITY_TICKS[id] || dead[id]) continue;
 
-                if (dist2 < 500.0f * 500.0f) {
+                int base_cx = CchunkX[id];
+                int base_cy = CchunkY[id];
+                int base_cz = CchunkZ[id];
+                for (auto& w : chank[base_cx][base_cy][base_cz].GetObjectsByType(idtexture[id]))
+                {
+                    if (w == id)continue;
+                    if (dead[w] == 1) continue;
+                    if (gender[w] == gender[id]) continue;
+                    if (age[w] < maturity_age[w] || (tick - birth_tick[w]) < MATURITY_TICKS[w]) continue;
 
-                    int xB = Wrap(x[id] + Random::Int(-500, 500), 30000);
-                    int yB = Wrap(y[id] + Random::Int(-500, 500), 30000);
-                    int zB = clamp(z[id] + Random::Int(-500, 500), 0, 1500);
-                    bool gender = Random::Int(0, 1);
+                    // расстояние с учётом тора
+                    float dx = torusDeltaSigned(x[id], x[w], base_rangex);
+                    float dy = torusDeltaSigned(y[id], y[w], base_rangey);
+                    float dist2 = dx * dx + dy * dy;
 
-                    // Обновляем cooldown родителей
-                    birth_tick[id] = tick;
-                    birth_tick[w] = tick;
+                    if (dist2 < 500.0f * 500.0f) {
 
-                    newFishes.emplace_back(NewFish{ (float)xB, (float)yB,(float)zB,(int)idtexture[id],0,100.0f });
+                        int xB = Wrap(x[id] + Random::Int(-500, 500), 30000);
+                        int yB = Wrap(y[id] + Random::Int(-500, 500), 30000);
+                        int zB = heightH(xB, yB) + 50;
+                        bool gender = Random::Int(0, 1);
+
+                        // Обновляем cooldown родителей
+                        birth_tick[id] = tick;
+                        birth_tick[w] = tick;
+
+                        newFishes.emplace_back(NewFish{ (float)xB, (float)yB,(float)zB,(int)idtexture[id],0,100.0f });
+                    }
                 }
             }
 
